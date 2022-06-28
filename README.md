@@ -14,7 +14,7 @@ The goal of small_memory_tree is lossless compression of a sl_tree.
 - You want to save a sl_tree to disk
 
 ## Do not use small_memory_tree if
-- Your data on the nodes does not allow to set two marks. You should have 2 free values which small_memory_tree can use as marks.
+- Your data on the nodes does not allow to set two marks. You should have 2 free values which small_memory_tree can use as marks
 - You have a sl_tree with a lot of nodes with a low amount of children and a few nodes with a lot of children. In this case small_memory_tree could get bigger than sl_tree
 
 
