@@ -1,6 +1,6 @@
 set(TEST_TARGET_NAME _test)
-add_executable(${TEST_TARGET_NAME} 
-  hello.cxx
+add_executable(${TEST_TARGET_NAME}
+  treeToVectorToTree.cxx
 )
 
 target_link_libraries(${TEST_TARGET_NAME}
@@ -14,4 +14,4 @@ target_include_directories(${TEST_TARGET_NAME} PRIVATE
 
 add_test(NAME ${TEST_TARGET_NAME}
   COMMAND ${TEST_TARGET_NAME} -r junit
-) 
+)
