@@ -173,7 +173,10 @@ void
 vectorToTree (auto const &treeAsVector, T const &markerForEmpty, T const &markerForChild)
 {
   // TODO write this childrenByPath and children could be useful???
-  maxChildren (treeAsVector, markerForEmpty);
+  auto children0 = children (treeAsVector, 0, markerForEmpty);
+  auto children1 = childrenByPath (treeAsVector, { treeAsVector[boost::numeric_cast<size_t> (children0.at (0))] }, markerForEmpty);
+  auto children2 = children (treeAsVector, children1.at (0), markerForEmpty);
+  REQUIRE (treeAsVector[boost::numeric_cast<size_t> (children2.at (0))] == 42);
 }
 
 TEST_CASE ("2 children", "[abc]")
