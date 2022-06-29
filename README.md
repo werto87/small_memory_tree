@@ -16,7 +16,7 @@ The goal of small_memory_tree is lossless compression of a st_tree.
 ## Do not use small_memory_tree if
 - Your data on the nodes does not allow to set two marks. You should have 2 free values which small_memory_tree can use as marks
 - You have a st_tree with a lot of nodes with a low amount of children and a few nodes with a lot of children. In this case small_memory_tree could get bigger than st_tree
-
+- Your data type is small for example uint8_t and you have a lot of nodes.
 
 ## How does small_memory_tree stores a tree
 [write this after implementation]
