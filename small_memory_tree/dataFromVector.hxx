@@ -1,7 +1,7 @@
 #ifndef FF0F9100_DFED_4A55_B6CC_382A1C097294
 #define FF0F9100_DFED_4A55_B6CC_382A1C097294
 
-#include "src/util.hxx"
+#include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <cstddef>
 #include <iterator>

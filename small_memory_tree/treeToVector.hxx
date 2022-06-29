@@ -1,9 +1,9 @@
 #ifndef CD77E88E_7A82_4A96_B983_3A9338969CDC
 #define CD77E88E_7A82_4A96_B983_3A9338969CDC
 
-#include "src/dataFromVector.hxx"
-#include "src/util.hxx"
-#include "src/vectorToTree.hxx"
+#include "small_memory_tree/dataFromVector.hxx"
+#include "small_memory_tree/util.hxx"
+#include "small_memory_tree/vectorToTree.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <cstddef>
 #include <exception>

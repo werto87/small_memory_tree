@@ -1,4 +1,4 @@
-#include "src/treeToVector.hxx"
+#include "small_memory_tree/treeToVector.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 #include <cstddef>

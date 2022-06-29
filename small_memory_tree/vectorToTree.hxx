@@ -1,8 +1,8 @@
 #ifndef BF56D004_36B1_4B05_B512_7D6574C01C5A
 #define BF56D004_36B1_4B05_B512_7D6574C01C5A
 
-#include "src/dataFromVector.hxx"
-#include "src/util.hxx"
+#include "small_memory_tree/dataFromVector.hxx"
+#include "small_memory_tree/util.hxx"
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <cstddef>
