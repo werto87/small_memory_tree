@@ -23,7 +23,7 @@ small_memory_tree stores the st_tree into a vector. It preserves the hierarchic 
 Example:
 Tree:
 -----------0  
----------/--\  
+---------/---\  
 --------1---2  
 -------/  
 -----3  
