@@ -3,4 +3,5 @@ target_sources(${TARGET_NAME_LIB} PRIVATE
     vectorToTree.hxx
     dataFromVector.hxx
     util.hxx
+    small_memory_tree.hxx
 )
