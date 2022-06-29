@@ -65,7 +65,7 @@ childWithValue (std::vector<T> const &vec, size_t index, T value, size_t maxChil
 
 template <typename T>
 std::vector<T>
-childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty, size_t maxChildren)
+indexOfChildrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty, size_t maxChildren)
 {
   auto someValue = size_t{ 0 };
   for (auto value : path)
@@ -87,6 +87,25 @@ childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &
         }
     }
   return children (vec, someValue, markerForEmpty, maxChildren);
+}
+
+template <typename T>
+std::vector<T>
+childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty, size_t maxChildren)
+{
+  auto result = std::vector<T>{};
+  auto tmp = indexOfChildrenByPath (vec, path, markerForEmpty, maxChildren);
+  std::transform (tmp.begin (), tmp.end (), std::back_inserter (result), [&vec] (auto const &indexChild) {
+    if constexpr (TupleLike<T>)
+      {
+        return vec[boost::numeric_cast<size_t> (std::get<0> (indexChild))];
+      }
+    else
+      {
+        return vec[boost::numeric_cast<size_t> (indexChild)];
+      }
+  });
+  return result;
 }
 
 #endif /* FF0F9100_DFED_4A55_B6CC_382A1C097294 */

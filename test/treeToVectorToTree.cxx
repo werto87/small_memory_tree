@@ -28,7 +28,7 @@ TEST_CASE ("2 children", "[abc]")
   auto myVec = treeToVector (tree, 255, 254);
   for (auto &value : childrenByPath (myVec, { 2, 4 }, 255, 2))
     {
-      REQUIRE (myVec[boost::numeric_cast<size_t> (value)] == 42);
+      REQUIRE (value == 42);
     }
 }
 
@@ -57,7 +57,7 @@ TEST_CASE ("3 children and tuple", "[abc]")
   auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
   for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }, 3))
     {
-      REQUIRE (myVec[boost::numeric_cast<size_t> (std::get<0> (value))] == std::tuple<uint8_t, int8_t>{ 42, 42 });
+      REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }
 }
 
@@ -111,5 +111,5 @@ TEST_CASE ("treeToVector", "[abc]")
   REQUIRE (myVec.size () == 24);
   auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined }, 3);
   REQUIRE_FALSE (result.empty ());
-  REQUIRE (myVec[std::get<0> (result.at (0))] == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
+  REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
 }
