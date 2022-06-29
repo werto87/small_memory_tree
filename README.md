@@ -22,8 +22,8 @@ The goal of small_memory_tree is lossless compression of a st_tree.
 small_memory_tree stores the st_tree into a vector. It preserves the hierarchic information in a tree by using indexes.
 Example:
 Tree:
-----------0  
----------/-\  
+-----------0  
+---------/--\  
 --------1---2  
 -------/  
 ------3  
