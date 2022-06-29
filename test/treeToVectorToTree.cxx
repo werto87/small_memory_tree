@@ -12,6 +12,7 @@
 #include <range/v3/range_fwd.hpp>
 #include <st_tree.h>
 #include <sys/types.h>
+#include <type_traits>
 #include <vector>
 
 template <typename T> concept TupleLike = requires (T a)
@@ -170,13 +171,62 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
 
 template <typename T>
 void
-vectorToTree (auto const &treeAsVector, T const &markerForEmpty, T const &markerForChild)
+addChildren (auto const &treeAsVector, T const &value, auto &treeItr, auto &markerForEmpty)
 {
-  // TODO write this childrenByPath and children could be useful???
-  auto children0 = children (treeAsVector, 0, markerForEmpty);
-  auto children1 = childrenByPath (treeAsVector, { treeAsVector[boost::numeric_cast<size_t> (children0.at (0))] }, markerForEmpty);
-  auto children2 = children (treeAsVector, children1.at (0), markerForEmpty);
-  REQUIRE (treeAsVector[boost::numeric_cast<size_t> (children2.at (0))] == 42);
+  auto parentIndex = size_t{};
+  if constexpr (TupleLike<T>)
+    {
+      parentIndex = std::get<0> (value);
+    }
+  else
+    {
+      parentIndex = boost::numeric_cast<size_t> (value);
+    }
+  for (auto const &child : children (treeAsVector, parentIndex, markerForEmpty))
+    {
+      auto childIndex = size_t{};
+      if constexpr (TupleLike<T>)
+        {
+          childIndex = std::get<0> (child);
+        }
+      else
+        {
+          childIndex = boost::numeric_cast<size_t> (child);
+        }
+      auto parentItr = treeItr->insert (treeAsVector[childIndex]);
+      addChildren (treeAsVector, child, parentItr, markerForEmpty);
+    }
+}
+template <typename T>
+void
+fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty)
+{
+  for (auto const &child : children (treeAsVector, 0, markerForEmpty))
+    {
+      auto childIndex = size_t{};
+      if constexpr (TupleLike<T>)
+        {
+          childIndex = std::get<0> (child);
+        }
+      else
+        {
+          childIndex = boost::numeric_cast<size_t> (child);
+        }
+      auto parentItr = tree.root ().insert (treeAsVector[childIndex]);
+      addChildren (treeAsVector, child, parentItr, markerForEmpty);
+    }
+}
+
+// TODO maybe instead of index use relative position index is limited to the type size. relative position is kinda limited to type size but not that strong
+// index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
+template <typename T>
+auto
+vectorToTree (auto const &treeAsVector, T const &markerForEmpty)
+{
+  auto result = st_tree::tree<T>{};
+  result.insert (treeAsVector.at (0));
+  fillTree (treeAsVector, result, markerForEmpty);
+  return result;
 }
 
 TEST_CASE ("2 children", "[abc]")
@@ -188,7 +238,6 @@ TEST_CASE ("2 children", "[abc]")
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
   auto myVec = treeToVector (tree, 255, 254);
-  vectorToTree (myVec, 255, 254);
   for (auto &value : childrenByPath (myVec, { 2, 4 }, 255))
     {
       REQUIRE (myVec[boost::numeric_cast<size_t> (value)] == 42);
@@ -214,7 +263,7 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
   tree.root ().insert (3);
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
-  vectorToTree (treeToVector (tree, 255, 254), 255, 254);
+  REQUIRE (vectorToTree (treeToVector (tree, 255, 254), 255) == tree);
 }
 
 TEST_CASE ("3 children and tuple", "[abc]")
@@ -231,6 +280,18 @@ TEST_CASE ("3 children and tuple", "[abc]")
     {
       REQUIRE (myVec[boost::numeric_cast<size_t> (std::get<0> (value))] == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }
+}
+
+TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
+{
+  auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
+  tree.insert ({ 1, 1 });
+  tree.root ().insert ({ 2, 2 });
+  tree.root ().insert ({ 3, 3 });
+  tree.root ().insert ({ 69, 69 });
+  tree.root ()[0].insert ({ 4, 4 });
+  tree.root ()[0][0].insert ({ 42, 42 });
+  // REQUIRE (vectorToTree (treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 }), std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
 }
 
 enum class Result : uint8_t
