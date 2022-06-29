@@ -1,8 +1,13 @@
+#ifndef BF56D004_36B1_4B05_B512_7D6574C01C5A
+#define BF56D004_36B1_4B05_B512_7D6574C01C5A
+
+#include "src/smallMemoryTree.hxx"
 #include "src/util.hxx"
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <iterator>
 #include <range/v3/algorithm.hpp>
+#include <st_tree.h>
 #include <vector>
 template <typename T>
 void
@@ -51,3 +56,15 @@ fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty)
       addChildren (treeAsVector, child, parentItr, markerForEmpty);
     }
 }
+
+template <typename T>
+auto
+vectorToTree (auto const &treeAsVector, T const &markerForEmpty)
+{
+  auto result = st_tree::tree<T>{};
+  result.insert (treeAsVector.at (0));
+  fillTree (treeAsVector, result, markerForEmpty);
+  return result;
+}
+
+#endif /* BF56D004_36B1_4B05_B512_7D6574C01C5A */

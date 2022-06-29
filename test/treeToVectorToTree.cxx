@@ -1,5 +1,4 @@
 #include "src/treeToVector.hxx"
-#include "src/vectorToTree.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 #include <cstddef>
@@ -15,19 +14,8 @@
 #include <type_traits>
 #include <vector>
 
-
-
 // TODO maybe instead of index use relative position index is limited to the type size. relative position is kinda limited to type size but not that strong
 // index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
-template <typename T>
-auto
-vectorToTree (auto const &treeAsVector, T const &markerForEmpty)
-{
-  auto result = st_tree::tree<T>{};
-  result.insert (treeAsVector.at (0));
-  fillTree (treeAsVector, result, markerForEmpty);
-  return result;
-}
 
 TEST_CASE ("2 children", "[abc]")
 {
@@ -91,7 +79,7 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  // REQUIRE (vectorToTree (treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 }), std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
+  REQUIRE (vectorToTree (treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 }), std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
 }
 
 enum class Result : uint8_t
