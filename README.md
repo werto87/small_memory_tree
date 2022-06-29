@@ -36,13 +36,13 @@ Vector:
 02-6-----------index child 2  
 03-1-----------child value 1  
 04-9-----------index child 3  
-05-255---------marker for empty value  
+05-255--------marker for empty value  
 06-2-----------child value 2  
-07-255---------marker for empty value  
-08-255---------marker for empty value  
+07-255--------marker for empty value  
+08-255--------marker for empty value  
 09-3-----------child value 3  
 10-12----------index child 4  
-11-255---------marker for empty value  
+11-255--------marker for empty value  
 12-4-----------child value 4  
-13-255---------marker for empty value  
-14-255---------marker for empty value  
+13-255--------marker for empty value  
+14-255--------marker for empty value  
