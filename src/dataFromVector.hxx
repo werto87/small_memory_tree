@@ -25,20 +25,11 @@ maxChildren (T const &tree)
 }
 
 template <typename T>
-long
-maxChildren (auto const &treeAsVector, T const &markerForEmpty)
-{
-  using VectorElementType = typename std::decay<decltype (*treeAsVector.begin ())>::type;
-  auto findResult = ranges::find_if (treeAsVector.rbegin (), treeAsVector.rend (), [&markerForEmpty] (VectorElementType const &element) { return element != markerForEmpty; });
-  return std::distance (treeAsVector.rbegin (), findResult);
-}
-
-template <typename T>
 std::vector<T>
-children (std::vector<T> const &vec, size_t index, T emptyMarker)
+children (std::vector<T> const &vec, size_t index, T emptyMarker, size_t maxChildren)
 {
   auto result = std::vector<T>{};
-  for (auto i = size_t{ 1 }; i <= boost::numeric_cast<size_t> (maxChildren (vec, emptyMarker)); i++)
+  for (auto i = size_t{ 1 }; i <= maxChildren; i++)
     {
       if (vec[index + i] != emptyMarker)
         {
@@ -50,9 +41,9 @@ children (std::vector<T> const &vec, size_t index, T emptyMarker)
 
 template <typename T>
 std::optional<T>
-childWithValue (std::vector<T> const &vec, size_t index, T markerForEmpty, T value)
+childWithValue (std::vector<T> const &vec, size_t index, T value, size_t maxChildren)
 {
-  for (auto i = size_t{ 1 }; i <= boost::numeric_cast<size_t> (maxChildren (vec, markerForEmpty)); i++)
+  for (auto i = size_t{ 1 }; i <= boost::numeric_cast<size_t> (maxChildren); i++)
     {
       if constexpr (TupleLike<T>)
         {
@@ -74,12 +65,12 @@ childWithValue (std::vector<T> const &vec, size_t index, T markerForEmpty, T val
 
 template <typename T>
 std::vector<T>
-childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty)
+childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty, size_t maxChildren)
 {
   auto someValue = size_t{ 0 };
   for (auto value : path)
     {
-      if (auto index = childWithValue (vec, someValue, markerForEmpty, value))
+      if (auto index = childWithValue (vec, someValue, value, maxChildren))
         {
           if constexpr (TupleLike<T>)
             {
@@ -95,30 +86,7 @@ childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &
           return {};
         }
     }
-  return children (vec, someValue, markerForEmpty);
-}
-
-template <typename T>
-void
-fillChildren (std::vector<T> &vec, size_t maxChildren, T const &markerForChild)
-{
-  auto nodeCount = size_t{ 1 };
-  for (auto &value : vec)
-    {
-      if (value == markerForChild)
-        {
-          if constexpr (TupleLike<T>)
-            {
-              std::get<0> (value) = static_cast<typename std::decay<decltype (std::get<0> (value))>::type> (nodeCount * (maxChildren + 1));
-              nodeCount++;
-            }
-          else
-            {
-              value = static_cast<T> (nodeCount * (maxChildren + 1));
-              nodeCount++;
-            }
-        }
-    }
+  return children (vec, someValue, markerForEmpty, maxChildren);
 }
 
 #endif /* FF0F9100_DFED_4A55_B6CC_382A1C097294 */

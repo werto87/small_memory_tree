@@ -1,7 +1,7 @@
 #ifndef CD77E88E_7A82_4A96_B983_3A9338969CDC
 #define CD77E88E_7A82_4A96_B983_3A9338969CDC
 
-#include "src/smallMemoryTree.hxx"
+#include "src/dataFromVector.hxx"
 #include "src/util.hxx"
 #include "src/vectorToTree.hxx"
 #include <boost/numeric/conversion/cast.hpp>
@@ -14,6 +14,30 @@
 #include <stdexcept>
 #include <tuple>
 #include <vector>
+
+template <typename T>
+void
+fillChildren (std::vector<T> &vec, size_t maxChildren, T const &markerForChild)
+{
+  auto nodeCount = size_t{ 1 };
+  for (auto &value : vec)
+    {
+      if (value == markerForChild)
+        {
+          if constexpr (TupleLike<T>)
+            {
+              std::get<0> (value) = static_cast<typename std::decay<decltype (std::get<0> (value))>::type> (nodeCount * (maxChildren + 1));
+              nodeCount++;
+            }
+          else
+            {
+              value = static_cast<T> (nodeCount * (maxChildren + 1));
+              nodeCount++;
+            }
+        }
+    }
+}
+
 template <typename T>
 std::vector<T>
 treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*tree.begin ())>::type const &node)> nodeToData = {})

@@ -26,21 +26,10 @@ TEST_CASE ("2 children", "[abc]")
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
   auto myVec = treeToVector (tree, 255, 254);
-  for (auto &value : childrenByPath (myVec, { 2, 4 }, 255))
+  for (auto &value : childrenByPath (myVec, { 2, 4 }, 255, 2))
     {
       REQUIRE (myVec[boost::numeric_cast<size_t> (value)] == 42);
     }
-}
-
-TEST_CASE ("maxChildren", "[abc]")
-{
-  auto tree = st_tree::tree<int>{};
-  tree.insert (1);
-  tree.root ().insert (2);
-  tree.root ().insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[0][0].insert (42);
-  REQUIRE (maxChildren (treeToVector (tree, 255, 254), 255) == 2);
 }
 
 TEST_CASE ("vectorToTree tree to vector", "[abc]")
@@ -51,7 +40,9 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
   tree.root ().insert (3);
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
-  REQUIRE (vectorToTree (treeToVector (tree, 255, 254), 255) == tree);
+  tree.root ()[1].insert (42);
+  tree.root ()[1][0].insert (42);
+  REQUIRE (vectorToTree (treeToVector (tree, 255, 254), 255, 2) == tree);
 }
 
 TEST_CASE ("3 children and tuple", "[abc]")
@@ -64,7 +55,7 @@ TEST_CASE ("3 children and tuple", "[abc]")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
-  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }))
+  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }, 3))
     {
       REQUIRE (myVec[boost::numeric_cast<size_t> (std::get<0> (value))] == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }
@@ -79,7 +70,7 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  REQUIRE (vectorToTree (treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 }), std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
+  REQUIRE (vectorToTree (treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 }), std::tuple<uint8_t, int8_t>{ 255, -1 }, 3) == tree);
 }
 
 enum class Result : uint8_t
@@ -118,7 +109,7 @@ TEST_CASE ("treeToVector", "[abc]")
   tree.root ()[0][0].insert (1, { Result::Undefined, true });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, std::tuple<uint8_t, Result>{ 254, Result::Undefined }, [] (auto const &node) { return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) }; });
   REQUIRE (myVec.size () == 24);
-  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined });
+  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined }, 3);
   REQUIRE_FALSE (result.empty ());
   REQUIRE (myVec[std::get<0> (result.at (0))] == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
 }
