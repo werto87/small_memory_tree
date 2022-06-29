@@ -16,7 +16,7 @@
 
 // TODO maybe instead of index use relative position index is limited to the type size. relative position is kinda limited to type size but not that strong
 // index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
-
+using namespace small_memory_tree;
 TEST_CASE ("2 children", "[abc]")
 {
   auto tree = st_tree::tree<int>{};

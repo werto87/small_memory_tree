@@ -9,6 +9,9 @@
 #include <range/v3/algorithm/find_if.hpp>
 #include <type_traits>
 #include <vector>
+
+namespace small_memory_tree
+{
 template <typename T>
 size_t
 maxChildren (T const &tree)
@@ -106,6 +109,7 @@ childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &
       }
   });
   return result;
+}
 }
 
 #endif /* FF0F9100_DFED_4A55_B6CC_382A1C097294 */

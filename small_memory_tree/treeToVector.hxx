@@ -15,6 +15,9 @@
 #include <tuple>
 #include <vector>
 
+namespace small_memory_tree
+{
+
 template <typename T>
 void
 fillChildren (std::vector<T> &vec, size_t maxChildren, T const &markerForChild)
@@ -73,5 +76,5 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
   fillChildren (result, maxChildrenInTree, markerForChild);
   return result;
 }
-
+}
 #endif /* CD77E88E_7A82_4A96_B983_3A9338969CDC */

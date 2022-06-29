@@ -10,6 +10,10 @@
 #include <range/v3/algorithm.hpp>
 #include <st_tree.h>
 #include <vector>
+
+namespace small_memory_tree
+{
+
 template <typename T>
 void
 addChildren (auto const &treeAsVector, T const &value, auto &treeItr, auto &markerForEmpty, size_t maxChildren)
@@ -67,5 +71,5 @@ vectorToTree (auto const &treeAsVector, T const &markerForEmpty, size_t maxChild
   fillTree (treeAsVector, result, markerForEmpty, maxChildren);
   return result;
 }
-
+}
 #endif /* BF56D004_36B1_4B05_B512_7D6574C01C5A */
