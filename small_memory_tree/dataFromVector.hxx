@@ -12,6 +12,16 @@
 
 namespace small_memory_tree
 {
+
+template <typename T>
+long
+maxChildren (auto const &treeAsVector, T const &markerForEmpty)
+{
+  using VectorElementType = typename std::decay<decltype (*treeAsVector.begin ())>::type;
+  auto findResult = ranges::find_if (treeAsVector.rbegin (), treeAsVector.rend (), [&markerForEmpty] (VectorElementType const &element) { return element != markerForEmpty; });
+  return std::distance (treeAsVector.rbegin (), findResult);
+}
+
 template <typename T>
 size_t
 maxChildren (T const &tree)
@@ -29,12 +39,12 @@ maxChildren (T const &tree)
 
 template <typename T>
 std::vector<T>
-children (std::vector<T> const &vec, size_t index, T emptyMarker, size_t maxChildren)
+children (std::vector<T> const &vec, size_t index, T markerForEmpty)
 {
   auto result = std::vector<T>{};
-  for (auto i = size_t{ 1 }; i <= maxChildren; i++)
+  for (auto i = size_t{ 1 }; i <= maxChildren (vec, markerForEmpty); i++)
     {
-      if (vec[index + i] != emptyMarker)
+      if (vec[index + i] != markerForEmpty)
         {
           result.push_back (vec[index + i]);
         }
@@ -68,12 +78,12 @@ childWithValue (std::vector<T> const &vec, size_t index, T value, size_t maxChil
 
 template <typename T>
 std::vector<T>
-indexOfChildrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty, size_t maxChildren)
+indexOfChildrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty)
 {
   auto someValue = size_t{ 0 };
   for (auto value : path)
     {
-      if (auto index = childWithValue (vec, someValue, value, maxChildren))
+      if (auto index = childWithValue (vec, someValue, value, maxChildren (vec, markerForEmpty)))
         {
           if constexpr (TupleLike<T>)
             {
@@ -89,15 +99,15 @@ indexOfChildrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T 
           return {};
         }
     }
-  return children (vec, someValue, markerForEmpty, maxChildren);
+  return children (vec, someValue, markerForEmpty);
 }
 
 template <typename T>
 std::vector<T>
-childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty, size_t maxChildren)
+childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty)
 {
   auto result = std::vector<T>{};
-  auto tmp = indexOfChildrenByPath (vec, path, markerForEmpty, maxChildren);
+  auto tmp = indexOfChildrenByPath (vec, path, markerForEmpty);
   std::transform (tmp.begin (), tmp.end (), std::back_inserter (result), [&vec] (auto const &indexChild) {
     if constexpr (TupleLike<T>)
       {

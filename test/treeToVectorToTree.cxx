@@ -17,6 +17,7 @@
 // TODO maybe instead of index use relative position index is limited to the type size. relative position is kinda limited to type size but not that strong
 // index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
 using namespace small_memory_tree;
+
 TEST_CASE ("2 children", "[abc]")
 {
   auto tree = st_tree::tree<int>{};
@@ -26,7 +27,7 @@ TEST_CASE ("2 children", "[abc]")
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
   auto myVec = treeToVector (tree, 255, 254);
-  for (auto &value : childrenByPath (myVec, { 2, 4 }, 255, 2))
+  for (auto &value : childrenByPath (myVec, { 2, 4 }, 255))
     {
       REQUIRE (value == 42);
     }
@@ -42,7 +43,9 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
   tree.root ()[0][0].insert (42);
   tree.root ()[1].insert (42);
   tree.root ()[1][0].insert (42);
-  REQUIRE (vectorToTree (treeToVector (tree, 255, 254), 255, 2) == tree);
+  tree.root ()[1][0][0].insert (123);
+  auto myVec = treeToVector (tree, 255, 254);
+  REQUIRE (vectorToTree (myVec, 255) == tree);
 }
 
 TEST_CASE ("3 children and tuple", "[abc]")
@@ -55,7 +58,7 @@ TEST_CASE ("3 children and tuple", "[abc]")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
-  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }, 3))
+  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }))
     {
       REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }
@@ -70,7 +73,8 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  REQUIRE (vectorToTree (treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 }), std::tuple<uint8_t, int8_t>{ 255, -1 }, 3) == tree);
+  auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
+  REQUIRE (vectorToTree (myVec, std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
 }
 
 enum class Result : uint8_t
@@ -109,7 +113,7 @@ TEST_CASE ("treeToVector", "[abc]")
   tree.root ()[0][0].insert (1, { Result::Undefined, true });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, std::tuple<uint8_t, Result>{ 254, Result::Undefined }, [] (auto const &node) { return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) }; });
   REQUIRE (myVec.size () == 24);
-  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined }, 3);
+  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined });
   REQUIRE_FALSE (result.empty ());
   REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
 }

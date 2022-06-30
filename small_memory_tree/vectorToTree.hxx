@@ -27,7 +27,7 @@ addChildren (auto const &treeAsVector, T const &value, auto &treeItr, auto &mark
     {
       parentIndex = boost::numeric_cast<size_t> (value);
     }
-  for (auto const &child : children (treeAsVector, parentIndex, markerForEmpty, maxChildren))
+  for (auto const &child : children (treeAsVector, parentIndex, markerForEmpty))
     {
       auto childIndex = size_t{};
       if constexpr (TupleLike<T>)
@@ -46,7 +46,7 @@ template <typename T>
 void
 fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty, size_t maxChildren)
 {
-  for (auto const &child : children (treeAsVector, 0, markerForEmpty, maxChildren))
+  for (auto const &child : children (treeAsVector, 0, markerForEmpty))
     {
       auto childIndex = size_t{};
       if constexpr (TupleLike<T>)
@@ -64,11 +64,11 @@ fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty, size_t maxChi
 
 template <typename T>
 auto
-vectorToTree (auto const &treeAsVector, T const &markerForEmpty, size_t maxChildren)
+vectorToTree (auto const &treeAsVector, T const &markerForEmpty)
 {
   auto result = st_tree::tree<T>{};
   result.insert (treeAsVector.at (0));
-  fillTree (treeAsVector, result, markerForEmpty, maxChildren);
+  fillTree (treeAsVector, result, markerForEmpty, maxChildren (treeAsVector, markerForEmpty));
   return result;
 }
 }
