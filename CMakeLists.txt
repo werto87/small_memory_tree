@@ -20,6 +20,7 @@ conan_basic_setup(TARGETS)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(TARGET_NAME_LIB project_lib)
 add_library(${TARGET_NAME_LIB} OBJECT)
+set_target_properties(${TARGET_NAME_LIB} PROPERTIES LINKER_LANGUAGE CXX)
 add_subdirectory(small_memory_tree)
 target_include_directories(${TARGET_NAME_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${TARGET_NAME_LIB} PUBLIC
@@ -36,18 +37,6 @@ target_link_libraries(${TARGET_NAME_LIB} PUBLIC
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
 
-# create executable
-OPTION(BUILD_TESTS "enable tests" OFF)
+enable_testing()
+add_subdirectory(test)
 
-IF(BUILD_TESTS)
-  enable_testing()
-  add_subdirectory(test)
-ENDIF(BUILD_TESTS)
-
-# set(TARGET_NAME project)
-# add_executable(${TARGET_NAME}
-# main.cxx
-# )
-# target_link_libraries(${TARGET_NAME} PUBLIC
-# ${TARGET_NAME_LIB}
-# )
