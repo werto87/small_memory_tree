@@ -1,18 +1,10 @@
 #include "small_memory_tree/treeToVector.hxx"
-#include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
-#include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <iterator>
-#include <numeric>
-#include <optional>
 #include <range/v3/algorithm.hpp>
 #include <range/v3/range_fwd.hpp>
 #include <st_tree.h>
-#include <sys/types.h>
-#include <type_traits>
-#include <vector>
 
 // TODO maybe instead of index use relative position index is limited to the type size. relative position is kinda limited to type size but not that strong
 // index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
@@ -75,6 +67,41 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
   tree.root ()[0][0].insert ({ 42, 42 });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
   REQUIRE (vectorToTree (myVec, std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
+}
+
+TEST_CASE ("treeToVector more than 255 elements", "[abc]")
+{
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (1);
+  auto node = tree.root ().insert (2);
+  for (uint8_t i = 0; i < 130; ++i)
+    {
+      node = node->insert (i);
+    }
+  //  TODO there should be an error message if treeToVector is just used with 255 and 254 because this are implicit ints and not uint8_t
+  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
+  REQUIRE (myVec.size () == 264);
+  //  int{} so it is easier to read the error message when the test fails
+  REQUIRE (int{ myVec.at (253) } != int{ 254 });
+}
+
+TEST_CASE ("treeToVector more than 255 elements second child has 2 children first child no children", "[abc]")
+{
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (1);
+  auto node = tree.root ().insert (42);
+  for (uint8_t i = 43; i < 130;)
+    {
+      node->insert (i);
+      ++i;
+      node = node->insert (i);
+      ++i;
+    }
+  //  TODO there should be an error message if treeToVector is just used with 255 and 254 because this are implicit ints and not uint8_t
+  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
+  REQUIRE (myVec.size () == 270);
+  //  int{} so it is easier to read the error message when the test fails
+  REQUIRE (int{ myVec.at (263) } == int{ 4 });
 }
 
 enum class Result : uint8_t

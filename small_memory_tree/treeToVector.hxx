@@ -23,18 +23,20 @@ void
 fillChildren (std::vector<T> &vec, size_t maxChildren, T const &markerForChild)
 {
   auto nodeCount = size_t{ 1 };
-  for (auto &value : vec)
+  for (uint64_t i = 0; i < vec.size (); ++i)
     {
+      auto &value = vec.at (i);
       if (value == markerForChild)
         {
           if constexpr (TupleLike<T>)
             {
-              std::get<0> (value) = static_cast<typename std::decay<decltype (std::get<0> (value))>::type> (nodeCount * (maxChildren + 1));
+              std::get<0> (value) = boost::numeric_cast<typename std::decay<decltype (std::get<0> (value))>::type> (nodeCount * (maxChildren + 1) - i);
               nodeCount++;
             }
           else
             {
-              value = static_cast<T> (nodeCount * (maxChildren + 1));
+              value = boost::numeric_cast<T> ((nodeCount * (maxChildren + 1)) - i);
+              //              value = boost::numeric_cast<T> (maxChildren);
               nodeCount++;
             }
         }
@@ -58,6 +60,10 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
           if constexpr (std::is_same<typename std::decay<decltype (node.data ())>::type, T>::value)
             {
               result.push_back (node.data ());
+            }
+          else
+            {
+              throw std::logic_error{ "node type and element type of result vector is not the same." };
             }
         }
       auto currentChildren = size_t{};
