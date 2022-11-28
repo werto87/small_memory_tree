@@ -36,7 +36,6 @@ fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForChild
           else
             {
               value = boost::numeric_cast<T> ((nodeCount * (maxChildren + 1)) - i);
-              //              value = boost::numeric_cast<T> (maxChildren);
               nodeCount++;
             }
         }
