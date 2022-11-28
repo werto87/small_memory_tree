@@ -110,7 +110,6 @@ TEST_CASE ("childrenByPath path with 2 values", "[abc]")
 
 TEST_CASE ("2 children", "[abc]")
 {
-  // TODO fix tests
   auto tree = st_tree::tree<int>{};
   tree.insert (1);
   tree.root ().insert (1337);

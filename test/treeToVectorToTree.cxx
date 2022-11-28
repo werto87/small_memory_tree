@@ -6,8 +6,6 @@
 #include <range/v3/range_fwd.hpp>
 #include <st_tree.h>
 
-// TODO maybe instead of index use relative position index is limited to the type size. relative position is kinda limited to type size but not that strong
-// index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
 using namespace small_memory_tree;
 
 TEST_CASE ("vectorToTree tree to vector", "[abc]")
@@ -79,7 +77,6 @@ TEST_CASE ("treeToVector more than 255 elements second child has 2 children firs
       node = node->insert (i);
       ++i;
     }
-  //  TODO there should be an error message if treeToVector is just used with 255 and 254 because this are implicit ints and not uint8_t
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
   REQUIRE (myVec.size () == 270);
   //  int{} so it is easier to read the error message when the test fails
