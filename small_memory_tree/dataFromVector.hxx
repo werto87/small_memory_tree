@@ -76,31 +76,6 @@ childWithValue (std::vector<T> const &vec, uint64_t index, T value, T markerForE
   return {};
 }
 
-//template <typename T>
-//std::vector<T>
-//offsetOfChildrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty)
-//{
-//  auto someValue = uint64_t{ 0 };
-//  for (uint64_t i = 0;i<path.size() ;++i)
-//    {
-//      if (auto index = childWithValue (vec, someValue, path.at (i), markerForEmpty))
-//        {
-//          if constexpr (TupleLike<T>)
-//            {
-//              someValue = boost::numeric_cast<uint64_t> (std::get<0> (index.value ()))+i+someValue+1;
-//            }
-//          else
-//            {
-//              someValue = boost::numeric_cast<uint64_t> (index.value ())+i+someValue+1;
-//            }
-//        }
-//      else
-//        {
-//          return {};
-//        }
-//    }
-//  return children (vec, someValue, markerForEmpty);
-//}
 
 template <typename T>
 std::vector<T>

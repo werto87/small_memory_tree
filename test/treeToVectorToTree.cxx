@@ -19,17 +19,19 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
   tree.root ()[1].insert (42000);
   tree.root ()[1][0].insert (42000);
   tree.root ()[1][0][0].insert (123000);
-  auto myVec = treeToVector (tree, 255, 254);
-  REQUIRE (vectorToTree (myVec, 255) == tree);
+  auto maxIntValue = std::numeric_limits<int>::max ();
+  auto myVec = treeToVector (tree, maxIntValue, maxIntValue - 1);
+  REQUIRE (vectorToTree (myVec, maxIntValue) == tree);
 }
 
 TEST_CASE ("3 children tree to vector", "[abc]")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
-  tree.root ().insert (2);
-  tree.root ().insert (3);
-  tree.root ().insert (69);
+  for (auto i = 0; i < 15; ++i)
+    {
+      tree.root ().insert (11);
+    }
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
