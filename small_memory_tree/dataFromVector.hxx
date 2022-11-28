@@ -14,12 +14,12 @@ namespace small_memory_tree
 {
 
 template <typename T>
-long
+uint64_t
 maxChildren (auto const &treeAsVector, T const &markerForEmpty)
 {
   using VectorElementType = typename std::decay<decltype (*treeAsVector.begin ())>::type;
   auto findResult = ranges::find_if (treeAsVector.rbegin (), treeAsVector.rend (), [&markerForEmpty] (VectorElementType const &element) { return element != markerForEmpty; });
-  return std::distance (treeAsVector.rbegin (), findResult);
+  return boost::numeric_cast<uint64_t>(std::distance (treeAsVector.rbegin (), findResult));
 }
 
 template <typename T>
