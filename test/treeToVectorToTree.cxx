@@ -119,7 +119,10 @@ TEST_CASE ("treeToVector", "[abc]")
   tree.root ().insert (3, { Result::Undefined, true });
   tree.root ()[0].insert (0, { Result::Undefined, true });
   tree.root ()[0][0].insert (1, { Result::Undefined, true });
-  auto myVec = treeToVector (tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, std::tuple<uint8_t, Result>{ 254, Result::Undefined }, [] (auto const &node) { return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) }; });
+  auto myVec = treeToVector (tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, std::tuple<uint8_t, Result>{ 254, Result::Undefined }, [] (auto const &node) {
+    //
+    return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) };
+  });
   REQUIRE (myVec.size () == 24);
   auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined });
   REQUIRE_FALSE (result.empty ());

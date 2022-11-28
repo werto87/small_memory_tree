@@ -40,85 +40,63 @@ TEST_CASE ("children", "[abc]")
   REQUIRE (myVec[offset + parentIndex + numberFromChild] == 1);
 }
 
-TEST_CASE ("childWithValue", "[abc]")
+TEST_CASE ("indexOffChildWithValue node with 2 children", "[abc]")
 {
-  auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (uint8_t i = 0; i < 130; ++i)
-    {
-      node->insert (i);
-      node = node->insert (i);
-    }
-  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto parentIndex = uint64_t{ 9 };
-  auto myChildren = childWithValue (myVec, parentIndex, uint8_t{ 1 }, uint8_t{ 255 });
-  REQUIRE (myChildren.has_value ());
+  auto tree = st_tree::tree<int>{};
+  tree.insert (100);
+  auto parent = tree.root ().insert (200);
+  parent->insert (300);
+  parent->insert (400);
+  auto const &intMax = std::numeric_limits<int>::max ();
+  auto myVec = treeToVector (tree, intMax, intMax - 1);
+  auto parentIndex = uint64_t{ 3 };
+  auto firstChild = indexOffChildWithValue (myVec, parentIndex, int{ 300 }, intMax);
+  auto secondChild = indexOffChildWithValue (myVec, parentIndex, int{ 400 }, intMax);
+  REQUIRE (firstChild.value () == 6);
+  REQUIRE (secondChild.value () == 9);
 }
 
 TEST_CASE ("childrenByPath", "[abc]")
 {
   auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (uint8_t i = 0; i < 130; ++i)
+  tree.insert (41);
+  auto node = tree.root ().insert (42);
+  for (uint8_t i = 0; i < 8; ++i)
     {
-      node->insert (i);
-      node = node->insert (i);
+      node = node->insert (i + 100);
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto parentIndex = uint64_t{ 0 };
   auto myChildren = childrenByPath (myVec, {}, uint8_t{ 255 });
-  auto numberFromChild = uint64_t{ 1 }; // first child has number one second number 2
-  REQUIRE (myVec[myChildren.front () + parentIndex + numberFromChild] == 2);
-}
-
-TEST_CASE ("childrenByPath path", "[abc]")
-{
-  auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (uint8_t i = 0; i < 130; ++i)
-    {
-      node->insert (i);
-      node = node->insert (i);
-    }
-  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto parentIndex = uint64_t{ 3 };
-  auto myChildren = childrenByPath (myVec, { 2 }, uint8_t{ 255 });
-  auto numberFromChild = uint64_t{ 2 }; // first child has number one second number 2
-  REQUIRE (myVec[myChildren.at (numberFromChild - 1) + parentIndex + numberFromChild] == 0);
+  REQUIRE (myChildren.at (0) == 42);
 }
 
 TEST_CASE ("childrenByPath path with 2 values", "[abc]")
 {
   auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (uint8_t i = 0; i < 130; ++i)
+  tree.insert (10);
+  auto node = tree.root ().insert (11);
+  for (uint8_t i = 0; i < 10; ++i)
     {
-      node->insert (i);
-      ++i;
-      node = node->insert (i);
+      node->insert (((i + 1) * 10) + 2);
+      node = node->insert (((i + 1) * 10) + 3);
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto parentIndex = uint64_t{ 9 };
-  auto myChildren = childrenByPath (myVec, { 2, 1 }, uint8_t{ 255 });
-  auto numberFromChild = uint64_t{ 2 }; // first child has number one second number 2
-  REQUIRE (myVec[myChildren.at (numberFromChild - 1) + parentIndex + numberFromChild] == 3);
+  auto myChildren = childrenByPath (myVec, { 11, 13 }, uint8_t{ 255 });
+  REQUIRE (uint64_t{ myChildren.at (0) } == 22);
+  REQUIRE (uint64_t{ myChildren.at (1) } == 23);
 }
 
 TEST_CASE ("2 children", "[abc]")
 {
   auto tree = st_tree::tree<int>{};
-  tree.insert (1);
-  tree.root ().insert (1337);
-  tree.root ().insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[0][0].insert (42);
+  tree.insert (1000);
+  tree.root ().insert (2000);
+  //  tree.root ().insert (3000);
+  tree.root ()[0].insert (4000);
+  tree.root ()[0][0].insert (5000);
   auto myVec = treeToVector (tree, 255, 254);
-  auto children1 = childrenByPath (myVec, { 1337, 4 }, 255);
-  REQUIRE (children1.at (0) == 42);
+  auto children1 = childrenByPath (myVec, { 2000, 4000 }, 255);
+  REQUIRE (children1.at (0) == 5000);
 }
 
 TEST_CASE ("3 children and tuple", "[abc]")
