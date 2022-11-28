@@ -28,12 +28,12 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
 TEST_CASE ("3 children tree to vector", "[abc]")
 {
   auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (uint8_t{ 1 });
-  tree.root ().insert (uint8_t{ 2 });
-  tree.root ().insert (uint8_t{ 3 });
-  tree.root ().insert (uint8_t{ 69 });
-  tree.root ()[0].insert (uint8_t{ 4 });
-  tree.root ()[0][0].insert (uint8_t{ 42 });
+  tree.insert (1);
+  tree.root ().insert (2);
+  tree.root ().insert (3);
+  tree.root ().insert (69);
+  tree.root ()[0].insert (4);
+  tree.root ()[0][0].insert (42);
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
   REQUIRE (vectorToTree (myVec, uint8_t{ 255 }) == tree);
 }
