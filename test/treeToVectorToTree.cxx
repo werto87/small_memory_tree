@@ -10,50 +10,32 @@
 // index in unsigned char max allowed size of vector is 253 with relative position max distance between parent and the furthest child smaller 253.
 using namespace small_memory_tree;
 
-TEST_CASE ("2 children", "[abc]")
-{
-  auto tree = st_tree::tree<int>{};
-  tree.insert (1);
-  tree.root ().insert (2);
-  tree.root ().insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[0][0].insert (42);
-  auto myVec = treeToVector (tree, 255, 254);
-  for (auto &value : childrenByPath (myVec, { 2, 4 }, 255))
-    {
-      REQUIRE (value == 42);
-    }
-}
-
 TEST_CASE ("vectorToTree tree to vector", "[abc]")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (1);
-  tree.root ().insert (2);
-  tree.root ().insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[0][0].insert (42);
-  tree.root ()[1].insert (42);
-  tree.root ()[1][0].insert (42);
-  tree.root ()[1][0][0].insert (123);
+  tree.root ().insert (2000);
+  tree.root ().insert (3000);
+  tree.root ()[0].insert (4000);
+  tree.root ()[0][0].insert (42000);
+  tree.root ()[1].insert (42000);
+  tree.root ()[1][0].insert (42000);
+  tree.root ()[1][0][0].insert (123000);
   auto myVec = treeToVector (tree, 255, 254);
   REQUIRE (vectorToTree (myVec, 255) == tree);
 }
 
-TEST_CASE ("3 children and tuple", "[abc]")
+TEST_CASE ("3 children tree to vector", "[abc]")
 {
-  auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
-  tree.insert ({ 1, 1 });
-  tree.root ().insert ({ 2, 2 });
-  tree.root ().insert ({ 3, 3 });
-  tree.root ().insert ({ 69, 69 });
-  tree.root ()[0].insert ({ 4, 4 });
-  tree.root ()[0][0].insert ({ 42, 42 });
-  auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
-  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }))
-    {
-      REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });
-    }
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (uint8_t{ 1 });
+  tree.root ().insert (uint8_t{ 2 });
+  tree.root ().insert (uint8_t{ 3 });
+  tree.root ().insert (uint8_t{ 69 });
+  tree.root ()[0].insert (uint8_t{ 4 });
+  tree.root ()[0][0].insert (uint8_t{ 42 });
+  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
+  REQUIRE (vectorToTree (myVec, uint8_t{ 255 }) == tree);
 }
 
 TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")

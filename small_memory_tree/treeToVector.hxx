@@ -20,9 +20,9 @@ namespace small_memory_tree
 
 template <typename T>
 void
-fillChildren (std::vector<T> &vec, size_t maxChildren, T const &markerForChild)
+fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForChild)
 {
-  auto nodeCount = size_t{ 1 };
+  auto nodeCount = uint64_t{ 1 };
   for (uint64_t i = 0; i < vec.size (); ++i)
     {
       auto &value = vec.at (i);
@@ -66,7 +66,7 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
               throw std::logic_error{ "node type and element type of result vector is not the same." };
             }
         }
-      auto currentChildren = size_t{};
+      auto currentChildren = uint64_t{};
       while (currentChildren < node.size ())
         {
           result.push_back (markerForChild);

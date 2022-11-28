@@ -14,51 +14,46 @@
 namespace small_memory_tree
 {
 
-template <typename T>
 void
-addChildren (auto const &treeAsVector, T const &value, auto &treeItr, auto &markerForEmpty, size_t maxChildren)
+addChildren (auto const &treeAsVector, auto &treeItr, auto &markerForEmpty, uint64_t maxChildren, uint64_t parentOffset)
 {
-  auto parentIndex = size_t{};
-  if constexpr (TupleLike<T>)
+  auto myChildren = children (treeAsVector, parentOffset, markerForEmpty);
+  for (uint64_t i = 0; i < myChildren.size (); ++i)
     {
-      parentIndex = std::get<0> (value);
-    }
-  else
-    {
-      parentIndex = boost::numeric_cast<size_t> (value);
-    }
-  for (auto const &child : children (treeAsVector, parentIndex, markerForEmpty))
-    {
-      auto childIndex = size_t{};
-      if constexpr (TupleLike<T>)
+      auto const &child = myChildren.at (i);
+      auto childIndex = uint64_t{};
+      if constexpr (TupleLike<std::decay_t<decltype (child)> >)
         {
-          childIndex = std::get<0> (child);
+          childIndex = std::get<0> (child) + i + parentOffset + 1;
         }
       else
         {
-          childIndex = boost::numeric_cast<size_t> (child);
+          childIndex = boost::numeric_cast<uint64_t> (child) + i + parentOffset + 1;
         }
       auto parentItr = treeItr->insert (treeAsVector[childIndex]);
-      addChildren (treeAsVector, child, parentItr, markerForEmpty, maxChildren);
+      addChildren (treeAsVector, parentItr, markerForEmpty, maxChildren, childIndex);
     }
 }
 template <typename T>
 void
-fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty, size_t maxChildren)
+fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty, uint64_t maxChildren)
 {
-  for (auto const &child : children (treeAsVector, 0, markerForEmpty))
+  //  TODO this can be mostly replaced by addChildren??? kinda the same code???
+  auto myChildren = children (treeAsVector, 0, markerForEmpty);
+  for (uint64_t i = 0; i < myChildren.size (); ++i)
     {
-      auto childIndex = size_t{};
+      auto child = myChildren.at (i);
+      auto childIndex = uint64_t{};
       if constexpr (TupleLike<T>)
         {
-          childIndex = std::get<0> (child);
+          childIndex = std::get<0> (child) + i + 1;
         }
       else
         {
-          childIndex = boost::numeric_cast<size_t> (child);
+          childIndex = boost::numeric_cast<uint64_t> (child) + i + 1;
         }
       auto parentItr = tree.root ().insert (treeAsVector[childIndex]);
-      addChildren (treeAsVector, child, parentItr, markerForEmpty, maxChildren);
+      addChildren (treeAsVector, parentItr, markerForEmpty, maxChildren, childIndex);
     }
 }
 
