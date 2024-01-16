@@ -1,7 +1,7 @@
 # small_memory_tree  
 Compress st_tree. Decompress compressed st_tree.  
-Use the function XYZ to create a small_memory_tree from a st_tree.  
-Use the function ZYX to create a st_tree from a small_memory_tree.  
+Use the function treeToVector to create a small_memory_tree from a st_tree.  
+Use the function vectorToTree to create a st_tree from a small_memory_tree.  
 
 ## Difference between st_tree and small_memory_tree
 st_tree goals from [st_tree git readme](https://github.com/erikerlandson/st_tree)
