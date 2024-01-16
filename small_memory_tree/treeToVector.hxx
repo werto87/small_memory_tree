@@ -20,7 +20,7 @@ namespace small_memory_tree
 
 template <typename T>
 void
-fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForEmpty, T const &markerForChild)
+fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForChild)
 {
   auto nodeCount = uint64_t{ 1 };
   for (uint64_t i = 0; i < vec.size (); ++i)
@@ -52,6 +52,7 @@ fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForEmpty
                 }
               nodeCount++;
             }
+          auto const &markerForEmpty = vec.back ();
           if (value == markerForEmpty)
             {
               throw std::logic_error ("the distance from the child to its data is the same as the value of 'marker for empty'. This leads to an ambiguity. Increase the value of 'marker for empty'. If it is already the max value of the datatype consider to use a bigger datatype or decrease the max children of the tree.");
@@ -113,7 +114,7 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
         }
     }
   result.shrink_to_fit ();
-  fillChildren (result, maxChildrenInTree, markerForEmpty, markerForChild);
+  fillChildren (result, maxChildrenInTree, markerForChild);
   return result;
 }
 }
