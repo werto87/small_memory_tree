@@ -128,3 +128,47 @@ TEST_CASE ("treeToVector", "[abc]")
   REQUIRE_FALSE (result.empty ());
   REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
 }
+
+TEST_CASE ("treeToVector value equals marker for empty during child distance calculation", "[abc]")
+{
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (1);
+  for (size_t i = 0; i < 15; ++i)
+    {
+      tree.root ().insert (42);
+    }
+  REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 225 }, uint8_t{ 254 }), std::logic_error);
+}
+
+TEST_CASE ("treeToVector too big tree", "[abc]")
+{
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (1);
+  for (size_t i = 0; i < 16; ++i)
+    {
+      tree.root ().insert (42);
+    }
+  REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }), std::logic_error);
+}
+
+TEST_CASE ("treeToVector value equals marker for child", "[abc]")
+{
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (1);
+  for (size_t i = 0; i < 16; ++i)
+    {
+      tree.root ().insert (254);
+    }
+  REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }), std::logic_error);
+}
+
+TEST_CASE ("treeToVector value equals marker for empty", "[abc]")
+{
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (1);
+  for (size_t i = 0; i < 16; ++i)
+    {
+      tree.root ().insert (254);
+    }
+  REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }), std::logic_error);
+}
