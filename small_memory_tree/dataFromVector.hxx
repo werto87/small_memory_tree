@@ -12,7 +12,12 @@
 
 namespace small_memory_tree
 {
-
+/**
+ * calculates the max children of the vector
+ * @param treeAsVector vector to check
+ * @param markerForEmpty marker for empty
+ * @return max number of children in that tree
+ */
 template <typename T>
 uint64_t
 maxChildren (auto const &treeAsVector, T const &markerForEmpty)
@@ -22,6 +27,11 @@ maxChildren (auto const &treeAsVector, T const &markerForEmpty)
   return boost::numeric_cast<uint64_t>(std::distance (treeAsVector.rbegin (), findResult));
 }
 
+/**
+* calculates the max children of the tree
+ * @param tree tree to check
+ * @return max number of children in that tree
+ */
 template <typename T>
 uint64_t
 maxChildren (T const &tree)
@@ -37,6 +47,13 @@ maxChildren (T const &tree)
   return maxChildren;
 }
 
+/**
+ * children of a node using vector as a tree
+ * @param vec vector in tree form
+ * @param index node to get children from
+ * @param markerForEmpty marker for empty
+ * @return the children of the node
+ */
 template <typename T>
 std::vector<T>
 children (std::vector<T> const &vec, uint64_t index, T markerForEmpty)
@@ -84,36 +101,27 @@ indexOffChildWithValue (std::vector<T> const &vec, uint64_t index, T value, T ma
   childrenByPath (std::vector<T> const &vec, std::vector<T> const &path, T const &markerForEmpty)
   {
     auto result = std::vector<T>{};
-    auto someValue = uint64_t{ 0 };
+    auto index = uint64_t{ 0 };
     for (uint64_t i = 0;i<path.size() ;++i)
       {
-        if (auto index = indexOffChildWithValue (vec, someValue, path.at (i), markerForEmpty))
+        if (auto indexOptional = indexOffChildWithValue (vec, index, path.at (i), markerForEmpty))
           {
-//            if constexpr (TupleLike<T>)
-//              {
-//                throw std::logic_error{"think about this later"};
-                someValue = index.value();
-//              }
-//            else
-//              {
-//                throw std::logic_error{"think about this later"};
-//                someValue = boost::numeric_cast<uint64_t> (index.value ())+i+someValue+1;
-//              }
+            index = indexOptional.value();
           }
         else
           {
             return {};
           }
       }
-    auto resultChildren=children (vec, someValue, markerForEmpty);
+    auto resultChildren=children (vec, index, markerForEmpty);
     for(uint64_t i=0;i<resultChildren.size();++i){
         if constexpr (TupleLike<T>)
           {
-            result.push_back (vec.at( std::get<0> (resultChildren.at (i)) + someValue + i+1));
+            result.push_back (vec.at( std::get<0> (resultChildren.at (i)) + index + i+1));
           }
         else
           {
-            result.push_back (vec.at(resultChildren.at (i) + someValue + i+1));
+            result.push_back (vec.at(resultChildren.at (i) + index + i+1));
           }
       }
     return result;
