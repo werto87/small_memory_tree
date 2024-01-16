@@ -14,15 +14,14 @@ The goal of small_memory_tree is lossless compression of a st_tree.
 - You want to save a st_tree to disk
 
 ## Do not use small_memory_tree if
-- Your data on the nodes does not allow to set two marks. You should have 2 free values which small_memory_tree can use as marks
+- Your data on the nodes does not allow to set two marks. You should have 2 free values which small_memory_tree can use as marks (for example uint8_t 254 and 255)
 - You have a st_tree with a lot of nodes with a low amount of children and a few nodes with a lot of children. In this case small_memory_tree could get bigger than st_tree
-- Your data type is small for example uint8_t and you have a lot of nodes.
+- Your data type is small for example uint8_t, and you have a lot of nodes.
 
 ## How does small_memory_tree stores a tree
 small_memory_tree stores the st_tree into a vector. It preserves the hierarchic information in a tree by using indexes.
 Example:
-Tree:
-
+Tree:  
 -----------0  
 ---------/---\  
 --------1---2  
@@ -33,16 +32,16 @@ Tree:
    
 Vector:  
 00-0-----------root       
-01-3-----------index child 1  
-02-6-----------index child 2  
+01-2-----------distance to child 1  
+02-4-----------distance to child 2  
 03-1-----------child value 1  
-04-9-----------index child 3  
+04-5-----------distance to child 3  
 05-255--------marker for empty value  
 06-2-----------child value 2  
 07-255--------marker for empty value  
 08-255--------marker for empty value  
 09-3-----------child value 3  
-10-12----------index child 4  
+10-2-----------distance to child 4  
 11-255--------marker for empty value  
 12-4-----------child value 4  
 13-255--------marker for empty value  
