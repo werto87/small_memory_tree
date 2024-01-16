@@ -3,6 +3,9 @@ project(project VERSION 1.0.0
   DESCRIPTION project
   LANGUAGES CXX
 )
+find_package(Boost REQUIRED)
+find_package(st_tree REQUIRED)
+find_package(range-v3 REQUIRED)
 cmake_policy(SET CMP0015 NEW)
 include(cmake/Cache.cmake)
 set(PROJECT_WARNINGS project_warning)
@@ -15,8 +18,6 @@ target_compile_features(${PROJECT_OPTIONS} INTERFACE cxx_std_20)
 include(cmake/StaticAnalyzers.cmake)
 include(cmake/Sanitizers.cmake)
 enable_sanitizers(${PROJECT_OPTIONS})
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(TARGET_NAME_LIB project_lib)
 add_library(${TARGET_NAME_LIB} OBJECT)
@@ -30,9 +31,9 @@ target_include_directories(${TARGET_NAME_LIB} PUBLIC
 target_link_libraries(${TARGET_NAME_LIB} PUBLIC
   ${PROJECT_WARNINGS}
   ${PROJECT_OPTIONS}
-  CONAN_PKG::st_tree
-  CONAN_PKG::range-v3
-  CONAN_PKG::boost
+        range-v3::range-v3
+        st_tree::st_tree
+        Boost::headers
 )
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
