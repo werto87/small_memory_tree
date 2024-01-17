@@ -67,6 +67,15 @@ validateData (T const &data, T const &markerForEmpty, T const &markerForChild)
     }
 }
 }
+
+/**
+ * transforms a st_tree into a vector
+ * @param tree
+ * @param markerForEmpty
+ * @param markerForChild
+ * @param nodeToData
+ * @return
+ */
 template <typename T>
 std::vector<T>
 treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*tree.begin ())>::type const &node)> nodeToData = {})
