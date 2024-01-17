@@ -3,14 +3,7 @@
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
-#include <cstddef>
-#include <exception>
-#include <functional>
-#include <optional>
-#include <st_tree.h>
 #include <stdexcept>
-#include <tuple>
-#include <vector>
 
 namespace small_memory_tree
 {
