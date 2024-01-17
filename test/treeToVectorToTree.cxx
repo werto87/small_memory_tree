@@ -16,17 +16,13 @@ using namespace small_memory_tree;
 
 TEST_CASE ("vectorToTree tree to vector", "[abc]")
 {
-  auto tree = st_tree::tree<int>{};
-  tree.insert (1);
-  tree.root ().insert (2000);
-  tree.root ().insert (3000);
-  tree.root ()[0].insert (4000);
-  tree.root ()[0][0].insert (42000);
-  tree.root ()[1].insert (42000);
-  tree.root ()[1][0].insert (42000);
-  tree.root ()[1][0][0].insert (123000);
-  auto maxIntValue = std::numeric_limits<int>::max ();
-  auto myVec = treeToVector (tree, maxIntValue, maxIntValue - 1);
+  auto tree = st_tree::tree<uint8_t>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  tree.root ()[0][0].insert (4);
+  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
   REQUIRE (vectorToTree (myVec) == tree);
 }
 

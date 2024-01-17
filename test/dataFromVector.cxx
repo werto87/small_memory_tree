@@ -93,7 +93,6 @@ TEST_CASE ("2 children", "[abc]")
   auto tree = st_tree::tree<int>{};
   tree.insert (1000);
   tree.root ().insert (2000);
-  //  tree.root ().insert (3000);
   tree.root ()[0].insert (4000);
   tree.root ()[0][0].insert (5000);
   auto myVec = treeToVector (tree, 255, 254);

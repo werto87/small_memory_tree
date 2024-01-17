@@ -79,8 +79,8 @@ validateData (T const &data, T const &markerForEmpty, T const &markerForChild)
  * @param tree st_tree which has a numeric data type or something which can be transformed into a number using the nodeToData function
  * @param markerForEmpty marker for empty. Will be used internally should not appear in the actual data
  * @param markerForChild marker for child. Will be used internally should not appear in the actual data
- * @param nodeToData this should be only used if the datatype of the st_tree is not a whole number. Function which should return a whole number.
- * @return returns a vector containing all the information from the sl_tree
+ * @param nodeToData this can be useful if your st_tree contains some data you do not want to save into the vector. Note that this is not lossless so you wont end up with exactly the same st_tree after calling vectorToTree
+ * @return if nodeToData is not set returns a vector containing all the information of the st_tree. If nodeToData is set the data in the vector will differ
  */
 template <typename T>
 std::vector<T>
