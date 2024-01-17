@@ -8,15 +8,17 @@
 namespace small_memory_tree
 {
 
+namespace internals
+{
 void
 addChildren (auto const &treeAsVector, auto &treeItr, auto &markerForEmpty, uint64_t maxChildren, uint64_t parentOffset)
 {
-  auto myChildren = children (treeAsVector, parentOffset, markerForEmpty);
+  auto myChildren = children (treeAsVector, parentOffset);
   for (uint64_t i = 0; i < myChildren.size (); ++i)
     {
       auto const &child = myChildren.at (i);
       auto childIndex = uint64_t{};
-      if constexpr (TupleLike<std::decay_t<decltype (child)> >)
+      if constexpr (internals::TupleLike<std::decay_t<decltype (child)> >)
         {
           childIndex = std::get<0> (child) + i + parentOffset + 1;
         }
@@ -28,17 +30,19 @@ addChildren (auto const &treeAsVector, auto &treeItr, auto &markerForEmpty, uint
       addChildren (treeAsVector, parentItr, markerForEmpty, maxChildren, childIndex);
     }
 }
-template <typename T>
+
 void
-fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty, uint64_t maxChildren)
+fillTree (auto const &treeAsVector, auto &tree)
 {
+  auto const &markerForEmpty = treeAsVector.back ();
+  auto const &maxChildren = internals::maxChildren (treeAsVector);
   //  TODO this can be mostly replaced by addChildren??? kinda the same code???
-  auto myChildren = children (treeAsVector, 0, markerForEmpty);
+  auto myChildren = children (treeAsVector, 0);
   for (uint64_t i = 0; i < myChildren.size (); ++i)
     {
       auto child = myChildren.at (i);
       auto childIndex = uint64_t{};
-      if constexpr (TupleLike<T>)
+      if constexpr (internals::TupleLike<std::decay_t<decltype (treeAsVector.at (0))> >)
         {
           childIndex = std::get<0> (child) + i + 1;
         }
@@ -50,14 +54,19 @@ fillTree (auto const &treeAsVector, auto &tree, T &markerForEmpty, uint64_t maxC
       addChildren (treeAsVector, parentItr, markerForEmpty, maxChildren, childIndex);
     }
 }
+}
 
-template <typename T>
+/**
+ * creates an st_tree from a vector containing a compressed st_tree
+ * @param treeAsVector vector containing a compressed st_tree
+ * @return decompressed st_tree
+ */
 auto
-vectorToTree (auto const &treeAsVector, T const &markerForEmpty)
+vectorToTree (auto const &treeAsVector)
 {
-  auto result = st_tree::tree<T>{};
+  auto result = st_tree::tree<std::decay_t<decltype (treeAsVector.at (0))> >{};
   result.insert (treeAsVector.at (0));
-  fillTree (treeAsVector, result, markerForEmpty, maxChildren (treeAsVector, markerForEmpty));
+  internals::fillTree (treeAsVector, result);
   return result;
 }
 }

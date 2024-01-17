@@ -20,7 +20,7 @@ fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForChild
       auto &value = vec.at (i);
       if (value == markerForChild)
         {
-          if constexpr (TupleLike<T>)
+          if constexpr (internals::TupleLike<T>)
             {
               try
                 {
@@ -70,17 +70,17 @@ validateData (T const &data, T const &markerForEmpty, T const &markerForChild)
 
 /**
  * transforms a st_tree into a vector
- * @param tree
- * @param markerForEmpty
- * @param markerForChild
- * @param nodeToData
- * @return
+ * @param tree st_tree which has a numeric data type or something which can be transformed into a number using the nodeToData function
+ * @param markerForEmpty marker for empty. Will be used internally should not appear in the actual data
+ * @param markerForChild marker for child. Will be used internally should not appear in the actual data
+ * @param nodeToData this should be only used if the datatype of the st_tree is not a whole number. Function which should return a whole number.
+ * @return returns a vector containing all the information from the sl_tree
  */
 template <typename T>
 std::vector<T>
 treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*tree.begin ())>::type const &node)> nodeToData = {})
 {
-  auto const maxChildrenInTree = maxChildren (tree);
+  auto const maxChildrenInTree = internals::maxChildren (tree);
   auto result = std::vector<T>{};
   for (auto &node : tree)
     {

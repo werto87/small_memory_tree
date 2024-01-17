@@ -19,7 +19,7 @@ TEST_CASE ("maxChildren", "[abc]")
       node = node->insert (i);
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  REQUIRE (maxChildren (myVec, uint8_t{ 255 }) == 2);
+  REQUIRE (internals::maxChildren (myVec) == 2);
 }
 
 TEST_CASE ("children", "[abc]")
@@ -34,7 +34,7 @@ TEST_CASE ("children", "[abc]")
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
   auto parentIndex = uint64_t{ 9 };
-  auto myChildren = children (myVec, parentIndex, uint8_t{ 255 });
+  auto myChildren = children (myVec, parentIndex);
   auto offset = myChildren.front ();
   auto numberFromChild = uint64_t{ 1 }; // first child has number one second number 2
   REQUIRE (myVec[offset + parentIndex + numberFromChild] == 1);
@@ -50,8 +50,8 @@ TEST_CASE ("indexOffChildWithValue node with 2 children", "[abc]")
   auto const &intMax = std::numeric_limits<int>::max ();
   auto myVec = treeToVector (tree, intMax, intMax - 1);
   auto parentIndex = uint64_t{ 3 };
-  auto firstChild = indexOffChildWithValue (myVec, parentIndex, int{ 300 }, intMax);
-  auto secondChild = indexOffChildWithValue (myVec, parentIndex, int{ 400 }, intMax);
+  auto firstChild = indexOffChildWithValue (myVec, parentIndex, int{ 300 });
+  auto secondChild = indexOffChildWithValue (myVec, parentIndex, int{ 400 });
   REQUIRE (firstChild.value () == 6);
   REQUIRE (secondChild.value () == 9);
 }
@@ -66,7 +66,7 @@ TEST_CASE ("childrenByPath", "[abc]")
       node = node->insert (i + 100);
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto myChildren = childrenByPath (myVec, {}, uint8_t{ 255 });
+  auto myChildren = childrenByPath (myVec, {});
   REQUIRE (myChildren.at (0) == 42);
 }
 
@@ -81,7 +81,7 @@ TEST_CASE ("childrenByPath path with 2 values", "[abc]")
       node = node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 3 }));
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto myChildren = childrenByPath (myVec, { 11, 13 }, uint8_t{ 255 });
+  auto myChildren = childrenByPath (myVec, { 11, 13 });
   REQUIRE (uint64_t{ myChildren.at (0) } == 22);
   REQUIRE (uint64_t{ myChildren.at (1) } == 23);
 }
@@ -95,7 +95,7 @@ TEST_CASE ("2 children", "[abc]")
   tree.root ()[0].insert (4000);
   tree.root ()[0][0].insert (5000);
   auto myVec = treeToVector (tree, 255, 254);
-  auto children1 = childrenByPath (myVec, { 2000, 4000 }, 255);
+  auto children1 = childrenByPath (myVec, { 2000, 4000 });
   REQUIRE (children1.at (0) == 5000);
 }
 
@@ -109,7 +109,7 @@ TEST_CASE ("3 children and tuple", "[abc]")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
-  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }, { 255, -1 }))
+  for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }))
     {
       REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }

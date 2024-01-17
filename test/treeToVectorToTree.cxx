@@ -21,7 +21,7 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
   tree.root ()[1][0][0].insert (123000);
   auto maxIntValue = std::numeric_limits<int>::max ();
   auto myVec = treeToVector (tree, maxIntValue, maxIntValue - 1);
-  REQUIRE (vectorToTree (myVec, maxIntValue) == tree);
+  REQUIRE (vectorToTree (myVec) == tree);
 }
 
 TEST_CASE ("3 children tree to vector", "[abc]")
@@ -35,7 +35,7 @@ TEST_CASE ("3 children tree to vector", "[abc]")
   tree.root ()[0].insert (4);
   tree.root ()[0][0].insert (42);
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  REQUIRE (vectorToTree (myVec, uint8_t{ 255 }) == tree);
+  REQUIRE (vectorToTree (myVec) == tree);
 }
 
 TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
@@ -48,7 +48,7 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
-  REQUIRE (vectorToTree (myVec, std::tuple<uint8_t, int8_t>{ 255, -1 }) == tree);
+  REQUIRE (vectorToTree (myVec) == tree);
 }
 
 TEST_CASE ("treeToVector more than 255 elements", "[abc]")
@@ -124,7 +124,7 @@ TEST_CASE ("treeToVector", "[abc]")
     return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) };
   });
   REQUIRE (myVec.size () == 24);
-  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } }, { 255, Result::Undefined });
+  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } });
   REQUIRE_FALSE (result.empty ());
   REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
 }
