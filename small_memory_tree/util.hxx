@@ -1,7 +1,4 @@
-
-
-#ifndef CF0ED571_02E1_4B31_B00A_BF110CD2C982
-#define CF0ED571_02E1_4B31_B00A_BF110CD2C982
+#pragma once
 
 #include <tuple>
 
@@ -17,4 +14,3 @@ template <typename T> concept TupleLike = requires (T a)
   std::get<0> (a);
 };
 }
-#endif /* CF0ED571_02E1_4B31_B00A_BF110CD2C982 */

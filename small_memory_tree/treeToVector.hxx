@@ -1,5 +1,4 @@
-#ifndef CD77E88E_7A82_4A96_B983_3A9338969CDC
-#define CD77E88E_7A82_4A96_B983_3A9338969CDC
+#pragma once
 
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/util.hxx"
@@ -116,4 +115,3 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
   return result;
 }
 }
-#endif /* CD77E88E_7A82_4A96_B983_3A9338969CDC */

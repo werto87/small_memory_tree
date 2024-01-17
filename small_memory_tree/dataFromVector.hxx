@@ -1,5 +1,4 @@
-#ifndef FF0F9100_DFED_4A55_B6CC_382A1C097294
-#define FF0F9100_DFED_4A55_B6CC_382A1C097294
+#pragma once
 
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
@@ -148,5 +147,3 @@ indexOffChildWithValue (std::vector<T> const &vec, uint64_t index, T valueToLook
   }
 
 }
-
-#endif /* FF0F9100_DFED_4A55_B6CC_382A1C097294 */

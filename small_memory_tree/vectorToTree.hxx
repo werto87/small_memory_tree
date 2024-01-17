@@ -1,5 +1,4 @@
-#ifndef BF56D004_36B1_4B05_B512_7D6574C01C5A
-#define BF56D004_36B1_4B05_B512_7D6574C01C5A
+#pragma once
 
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/util.hxx"
@@ -66,4 +65,3 @@ vectorToTree (auto const &treeAsVector, T const &markerForEmpty)
   return result;
 }
 }
-#endif /* BF56D004_36B1_4B05_B512_7D6574C01C5A */
