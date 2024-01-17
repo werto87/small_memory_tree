@@ -8,6 +8,8 @@
 namespace small_memory_tree
 {
 
+namespace internals
+{
 template <typename T>
 void
 fillChildren (std::vector<T> &vec, uint64_t maxChildren, T const &markerForChild)
@@ -64,6 +66,7 @@ validateData (T const &data, T const &markerForEmpty, T const &markerForChild)
       throw std::logic_error{ "data == markerForChild. Please check your data it is not allowed to have data with the same value as markerForChild" };
     }
 }
+}
 template <typename T>
 std::vector<T>
 treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*tree.begin ())>::type const &node)> nodeToData = {})
@@ -75,7 +78,7 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
       if (nodeToData)
         {
           auto data = nodeToData (node);
-          validateData (data, markerForEmpty, markerForChild);
+          internals::validateData (data, markerForEmpty, markerForChild);
           result.push_back (data);
         }
       else
@@ -83,7 +86,7 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
           if constexpr (std::is_same<typename std::decay<decltype (node.data ())>::type, T>::value)
             {
               auto data = node.data ();
-              validateData (data, markerForEmpty, markerForChild);
+              internals::validateData (data, markerForEmpty, markerForChild);
               result.push_back (node.data ());
             }
           else
@@ -104,7 +107,7 @@ treeToVector (auto const &tree, T const &markerForEmpty, T const &markerForChild
         }
     }
   result.shrink_to_fit ();
-  fillChildren (result, maxChildrenInTree, markerForChild);
+  internals::fillChildren (result, maxChildrenInTree, markerForChild);
   return result;
 }
 }
