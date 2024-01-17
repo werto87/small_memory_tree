@@ -14,7 +14,7 @@ The goal of small_memory_tree is lossless compression of a st_tree.
 ## Use cases
 
 - You want to save memory
-- You want to save a st_tree to disk
+- You want to save and restore a st_tree to/from disk
 
 ## Do not use small_memory_tree if
 
@@ -22,7 +22,7 @@ The goal of small_memory_tree is lossless compression of a st_tree.
   as marks (for example uint8_t 254 and 255)
 - You have a st_tree with a lot of nodes with a low amount of children and a few nodes with a lot of children. In this
   case small_memory_tree could get bigger than st_tree
-- Your data type is small for example uint8_t, and you have a lot of nodes with only a few childs.
+- Your data type is small for example uint8_t, and you have a lot of nodes with only a few children.
 
 ## How does small_memory_tree stores a tree
 
