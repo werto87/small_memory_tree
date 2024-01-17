@@ -2,12 +2,8 @@
 
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/util.hxx"
-#include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
-#include <cstddef>
-#include <iterator>
 #include <st_tree.h>
-#include <vector>
 
 namespace small_memory_tree
 {
