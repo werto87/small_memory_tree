@@ -77,8 +77,8 @@ TEST_CASE ("childrenByPath path with 2 values", "[abc]")
   auto node = tree.root ().insert (11);
   for (uint8_t i = 0; i < 10; ++i)
     {
-      node->insert (((i + 1) * 10) + 2);
-      node = node->insert (((i + 1) * 10) + 3);
+      node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 2 }));
+      node = node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 3 }));
     }
   auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
   auto myChildren = childrenByPath (myVec, { 11, 13 }, uint8_t{ 255 });

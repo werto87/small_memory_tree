@@ -2,10 +2,7 @@
 
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
-#include <cstddef>
-#include <iterator>
 #include <optional>
-#include <type_traits>
 #include <vector>
 
 namespace small_memory_tree
@@ -136,11 +133,11 @@ indexOffChildWithValue (std::vector<T> const &vec, uint64_t index, T valueToLook
     for(uint64_t i=0;i<resultChildren.size();++i){
         if constexpr (TupleLike<T>)
           {
-            result.push_back (vec.at( std::get<0> (resultChildren.at (i)) + index + i+1));
+            result.push_back (vec.at( boost::numeric_cast<uint64_t>(std::get<0> (resultChildren.at (i))) + index + i+1));
           }
         else
           {
-            result.push_back (vec.at(resultChildren.at (i) + index + i+1));
+            result.push_back (vec.at(boost::numeric_cast<uint64_t>(resultChildren.at (i)) + index + i+1));
           }
       }
     return result;
