@@ -1,4 +1,6 @@
-#include "small_memory_tree/small_memory_tree.hxx"
+#include "small_memory_tree/dataFromVector.hxx"
+#include "small_memory_tree/treeToVector.hxx"
+#include "small_memory_tree/vectorToTree.hxx"
 #include <catch2/catch.hpp>
 #include <cstdint>
 #include <iterator>
