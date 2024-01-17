@@ -1,8 +1,39 @@
 # small_memory_tree
 
-Compress st_tree. Decompress compressed st_tree.  
-Use the function treeToVector to create a small_memory_tree from a st_tree.  
-Use the function vectorToTree to create a st_tree from a small_memory_tree.
+small_memory_tree is a library for compressing a st_tree to save memory (depending on the structure of your tree. Read "
+Do not use small_memory_tree if" section").
+The data plus hierarchy information is saved to a vector for more details read "How does small_memory_tree store a tree"
+section.
+
+## Requirements
+
+The st_tree should have a numeric type (for example st_tree<uint8_t>) or a pair where first is a numeric type and second
+can be any user defined type (for example st_tree<uint8_t,MyUserDefinedType>).
+
+## How to use
+
+```cpp
+---------0
+-------/---\
+------1-----2
+-----/
+---3
+--/
+-4
+*/
+  auto tree = st_tree::tree<uint8_t>{};
+  // create a tree and fill it
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  tree.root ()[0][0].insert (4);
+  auto compressedTree = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }); // creates a vector with the data from tree using 255 as marker for empty and 254 for child
+  // 'compressedTree' can be queried for data using for example the childrenByPath function TODO write example
+  // note in this case vector is a byte vector which can be easily stored in a database
+  auto decompressedTree = vectorToTree (compressedTree); // if the data of compressedTree needs to be altered it can be decompressed.
+  assert (decompressedTree == tree);                     // compares 'decompressedTree' with 'tree'
+```
 
 ## Difference between st_tree and small_memory_tree
 
@@ -24,7 +55,7 @@ The goal of small_memory_tree is lossless compression of a st_tree.
   case small_memory_tree could get bigger than st_tree
 - Your data type is small for example uint8_t, and you have a lot of nodes with only a few children.
 
-## How does small_memory_tree stores a tree
+## How does small_memory_tree store a tree
 
 small_memory_tree stores the st_tree into a vector. It preserves the hierarchic information by creating additional
 elements.
