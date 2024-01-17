@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.17)
 project(project VERSION 1.0.0
-  DESCRIPTION project
-  LANGUAGES CXX
-)
+        DESCRIPTION project
+        LANGUAGES CXX
+        )
 find_package(Boost REQUIRED)
 find_package(st_tree REQUIRED)
-find_package(range-v3 REQUIRED)
 cmake_policy(SET CMP0015 NEW)
 include(cmake/Cache.cmake)
 set(PROJECT_WARNINGS project_warning)
@@ -25,16 +24,15 @@ set_target_properties(${TARGET_NAME_LIB} PROPERTIES LINKER_LANGUAGE CXX)
 add_subdirectory(small_memory_tree)
 target_include_directories(${TARGET_NAME_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${TARGET_NAME_LIB} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
 target_link_libraries(${TARGET_NAME_LIB} PUBLIC
-  ${PROJECT_WARNINGS}
-  ${PROJECT_OPTIONS}
-        range-v3::range-v3
+        ${PROJECT_WARNINGS}
+        ${PROJECT_OPTIONS}
         st_tree::st_tree
         Boost::headers
-)
+        )
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
 

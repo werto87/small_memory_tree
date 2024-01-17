@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <iterator>
 #include <optional>
-#include <range/v3/algorithm/find_if.hpp>
 #include <type_traits>
 #include <vector>
 
@@ -23,7 +22,7 @@ uint64_t
 maxChildren (auto const &treeAsVector, T const &markerForEmpty)
 {
   using VectorElementType = typename std::decay<decltype (*treeAsVector.begin ())>::type;
-  auto findResult = ranges::find_if (treeAsVector.rbegin (), treeAsVector.rend (), [&markerForEmpty] (VectorElementType const &element) { return element != markerForEmpty; });
+  auto findResult = std::ranges::find_if (treeAsVector.rbegin (), treeAsVector.rend (), [&markerForEmpty] (VectorElementType const &element) { return element != markerForEmpty; });
   return boost::numeric_cast<uint64_t>(std::distance (treeAsVector.rbegin (), findResult));
 }
 

@@ -3,13 +3,11 @@
 
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/util.hxx"
-#include "small_memory_tree/vectorToTree.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <cstddef>
 #include <exception>
 #include <functional>
 #include <optional>
-#include <range/v3/algorithm/find_if.hpp>
 #include <st_tree.h>
 #include <stdexcept>
 #include <tuple>

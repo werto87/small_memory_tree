@@ -1,9 +1,7 @@
-#include "small_memory_tree/treeToVector.hxx"
+#include "small_memory_tree/small_memory_tree.hxx"
 #include <catch2/catch.hpp>
 #include <cstdint>
 #include <iterator>
-#include <range/v3/algorithm.hpp>
-#include <range/v3/range_fwd.hpp>
 #include <st_tree.h>
 
 using namespace small_memory_tree;

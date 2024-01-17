@@ -7,7 +7,6 @@
 #include <boost/numeric/conversion/cast.hpp>
 #include <cstddef>
 #include <iterator>
-#include <range/v3/algorithm.hpp>
 #include <st_tree.h>
 #include <vector>
 
