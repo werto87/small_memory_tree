@@ -5,6 +5,7 @@ project(project VERSION 1.0.0
         )
 find_package(Boost REQUIRED)
 find_package(st_tree REQUIRED)
+find_package(confu_algorithm REQUIRED)
 cmake_policy(SET CMP0015 NEW)
 include(cmake/Cache.cmake)
 set(PROJECT_WARNINGS project_warning)
@@ -32,6 +33,7 @@ target_link_libraries(${TARGET_NAME_LIB} PUBLIC
         ${PROJECT_OPTIONS}
         st_tree::st_tree
         Boost::headers
+        confu_algorithm::confu_algorithm
         )
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_compile_definitions(${TARGET_NAME_LIB} PUBLIC _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
