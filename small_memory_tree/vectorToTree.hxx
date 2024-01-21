@@ -9,57 +9,59 @@ Distributed under the Boost Software License, Version 1.0.
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
+#include <confu_algorithm/createChainViews.hxx>
+#include <ranges>
+#include <span>
 #include <st_tree.h>
 
 namespace small_memory_tree
 {
-
-namespace internals
+template <typename T>
+st_tree::tree<T>
+generateTree (std::vector<T> const &treeAsVector, auto const &treeLevels)
 {
-void
-addChildren (auto const &treeAsVector, auto &treeItr, auto &markerForEmpty, uint64_t maxChildren, uint64_t parentOffset)
-{
-  auto myChildren = children (treeAsVector, parentOffset);
-  for (uint64_t i = 0; i < myChildren.size (); ++i)
+  auto const &maxChildren = internals::getMaxChildren (treeAsVector);
+  auto treeToFill = st_tree::tree<T>{};
+  auto trees = std::__1::deque<st_tree::tree<T> >{};
+  for (auto rItr = treeLevels.crbegin (); rItr != treeLevels.crend (); ++rItr)
     {
-      auto const &child = myChildren.at (i);
-      auto childIndex = uint64_t{};
-      if constexpr (internals::TupleLike<std::decay_t<decltype (child)> >)
+      if (rItr == treeLevels.crend () - 1)
         {
-          childIndex = std::get<0> (child) + i + parentOffset + 1;
+          treeToFill.insert (treeAsVector.front ()); // the first element of treeAsVector is allways the root of the tree
+          for (auto j = uint64_t{}; j < maxChildren; ++j)
+            {
+              treeToFill.root ().insert (trees.front ());
+              trees.pop_front ();
+            }
         }
       else
         {
-          childIndex = boost::numeric_cast<uint64_t> (child) + i + parentOffset + 1;
+          auto const &upperLevel = *(rItr + 1);
+          auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
+          auto const &notMarkerForEmpty = [&markerForEmpty] (auto const &element) { return element != markerForEmpty; };
+          auto currentChild = uint64_t{};
+          for (auto parent : upperLevel | std::views::filter (notMarkerForEmpty))
+            {
+              auto tree = st_tree::tree<T>{};
+              tree.insert (parent);
+              if (not trees.empty () and rItr != treeLevels.crbegin ())
+                {
+                  for (auto j = uint64_t{}; j < maxChildren; ++j)
+                    {
+                      auto const &currentLevel = *rItr;
+                      if (currentLevel[currentChild] != markerForEmpty)
+                        {
+                          tree.root ().insert (trees.front ());
+                          trees.pop_front ();
+                        }
+                      ++currentChild;
+                    }
+                }
+              trees.push_back (tree);
+            }
         }
-      auto parentItr = treeItr->insert (treeAsVector[childIndex]);
-      addChildren (treeAsVector, parentItr, markerForEmpty, maxChildren, childIndex);
     }
-}
-
-void
-fillTree (auto const &treeAsVector, auto &tree)
-{
-  auto const &markerForEmpty = treeAsVector.back ();
-  auto const &maxChildren = internals::maxChildren (treeAsVector);
-  //  TODO this can be mostly replaced by addChildren??? kinda the same code???
-  auto myChildren = children (treeAsVector, 0);
-  for (uint64_t i = 0; i < myChildren.size (); ++i)
-    {
-      auto child = myChildren.at (i);
-      auto childIndex = uint64_t{};
-      if constexpr (internals::TupleLike<std::decay_t<decltype (treeAsVector.at (0))> >)
-        {
-          childIndex = std::get<0> (child) + i + 1;
-        }
-      else
-        {
-          childIndex = boost::numeric_cast<uint64_t> (child) + i + 1;
-        }
-      auto parentItr = tree.root ().insert (treeAsVector[childIndex]);
-      addChildren (treeAsVector, parentItr, markerForEmpty, maxChildren, childIndex);
-    }
-}
+  return treeToFill;
 }
 
 /**
@@ -67,12 +69,10 @@ fillTree (auto const &treeAsVector, auto &tree)
  * @param treeAsVector vector containing a compressed st_tree
  * @return decompressed st_tree
  */
+template <typename T>
 auto
-vectorToTree (auto const &treeAsVector)
+vectorToTree (std::vector<T> const &treeAsVector)
 {
-  auto result = st_tree::tree<std::decay_t<decltype (treeAsVector.at (0))> >{};
-  result.insert (treeAsVector.at (0));
-  internals::fillTree (treeAsVector, result);
-  return result;
+  return generateTree (treeAsVector, internals::calculateLevels (treeAsVector));
 }
 }

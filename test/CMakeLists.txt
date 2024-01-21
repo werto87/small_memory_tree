@@ -2,7 +2,6 @@ set(TEST_TARGET_NAME _test)
 add_executable(${TEST_TARGET_NAME}
         treeToVectorToTree.cxx
         dataFromVector.cxx
-        treeToVectorToTree2.cxx
         )
 find_package(Catch2 REQUIRED)
 target_link_libraries(${TEST_TARGET_NAME}

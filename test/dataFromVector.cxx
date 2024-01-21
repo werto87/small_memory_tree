@@ -6,70 +6,65 @@ Distributed under the Boost Software License, Version 1.0.
 #include "small_memory_tree/dataFromVector.hxx"
 #include "small_memory_tree/treeToVector.hxx"
 #include <catch2/catch.hpp>
+#include <iostream>
 #include <st_tree.h>
 
 using namespace small_memory_tree;
 
-TEST_CASE ("maxChildren")
-{
-  auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (uint8_t i = 0; i < 130; ++i)
-    {
-      node->insert (i);
-      node = node->insert (i);
-    }
-  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  REQUIRE (internals::maxChildren (myVec) == 2);
-}
-
-TEST_CASE ("children")
-{
-  auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (uint8_t i = 0; i < 130; ++i)
-    {
-      node->insert (i);
-      node = node->insert (i);
-    }
-  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
-  auto parentIndex = uint64_t{ 9 };
-  auto myChildren = children (myVec, parentIndex);
-  auto offset = myChildren.front ();
-  auto numberFromChild = uint64_t{ 1 }; // first child has number one second number 2
-  REQUIRE (myVec[offset + parentIndex + numberFromChild] == 1);
-}
-
-TEST_CASE ("indexOffChildWithValue node with 2 children")
+TEST_CASE ("childrenByPathIterators empty path")
 {
   auto tree = st_tree::tree<int>{};
-  tree.insert (100);
-  auto parent = tree.root ().insert (200);
-  parent->insert (300);
-  parent->insert (400);
-  auto const &intMax = std::numeric_limits<int>::max ();
-  auto myVec = treeToVector (tree, intMax, intMax - 1);
-  auto parentIndex = uint64_t{ 3 };
-  auto firstChild = indexOffChildWithValue (myVec, parentIndex, int{ 300 });
-  auto secondChild = indexOffChildWithValue (myVec, parentIndex, int{ 400 });
-  REQUIRE (firstChild.value () == 6);
-  REQUIRE (secondChild.value () == 9);
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto myVec = treeToVector (tree, 255);
+  auto myChildren = internals::childrenByPathIterators (myVec, {});
+  REQUIRE (myChildren.size () == 2);
+  REQUIRE (*myChildren.at (0) == 1);
+  REQUIRE (*myChildren.at (1) == 2);
 }
 
-TEST_CASE ("childrenByPath")
+TEST_CASE ("childrenByPath empty path")
 {
-  auto tree = st_tree::tree<uint8_t>{};
-  tree.insert (41);
-  auto node = tree.root ().insert (42);
-  for (uint8_t i = 0; i < 8; ++i)
-    {
-      node = node->insert (i + 100);
-    }
-  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto myVec = treeToVector (tree, 255);
   auto myChildren = childrenByPath (myVec, {});
-  REQUIRE (myChildren.at (0) == 42);
+  REQUIRE (myChildren.size () == 2);
+  REQUIRE (myChildren.at (0) == 1);
+  REQUIRE (myChildren.at (1) == 2);
+}
+
+TEST_CASE ("childrenByPathIterators one node in path")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  tree.root ()[0].insert (4);
+  auto myVec = treeToVector (tree, 255);
+  auto myChildren = internals::childrenByPathIterators (myVec, { 1 });
+  REQUIRE (myChildren.size () == 2);
+  REQUIRE (*myChildren.at (0) == 3);
+  REQUIRE (*myChildren.at (1) == 4);
+}
+
+TEST_CASE ("childrenByPath one node in path")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  tree.root ()[0].insert (4);
+  auto myVec = treeToVector (tree, 255);
+  auto myChildren = childrenByPath (myVec, { 1 });
+  REQUIRE (myChildren.size () == 2);
+  REQUIRE (myChildren.at (0) == 3);
+  REQUIRE (myChildren.at (1) == 4);
 }
 
 TEST_CASE ("childrenByPath path with 2 values")
@@ -82,25 +77,25 @@ TEST_CASE ("childrenByPath path with 2 values")
       node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 2 }));
       node = node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 3 }));
     }
-  auto myVec = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 });
+  auto myVec = treeToVector (tree, uint8_t{ 255 });
   auto myChildren = childrenByPath (myVec, { 11, 13 });
   REQUIRE (uint64_t{ myChildren.at (0) } == 22);
   REQUIRE (uint64_t{ myChildren.at (1) } == 23);
 }
 
-TEST_CASE ("2 children")
+TEST_CASE ("childrenByPath 2 children")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (1000);
   tree.root ().insert (2000);
   tree.root ()[0].insert (4000);
   tree.root ()[0][0].insert (5000);
-  auto myVec = treeToVector (tree, 255, 254);
+  auto myVec = treeToVector (tree, 255);
   auto children1 = childrenByPath (myVec, { 2000, 4000 });
   REQUIRE (children1.at (0) == 5000);
 }
 
-TEST_CASE ("3 children and tuple")
+TEST_CASE ("childrenByPath 3 children and tuple")
 {
   auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
   tree.insert ({ 1, 1 });
@@ -109,7 +104,7 @@ TEST_CASE ("3 children and tuple")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 }, std::tuple<uint8_t, int8_t>{ 254, -1 });
+  auto myVec = treeToVector (tree, std::tuple<uint8_t, int8_t>{ 255, -1 });
   for (auto &value : childrenByPath (myVec, { { 2, 2 }, { 4, 4 } }))
     {
       REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });

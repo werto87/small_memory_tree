@@ -28,7 +28,7 @@ tree.root ().insert (1);
 tree.root ().insert (2);
 tree.root ()[0].insert (3);
 tree.root ()[0][0].insert (4);
-auto compressedTree = treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }); // creates a vector with the data from tree using 255 as marker for empty and 254 for child
+auto compressedTree = treeToVector (tree, uint8_t{ 255 }); // creates a vector with the data from tree using 255 as marker for empty and 254 for child
 // 'compressedTree' can be queried for data using for example the childrenByPath function TODO write example
 // note in this case vector is a byte vector which can be easily stored in a database.
 auto decompressedTree = vectorToTree (compressedTree); // if the data of compressedTree needs to be altered it can be decompressed.

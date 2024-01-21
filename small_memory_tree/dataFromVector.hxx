@@ -6,95 +6,51 @@ Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <optional>
+#include <ranges>
 #include <vector>
 
 namespace small_memory_tree
 {
 
-namespace internals{
-
-template <typename T>
-uint64_t
-maxChildren (std::vector<T> const &treeAsVector)
+namespace internals
 {
-  using VectorElementType = typename std::decay<decltype (*treeAsVector.begin ())>::type;
-  auto findResult = std::ranges::find_if (treeAsVector.rbegin (), treeAsVector.rend (), [markerForEmpty=treeAsVector.back ()] (VectorElementType const &element) { return element != markerForEmpty; });
-  return boost::numeric_cast<uint64_t> (std::distance (treeAsVector.rbegin (), findResult));
-}
-
 template <typename T>
-uint64_t
-maxChildren (T const &tree)
+auto
+childrenByPathIterators (std::vector<T> const &treeAsVector, std::vector<T> const &path)
 {
-  auto maxChildren = uint64_t{};
-  for (auto const &node : tree)
+  auto maxChildren = internals::getMaxChildren (treeAsVector);
+  auto results = std::vector<typename std::vector<T>::const_iterator>{};
+  auto levels = internals::calculateLevels (treeAsVector);
+  if (path.empty ())
     {
-      if (maxChildren < node.size ())
+      for (auto i = uint64_t{}; i < maxChildren; ++i)
         {
-          maxChildren = node.size ();
+          results.push_back (treeAsVector.begin () + 1 + i);
         }
+      return results;
     }
-  return maxChildren;
-}
+  if (path.size () == 1)
+    {
+      auto children = childrenByPathIterators (treeAsVector, {});
 
-}
-/**
- * children of a node using vector as a tree
- * @param vec vector in tree form
- * @param index node to get children from
- * @return the children of the node
- */
-template <typename T>
-std::vector<T>
-children (std::vector<T> const &vec, uint64_t index)
-{
-  auto const &markerForEmpty = vec.back ();
-  auto result = std::vector<T>{};
-  for (auto i = uint64_t{ 1 }; i <= internals::maxChildren (vec); i++)
-    {
-      if (vec.at(index + i) != markerForEmpty)
+      if (auto itr = std::find_if (children.begin (), children.end (), [valueToLookFor = path.front ()] (auto itrNode) { return *itrNode == valueToLookFor; }); itr != children.end ())
         {
-          result.push_back (vec.at(index + i));
-        }
-    }
-  return result;
-}
-/**
- * nodes can have multiple children. If one of the node matches the given value return the index of the node
- * @param vec vector in tree form
- * @param index node to search children
- * @param valueToLookFor valueToLookFor value to look for
- * @return index of first child which has the same value as valueToLookFor
- */
-template <typename T>
-std::optional<uint64_t>
-indexOffChildWithValue (std::vector<T> const &vec, uint64_t index, T valueToLookFor)
-{
-  for (auto i = uint64_t{ 1 }; i <= boost::numeric_cast<uint64_t> (internals::maxChildren (vec)); i++)
-    {
-      if constexpr (internals::TupleLike<T>)
-        {
-          if (vec.at(boost::numeric_cast<uint64_t> (std::get<0> (vec.at(index + i)))+index + i) == valueToLookFor)
-            {
-              return boost::numeric_cast<uint64_t> (std::get<0> (vec.at(index + i)))+index + i;
-            }
+          children.size ();
+          std::distance (children.begin (), itr);
+          results.push_back (*itr);
+          return results;
         }
       else
         {
-          if (vec.at(boost::numeric_cast<uint64_t> (vec.at(index + i))+index + i) == valueToLookFor)
-            {
-              return boost::numeric_cast<uint64_t> (vec.at(index + i))+index + i;
-            }
+          return results;
         }
     }
-  return {};
+  return results;
 }
-
-
+}
 
 /**
  * traverses the tree by picking the first matching value
@@ -106,38 +62,48 @@ indexOffChildWithValue (std::vector<T> const &vec, uint64_t index, T valueToLook
 -----3
 ----/-\
 ---4---5
- * @param vec vector in tree form
+ * @param treeAsVector vector in tree form
  * @param path vector with the values of nodes
  * @return value of the children of the node at the end of the path
  */
-  template <typename T>
-  std::vector<T>
-  childrenByPath (std::vector<T> const &vec, std::vector<T> const &path)
-  {
-    auto result = std::vector<T>{};
-    auto index = uint64_t{ 0 };
-    for (uint64_t i = 0;i<path.size() ;++i)
-      {
-        if (auto indexOptional = indexOffChildWithValue (vec, index, path.at (i)))
-          {
-            index = indexOptional.value();
-          }
-        else
-          {
-            return {};
-          }
-      }
-    auto resultChildren=children (vec, index);
-    for(uint64_t i=0;i<resultChildren.size();++i){
-        if constexpr (internals::TupleLike<T>)
-          {
-            result.push_back (vec.at( boost::numeric_cast<uint64_t>(std::get<0> (resultChildren.at (i))) + index + i+1));
-          }
-        else
-          {
-            result.push_back (vec.at(boost::numeric_cast<uint64_t>(resultChildren.at (i)) + index + i+1));
-          }
-      }
-    return result;
-  }
+template <typename T>
+std::vector<T>
+childrenByPath (std::vector<T> const &treeAsVector, std::vector<T> const &path)
+{
+  auto result = std::vector<T>{};
+  auto maxChildren = internals::getMaxChildren (treeAsVector);
+  auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
+  if (path.empty ())
+    {
+      std::copy_if (treeAsVector.begin () + 1, treeAsVector.begin () + 1 + maxChildren, std::back_inserter (result), [&markerForEmpty] (auto const &element) { return element != markerForEmpty; });
+      return result;
+    }
+  auto levels = internals::calculateLevels (treeAsVector); // TODO make a class and calculate this once when the vector is created
+  if (path.size () == 1)
+    {
+      for (auto i = uint64_t{}; i < path.size (); ++i)
+        {
+          auto valueToLookFor = path.at (i);
+          auto level = levels.at (i);
+          auto levelsWithOutEmptyElements = level | std::views::filter ([&markerForEmpty] (auto const &element) { return element != markerForEmpty; });
+          if (auto itr = std::ranges::find_if (levelsWithOutEmptyElements, [&valueToLookFor] (auto value) { return value == valueToLookFor; }); itr != levelsWithOutEmptyElements.end ())
+            {
+              auto childrenLevel = levels.at (i + 1);
+              auto position = std::distance (levelsWithOutEmptyElements.begin (), itr);
+              if (i == path.size () - 1)
+                {
+                  for (auto j = uint64_t{}; j < maxChildren; ++j)
+                    {
+                      result.push_back (childrenLevel[position + j]);
+                    }
+                }
+            }
+          else
+            {
+              return {};
+            }
+        }
+    }
+  return result;
+}
 }
