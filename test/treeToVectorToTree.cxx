@@ -14,7 +14,7 @@ Distributed under the Boost Software License, Version 1.0.
 
 using namespace small_memory_tree;
 
-TEST_CASE ("vectorToTree tree to vector", "[abc]")
+TEST_CASE ("vectorToTree tree to vector")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (0);
@@ -26,7 +26,7 @@ TEST_CASE ("vectorToTree tree to vector", "[abc]")
   REQUIRE (vectorToTree (myVec) == tree);
 }
 
-TEST_CASE ("3 children tree to vector", "[abc]")
+TEST_CASE ("3 children tree to vector")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -40,7 +40,7 @@ TEST_CASE ("3 children tree to vector", "[abc]")
   REQUIRE (vectorToTree (myVec) == tree);
 }
 
-TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
+TEST_CASE ("3 children and tuple vectorToTree tree to vector")
 {
   auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
   tree.insert ({ 1, 1 });
@@ -53,7 +53,7 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector", "[abc]")
   REQUIRE (vectorToTree (myVec) == tree);
 }
 
-TEST_CASE ("treeToVector more than 255 elements", "[abc]")
+TEST_CASE ("treeToVector more than 255 elements")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -69,7 +69,7 @@ TEST_CASE ("treeToVector more than 255 elements", "[abc]")
   REQUIRE (int{ myVec.at (253) } != int{ 254 });
 }
 
-TEST_CASE ("treeToVector more than 255 elements second child has 2 children first child no children", "[abc]")
+TEST_CASE ("treeToVector more than 255 elements second child has 2 children first child no children")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -112,7 +112,7 @@ private:
   std::uint8_t cardPlayed{ 253 };
 };
 
-TEST_CASE ("treeToVector", "[abc]")
+TEST_CASE ("treeToVector")
 {
   auto tree = st_tree::tree<std::tuple<Result, bool>, st_tree::keyed<Action> >{};
   tree.insert ({ Result::Undefined, true });
@@ -131,7 +131,7 @@ TEST_CASE ("treeToVector", "[abc]")
   REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
 }
 
-TEST_CASE ("treeToVector value equals marker for empty during child distance calculation", "[abc]")
+TEST_CASE ("treeToVector value equals marker for empty during child distance calculation")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -142,7 +142,7 @@ TEST_CASE ("treeToVector value equals marker for empty during child distance cal
   REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 225 }, uint8_t{ 254 }), std::logic_error);
 }
 
-TEST_CASE ("treeToVector too big tree", "[abc]")
+TEST_CASE ("treeToVector too big tree")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -153,7 +153,7 @@ TEST_CASE ("treeToVector too big tree", "[abc]")
   REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }), std::logic_error);
 }
 
-TEST_CASE ("treeToVector value equals marker for child", "[abc]")
+TEST_CASE ("treeToVector value equals marker for child")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -164,7 +164,7 @@ TEST_CASE ("treeToVector value equals marker for child", "[abc]")
   REQUIRE_THROWS_AS (treeToVector (tree, uint8_t{ 255 }, uint8_t{ 254 }), std::logic_error);
 }
 
-TEST_CASE ("treeToVector value equals marker for empty", "[abc]")
+TEST_CASE ("treeToVector value equals marker for empty")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);

@@ -10,7 +10,7 @@ Distributed under the Boost Software License, Version 1.0.
 
 using namespace small_memory_tree;
 
-TEST_CASE ("maxChildren", "[abc]")
+TEST_CASE ("maxChildren")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -24,7 +24,7 @@ TEST_CASE ("maxChildren", "[abc]")
   REQUIRE (internals::maxChildren (myVec) == 2);
 }
 
-TEST_CASE ("children", "[abc]")
+TEST_CASE ("children")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (1);
@@ -42,7 +42,7 @@ TEST_CASE ("children", "[abc]")
   REQUIRE (myVec[offset + parentIndex + numberFromChild] == 1);
 }
 
-TEST_CASE ("indexOffChildWithValue node with 2 children", "[abc]")
+TEST_CASE ("indexOffChildWithValue node with 2 children")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (100);
@@ -58,7 +58,7 @@ TEST_CASE ("indexOffChildWithValue node with 2 children", "[abc]")
   REQUIRE (secondChild.value () == 9);
 }
 
-TEST_CASE ("childrenByPath", "[abc]")
+TEST_CASE ("childrenByPath")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (41);
@@ -72,7 +72,7 @@ TEST_CASE ("childrenByPath", "[abc]")
   REQUIRE (myChildren.at (0) == 42);
 }
 
-TEST_CASE ("childrenByPath path with 2 values", "[abc]")
+TEST_CASE ("childrenByPath path with 2 values")
 {
   auto tree = st_tree::tree<uint8_t>{};
   tree.insert (10);
@@ -88,7 +88,7 @@ TEST_CASE ("childrenByPath path with 2 values", "[abc]")
   REQUIRE (uint64_t{ myChildren.at (1) } == 23);
 }
 
-TEST_CASE ("2 children", "[abc]")
+TEST_CASE ("2 children")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (1000);
@@ -100,7 +100,7 @@ TEST_CASE ("2 children", "[abc]")
   REQUIRE (children1.at (0) == 5000);
 }
 
-TEST_CASE ("3 children and tuple", "[abc]")
+TEST_CASE ("3 children and tuple")
 {
   auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
   tree.insert ({ 1, 1 });
