@@ -32,7 +32,15 @@ treeToVector2 (auto const &tree, auto const &markerForEmpty)
           result.push_back (markerForEmpty);
         }
     }
-  result.push_back (boost::numeric_cast<vectorElementType> (maxChildrenInTree));
+  if constexpr (internals::TupleLike<vectorElementType>)
+    {
+      result.push_back ({ boost::numeric_cast<std::decay_t<decltype (std::get<0> (vectorElementType{}))> > (maxChildrenInTree), {} });
+    }
+  else
+    {
+      result.push_back (boost::numeric_cast<vectorElementType> (maxChildrenInTree));
+    }
+
   return result;
 }
 
