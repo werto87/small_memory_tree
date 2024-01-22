@@ -5,7 +5,7 @@ Distributed under the Boost Software License, Version 1.0.
  */
 
 #include "small_memory_tree/smallMemoryTree.hxx"
-#include "small_memory_tree/treeToVector.hxx"
+
 #include <catch2/catch.hpp>
 #include <cstdint>
 #include <iostream>
@@ -49,25 +49,8 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  auto myVec = treeToVector (tree, std::tuple<int, int8_t>{ 255, -1 });
   auto smt = SmallMemoryTree<std::tuple<int, int8_t> >{ tree, { 255, -1 } };
   REQUIRE (smt.generateTreeFromVector () == tree);
-}
-
-TEST_CASE ("treeToVector more than 255 elements")
-{
-  auto tree = st_tree::tree<int>{};
-  tree.insert (1);
-  auto node = tree.root ().insert (2);
-  for (int i = 0; i < 130; ++i)
-    {
-      node = node->insert (i);
-    }
-  //  TODO there should be an error message if treeToVector is just used with 255 because this is implicit an int and not int
-  auto myVec = treeToVector (tree, int{ 255 });
-  REQUIRE (myVec.size () == 264);
-  //  int{} so it is easier to read the error message when the test fails
-  REQUIRE (int{ myVec.at (253) } != int{ 254 });
 }
 
 enum class Result : int
