@@ -23,10 +23,6 @@ TEST_CASE ("vectorToTree tree to vector")
   tree.root ()[0].insert (3);
   tree.root ()[0][0].insert (4);
   auto smt = SmallMemoryTree<int>{ tree, 255 };
-  internals::serialize_indented (tree.begin (), tree.end (), std::cout);
-  std::cout << "MY TREE" << std::endl;
-  auto treeFromVector = smt.generateTreeFromVector ();
-  internals::serialize_indented (treeFromVector.begin (), treeFromVector.end (), std::cout);
   REQUIRE (smt.generateTreeFromVector () == tree);
 }
 
