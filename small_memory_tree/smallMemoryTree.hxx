@@ -186,41 +186,34 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
 {
   auto result = std::vector<T>{};
   auto const &levels = smallMemoryTree.getLevels ();
-  auto childOffset = int64_t{};
   auto positionOfChildren = int64_t{};
   for (auto i = uint64_t{}; i < path.size (); ++i)
     {
       auto const &valueToLookFor = path.at (i);
       auto const &level = levels.at (i);
       auto nodesToChoseFrom = std::span<T const>{};
-      if (i == 0)
-        {
-          nodesToChoseFrom = std::span<T const>{ level.begin (), level.end () };
-        }
-      else
-        {
-          nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * smallMemoryTree.getMaxChildren (), level.begin () + positionOfChildren * smallMemoryTree.getMaxChildren () + smallMemoryTree.getMaxChildren () };
-        }
+      auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
+      nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * maxChildren, level.begin () + positionOfChildren * maxChildren + maxChildren };
       if (auto itr = std::ranges::find_if (nodesToChoseFrom, [&valueToLookFor] (auto value) { return value == valueToLookFor; }); itr != nodesToChoseFrom.end ())
         {
-          childOffset = std::distance (nodesToChoseFrom.begin (), itr);
+          auto childOffset = std::distance (nodesToChoseFrom.begin (), itr);
+          positionOfChildren = std::count_if (level.begin (), level.begin () + positionOfChildren * maxChildren + childOffset, [&markerForEmpty = smallMemoryTree.getMarkerForEmpty ()] (auto const &element) { return element != markerForEmpty; });
+          auto const &childrenLevel = levels.at (i + 1);
+          if (i == path.size () - 1)
+            {
+              for (auto j = int64_t{}; j < maxChildren; ++j)
+                {
+                  auto const &value = childrenLevel[boost::numeric_cast<uint64_t> (positionOfChildren * maxChildren + j)];
+                  if (value != smallMemoryTree.getMarkerForEmpty ())
+                    {
+                      result.push_back (value);
+                    }
+                }
+            }
         }
       else
         {
           return {};
-        }
-      positionOfChildren = std::count_if (level.begin (), level.begin () + positionOfChildren * smallMemoryTree.getMaxChildren () + childOffset, [&markerForEmpty = smallMemoryTree.getMarkerForEmpty ()] (auto const &element) { return element != markerForEmpty; });
-      auto const &childrenLevel = levels.at (i + 1);
-      if (i == path.size () - 1)
-        {
-          for (auto j = uint64_t{}; j < smallMemoryTree.getMaxChildren (); ++j)
-            {
-              auto const &value = childrenLevel[positionOfChildren * smallMemoryTree.getMaxChildren () + j];
-              if (value != smallMemoryTree.getMarkerForEmpty ())
-                {
-                  result.push_back (value);
-                }
-            }
         }
     }
   return result;
