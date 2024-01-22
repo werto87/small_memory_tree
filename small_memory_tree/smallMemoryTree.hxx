@@ -83,7 +83,7 @@ generateTree (std::vector<T> const &treeAsVector, auto const &treeLevels)
 {
   auto const &maxChildren = internals::getMaxChildren (treeAsVector);
   auto treeToFill = st_tree::tree<T>{};
-  auto trees = std::__1::deque<st_tree::tree<T> >{};
+  auto trees = std::deque<st_tree::tree<T> >{};
   for (auto rItr = treeLevels.crbegin (); rItr != treeLevels.crend () - 1; ++rItr)
     {
       if (rItr == treeLevels.crend () - 2)

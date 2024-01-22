@@ -8,7 +8,6 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include <catch2/catch.hpp>
 #include <cstdint>
-#include <iostream>
 #include <iterator>
 #include <st_tree.h>
 
@@ -56,19 +55,16 @@ TEST_CASE ("3 children and tuple vectorToTree tree to vector")
 enum class Result : int
 {
   Undefined,
-  DefendWon,
-  Draw,
-  AttackWon
 };
 
 class Action
 {
 public:
   Action () = default;
-  Action (std::uint8_t cardPlayed_) : cardPlayed (cardPlayed_) {}
+  explicit Action (std::uint8_t cardPlayed_) : cardPlayed (cardPlayed_) {}
   auto operator<=> (const Action &) const = default;
 
-  std::uint8_t
+  [[nodiscard]] std::uint8_t
   value () const
   {
     return cardPlayed;
@@ -82,11 +78,11 @@ TEST_CASE ("treeToVector")
 {
   auto tree = st_tree::tree<std::tuple<Result, bool>, st_tree::keyed<Action> >{};
   tree.insert ({ Result::Undefined, true });
-  tree.root ().insert (1, { Result::Undefined, true });
-  tree.root ().insert (2, { Result::Undefined, true });
-  tree.root ().insert (3, { Result::Undefined, true });
-  tree.root ()[1].insert (4, { Result::Undefined, true }); // [1] is a key from the parent
-  tree.root ()[1][4].insert (5, { Result::Undefined, true });
+  tree.root ().insert (Action{ 1 }, { Result::Undefined, true });
+  tree.root ().insert (Action{ 2 }, { Result::Undefined, true });
+  tree.root ().insert (Action{ 3 }, { Result::Undefined, true });
+  tree.root ()[Action{ 1 }].insert (Action{ 4 }, { Result::Undefined, true }); // [1] is a key from the parent
+  tree.root ()[Action{ 1 }][Action{ 4 }].insert (Action{ 5 }, { Result::Undefined, true });
   auto smt = SmallMemoryTree<std::tuple<uint8_t, Result> >{ tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, [] (auto const &node) { return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) }; } };
   REQUIRE (smt.getTreeAsVector ().size () == 20);
   auto result = childrenByPath (smt, { { 253, Result::Undefined } }); // root was not created with a certain value and the default value is 253
