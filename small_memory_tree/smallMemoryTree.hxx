@@ -81,6 +81,7 @@ calculateLevels (std::vector<T> const &treeAsVector)
   return treeLevels;
 }
 }
+
 template <typename T> class SmallMemoryTree
 {
 public:
@@ -115,8 +116,8 @@ public:
   }
 
   /**
-   * creates an st_tree from the underlying vector
-   * @return decompressed st_tree
+   * creates a st_tree from the underlying vector
+   * @return st_tree
    */
   st_tree::tree<T>
   generateTreeFromVector () const
