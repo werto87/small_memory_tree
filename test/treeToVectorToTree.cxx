@@ -80,20 +80,18 @@ private:
 
 TEST_CASE ("treeToVector")
 {
-  FAIL ("IMPLEMENT DATA treeToVector nodeToData");
-  //  auto tree = st_tree::tree<std::tuple<Result, bool>, st_tree::keyed<Action> >{};
-  //  tree.insert ({ Result::Undefined, true });
-  //  tree.root ().insert (0, { Result::Undefined, true });
-  //  tree.root ().insert (2, { Result::Undefined, true });
-  //  tree.root ().insert (3, { Result::Undefined, true });
-  //  tree.root ()[0].insert (0, { Result::Undefined, true });
-  //  tree.root ()[0][0].insert (1, { Result::Undefined, true });
-  //  auto myVec = treeToVector (tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, std::tuple<uint8_t, Result>{ 254, Result::Undefined }, [] (auto const &node) {
-  //    //
-  //    return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) };
-  //  });
-  //  REQUIRE (myVec.size () == 24);
-  //  auto result = childrenByPath (myVec, { { 0, Result::Undefined }, { 0, Result::Undefined } });
-  //  REQUIRE_FALSE (result.empty ());
-  //  REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
+  auto tree = st_tree::tree<std::tuple<Result, bool>, st_tree::keyed<Action> >{};
+  tree.insert ({ Result::Undefined, true });
+  tree.root ().insert (1, { Result::Undefined, true });
+  tree.root ().insert (2, { Result::Undefined, true });
+  tree.root ().insert (3, { Result::Undefined, true });
+  tree.root ()[1].insert (4, { Result::Undefined, true }); // [1] is a key from the parent
+  tree.root ()[1][4].insert (5, { Result::Undefined, true });
+  auto smt = SmallMemoryTree<std::tuple<uint8_t, Result> >{ tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, [] (auto const &node) { return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) }; } };
+  REQUIRE (smt.getTreeAsVector ().size () == 20);
+  auto result = childrenByPath (smt, { { 253, Result::Undefined } }); // root was not created with a certain value and the default value is 253
+  REQUIRE (result.size () == 3);
+  REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
+  REQUIRE (result.at (1) == std::tuple<uint8_t, Result>{ 2, Result::Undefined });
+  REQUIRE (result.at (2) == std::tuple<uint8_t, Result>{ 3, Result::Undefined });
 }

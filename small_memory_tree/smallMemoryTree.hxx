@@ -20,47 +20,75 @@ namespace internals
 //TODO implement this * @param nodeToData this can be useful if your st_tree contains some data you do not want to save into the vector. Note that this is not lossless so you wont end up with exactly the same st_tree after calling vectorToTree
   @return if nodeToData is not set returns a vector containing all the information of the st_tree. If nodeToData is set the data in the vector will differ
  */
+template <typename T>
 auto
-treeToVector (auto const &tree, auto const &markerForEmpty)
+treeToVector (auto const &tree, T const &markerForEmpty, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*tree.begin ())>::type const &node)> nodeToData = {})
 {
-  using vectorElementType = std::decay_t<decltype (markerForEmpty)>;
   auto const maxChildrenInTree = internals::getMaxChildren (tree);
-  auto result = std::vector<vectorElementType>{};
-  result.push_back (tree.root ().data ());
+  auto result = std::vector<T>{};
+  if (nodeToData)
+    {
+      result.push_back (nodeToData (tree.root ()));
+    }
+  else
+    {
+      if constexpr (std::is_same<typename std::decay<decltype (tree.root ().data ())>::type, T>::value)
+        {
+          result.push_back (tree.root ().data ());
+        }
+      else
+        {
+          throw std::logic_error{ "node type and element type of result vector is not the same." };
+        }
+    }
   for (auto &node : tree)
     {
       for (auto const &child : node)
         {
-          result.push_back (child.data ());
+          if (nodeToData)
+            {
+              result.push_back (nodeToData (child));
+            }
+          else
+            {
+              if constexpr (std::is_same<typename std::decay<decltype (child.data ())>::type, T>::value)
+                {
+                  result.push_back (child.data ());
+                }
+              else
+                {
+                  throw std::logic_error{ "node type and element type of result vector is not the same." };
+                }
+            }
         }
       for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
         {
           result.push_back (markerForEmpty);
         }
     }
-  if constexpr (internals::TupleLike<vectorElementType>)
+  if constexpr (internals::TupleLike<T>)
     {
-      result.push_back ({ boost::numeric_cast<std::decay_t<decltype (std::get<0> (vectorElementType{}))> > (maxChildrenInTree), {} });
+      result.push_back ({ boost::numeric_cast<std::decay_t<decltype (std::get<0> (T{}))> > (maxChildrenInTree), {} });
     }
   else
     {
-      result.push_back (boost::numeric_cast<vectorElementType> (maxChildrenInTree));
+      result.push_back (boost::numeric_cast<T> (maxChildrenInTree));
     }
   return result;
 }
 
 template <typename T>
 st_tree::tree<T>
-generateTree (std::vector<T> const &vectorAsTree, auto const &treeLevels)
+generateTree (std::vector<T> const &treeAsVector, auto const &treeLevels)
 {
-  auto const &maxChildren = internals::getMaxChildren (vectorAsTree);
+  auto const &maxChildren = internals::getMaxChildren (treeAsVector);
   auto treeToFill = st_tree::tree<T>{};
   auto trees = std::__1::deque<st_tree::tree<T> >{};
   for (auto rItr = treeLevels.crbegin (); rItr != treeLevels.crend () - 1; ++rItr)
     {
       if (rItr == treeLevels.crend () - 2)
         {
-          treeToFill.insert (vectorAsTree.front ()); // the first element of treeAsVector is allways the root of the tree
+          treeToFill.insert (treeAsVector.front ()); // the first element of treeAsVector is allways the root of the tree
           for (auto j = uint64_t{}; j < maxChildren; ++j)
             {
               treeToFill.root ().insert (trees.front ());
@@ -70,7 +98,7 @@ generateTree (std::vector<T> const &vectorAsTree, auto const &treeLevels)
       else
         {
           auto const &upperLevel = *(rItr + 1);
-          auto const &markerForEmpty = *(vectorAsTree.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
+          auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
           auto const &notMarkerForEmpty = [&markerForEmpty] (auto const &element) { return element != markerForEmpty; };
           auto currentChild = uint64_t{};
           for (auto parent : upperLevel | std::views::filter (notMarkerForEmpty))
@@ -121,16 +149,16 @@ calculateLevels (std::vector<T> const &treeAsVector)
 template <typename T> class SmallMemoryTree
 {
 public:
-  SmallMemoryTree (auto const &st_tree, T const &markerForHoles) : _vectorAsTree{ internals::treeToVector (st_tree, markerForHoles) }, _levels{ internals::calculateLevels (_vectorAsTree) } {}
+  SmallMemoryTree (auto const &st_tree, T const &markerForEmpty) : _treeAsVector{ internals::treeToVector (st_tree, markerForEmpty) }, _levels{ internals::calculateLevels (_treeAsVector) } {}
 
-  SmallMemoryTree (auto const &st_tree, T const &markerForHoles, std::function<T (std::span<T>)>) : _vectorAsTree{ internals::treeToVector (st_tree, markerForHoles) }, _levels{ internals::calculateLevels (_vectorAsTree) } {} //    TODO implement nodeToData
+  SmallMemoryTree (auto const &st_tree, T const &markerForEmpty, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*st_tree.begin ())>::type const &node)> nodeToData) : _treeAsVector{ internals::treeToVector (st_tree, markerForEmpty, nodeToData) }, _levels{ internals::calculateLevels (_treeAsVector) } {}
 
-  explicit SmallMemoryTree (std::vector<T> vectorAsTree) : _vectorAsTree{ std::move (vectorAsTree) }, _levels{ internals::calculateLevels (_vectorAsTree) } {}
+  explicit SmallMemoryTree (std::vector<T> treeAsVector) : _treeAsVector{ std::move (treeAsVector) }, _levels{ internals::calculateLevels (_treeAsVector) } {}
 
   [[nodiscard]] std::vector<T> const &
-  getVectorAsTree () const
+  getTreeAsVector () const
   {
-    return _vectorAsTree;
+    return _treeAsVector;
   }
 
   [[nodiscard]] std::vector<std::span<T const> > const &
@@ -142,13 +170,13 @@ public:
   [[nodiscard]] T const &
   getMarkerForEmpty () const
   {
-    return *(_vectorAsTree.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element;
+    return *(_treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element;
   }
 
   [[nodiscard]] uint64_t
   getMaxChildren () const
   {
-    return internals::getMaxChildren (_vectorAsTree);
+    return internals::getMaxChildren (_treeAsVector);
   }
 
   /**
@@ -158,11 +186,11 @@ public:
   st_tree::tree<T>
   generateTreeFromVector () const
   {
-    return internals::generateTree (_vectorAsTree, _levels);
+    return internals::generateTree (_treeAsVector, _levels);
   }
 
 private:
-  std::vector<T> _vectorAsTree{};
+  std::vector<T> _treeAsVector{};
   std::vector<std::span<T const> > _levels{};
 };
 

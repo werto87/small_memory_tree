@@ -62,9 +62,8 @@ getMaxChildren (std::vector<T> const &treeAsVector)
   return maxChildren;
 }
 
-template <typename T>
 uint64_t
-getMaxChildren (st_tree::tree<T> const &tree)
+getMaxChildren (auto const &tree)
 {
   auto maxChildren = uint64_t{};
   for (auto const &node : tree)
