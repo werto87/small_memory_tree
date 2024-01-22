@@ -8,6 +8,7 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
+#include <st_tree.h>
 #include <tuple>
 
 namespace small_memory_tree::internals
@@ -47,22 +48,7 @@ template <typename T> concept TupleLike = requires (T a)
 
 template <typename T>
 uint64_t
-getMaxChildren (T const &tree)
-{
-  auto maxChildren = uint64_t{};
-  for (auto const &node : tree)
-    {
-      if (maxChildren < node.size ())
-        {
-          maxChildren = node.size ();
-        }
-    }
-  return maxChildren;
-}
-
-template <typename T>
-uint64_t
-getMaxChildren (const std::vector<T> &treeAsVector)
+getMaxChildren (std::vector<T> const &treeAsVector)
 {
   auto maxChildren = uint64_t{}; // last element is the maxChildren value of the tree
   if constexpr (TupleLike<T>)
@@ -76,26 +62,19 @@ getMaxChildren (const std::vector<T> &treeAsVector)
   return maxChildren;
 }
 
-// TODO add a parameter so it is possible to calculate only a couple levels and not always all levels
-// TODO this currently does ignore the first level which is allways the root do not know if it is good or bad
 template <typename T>
-auto
-calculateLevels (std::vector<T> const &treeAsVector)
+uint64_t
+getMaxChildren (st_tree::tree<T> const &tree)
 {
-  uint64_t maxChildren = internals::getMaxChildren (treeAsVector);
-  auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
-  auto treeLevels = confu_algorithm::createChainViewsIncludeBreakingElement (treeAsVector.begin () + 1, treeAsVector.end () - 1, [parentCount = uint64_t{ 1 }, &maxChildren, &markerForEmpty] (auto sequence) mutable {
-    if (sequence.size () == parentCount * maxChildren)
-      {
-        parentCount = boost::numeric_cast<uint64_t> (std::count_if (sequence.begin (), sequence.end (), [&markerForEmpty] (auto num) { return num != markerForEmpty; }));
-        return false;
-      }
-    else
-      {
-        return true;
-      }
-  });
-  return treeLevels;
+  auto maxChildren = uint64_t{};
+  for (auto const &node : tree)
+    {
+      if (maxChildren < node.size ())
+        {
+          maxChildren = node.size ();
+        }
+    }
+  return maxChildren;
 }
 
 }
