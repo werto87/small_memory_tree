@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.15.7)
 
 # Only set the cxx_standard if it is not set by someone else
 if (NOT DEFINED CMAKE_CXX_STANDARD)
@@ -14,16 +14,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(
         myproject
         VERSION 0.0.1
-        DESCRIPTION ""
-        HOMEPAGE_URL "%%myurl%%"
         LANGUAGES CXX C)
 
 include(cmake/PreventInSourceBuilds.cmake)
 include(ProjectOptions.cmake)
 
 myproject_setup_options()
-
-myproject_global_options()
 myproject_local_options()
 
 # don't know if this should be set globally from here or not...

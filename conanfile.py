@@ -11,6 +11,6 @@ class Project(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.84.0", force=True)
-        self.requires("st_tree/1.2.1")
+        self.requires("st_tree/1.2.2")
         self.requires("catch2/2.13.7")
         self.requires("confu_algorithm/0.0.1")
