@@ -9,7 +9,29 @@ Distributed under the Boost Software License, Version 1.0.
 
 using namespace small_memory_tree;
 
+TEST_CASE ("rootElement")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto smt = SmallMemoryTree<int>{ tree, 255 };
+  auto rootElement = small_memory_tree::rootElement (smt);
+  REQUIRE (rootElement == 0);
+}
+
 TEST_CASE ("childrenByPath empty path")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto smt = SmallMemoryTree<int>{ tree, 255 };
+  auto myChildren = childrenByPath (smt, {});
+  REQUIRE (myChildren.empty ());
+}
+
+TEST_CASE ("childrenByPath root as path")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);

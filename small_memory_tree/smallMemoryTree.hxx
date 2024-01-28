@@ -206,7 +206,7 @@ private:
 ---4---5
  * @param treeAsVector vector in tree form
  * @param path vector with the values of nodes
- * @return value of the children of the node at the end of the path
+ * @return value of the children of the node at the end of the path. Empty result means no
  */
 template <typename T>
 std::vector<T>
@@ -219,9 +219,8 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
     {
       auto const &valueToLookFor = path.at (i);
       auto const &level = levels.at (i);
-      auto nodesToChoseFrom = std::span<T const>{};
       auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-      nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * maxChildren, level.begin () + positionOfChildren * maxChildren + maxChildren };
+      auto const &nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * maxChildren, level.begin () + positionOfChildren * maxChildren + maxChildren };
       if (auto itr = std::ranges::find_if (nodesToChoseFrom, [&valueToLookFor] (auto value) { return value == valueToLookFor; }); itr != nodesToChoseFrom.end ())
         {
           auto childOffset = std::distance (nodesToChoseFrom.begin (), itr);
@@ -245,6 +244,24 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
         }
     }
   return result;
+}
+
+/**
+ * @param smallMemoryTree
+ * @return Root element of the tree
+ */
+template <typename T>
+std::optional<T>
+rootElement (SmallMemoryTree<T> const &smallMemoryTree)
+{
+  if (smallMemoryTree.getTreeAsVector ().empty ())
+    {
+      return {};
+    }
+  else
+    {
+      return { smallMemoryTree.getTreeAsVector ().front () };
+    }
 }
 
 }
