@@ -122,9 +122,23 @@ TEST_CASE ("childrenByPath 3 children and tuple")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto smt = SmallMemoryTree<std::tuple<uint8_t, int8_t> >{ tree, { 255, -1 } };
-  auto children = childrenByPath (smt, { { 2, 2 }, { 4, 4 } }).value ();
+  auto children = childrenByPath (smt, { { 1, 1 }, { 2, 2 }, { 4, 4 } }).value ();
   for (auto const &value : children)
     {
       REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }
+}
+
+TEST_CASE ("childrenByPath 3 children and tuple crash")
+{
+  auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
+  tree.insert ({ 1, 1 });
+  tree.root ().insert ({ 2, 2 });
+  tree.root ().insert ({ 3, 3 });
+  tree.root ().insert ({ 69, 69 });
+  tree.root ()[0].insert ({ 4, 4 });
+  tree.root ()[0][0].insert ({ 42, 42 });
+  auto smt = SmallMemoryTree<std::tuple<uint8_t, int8_t> >{ tree, { 255, -1 } };
+  auto children = childrenByPath (smt, { { 2, 2 }, { 4, 4 } });
+  REQUIRE_FALSE (children.has_value ());
 }

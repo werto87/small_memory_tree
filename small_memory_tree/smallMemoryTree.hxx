@@ -219,7 +219,11 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
       auto const &valueToLookFor = path.at (i);
       auto const &level = levels.at (i);
       auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-      auto const &nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * maxChildren, level.begin () + positionOfChildren * maxChildren + maxChildren };
+      auto nodesToChoseFrom = level;
+      if (i != 0)
+        {
+          nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * maxChildren, level.begin () + positionOfChildren * maxChildren + maxChildren };
+        }
       if (auto itr = std::ranges::find_if (nodesToChoseFrom, [&valueToLookFor] (auto value) { return value == valueToLookFor; }); itr != nodesToChoseFrom.end ())
         {
           auto childOffset = std::distance (nodesToChoseFrom.begin (), itr);

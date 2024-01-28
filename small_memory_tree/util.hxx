@@ -50,16 +50,14 @@ template <typename T>
 uint64_t
 getMaxChildren (std::vector<T> const &treeAsVector)
 {
-  auto maxChildren = uint64_t{}; // last element is the maxChildren value of the tree
   if constexpr (TupleLike<T>)
     {
-      maxChildren = boost::numeric_cast<uint64_t> (std::get<0> (treeAsVector.back ()));
+      return boost::numeric_cast<uint64_t> (std::get<0> (treeAsVector.back ()));
     }
   else
     {
-      maxChildren = boost::numeric_cast<uint64_t> (treeAsVector.back ());
+      return boost::numeric_cast<uint64_t> (treeAsVector.back ());
     }
-  return maxChildren;
 }
 
 uint64_t
