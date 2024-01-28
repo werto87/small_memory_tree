@@ -86,8 +86,8 @@ TEST_CASE ("treeToVector")
   auto smt = SmallMemoryTree<std::tuple<uint8_t, Result> >{ tree, std::tuple<uint8_t, Result>{ 255, Result::Undefined }, [] (auto const &node) { return std::tuple<uint8_t, Result>{ node.key ().value (), std::get<0> (node.data ()) }; } };
   REQUIRE (smt.getTreeAsVector ().size () == 20);
   auto result = childrenByPath (smt, { { 253, Result::Undefined } }); // root was not created with a certain value and the default value is 253
-  REQUIRE (result.size () == 3);
-  REQUIRE (result.at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
-  REQUIRE (result.at (1) == std::tuple<uint8_t, Result>{ 2, Result::Undefined });
-  REQUIRE (result.at (2) == std::tuple<uint8_t, Result>{ 3, Result::Undefined });
+  REQUIRE (result->size () == 3);
+  REQUIRE (result->at (0) == std::tuple<uint8_t, Result>{ 1, Result::Undefined });
+  REQUIRE (result->at (1) == std::tuple<uint8_t, Result>{ 2, Result::Undefined });
+  REQUIRE (result->at (2) == std::tuple<uint8_t, Result>{ 3, Result::Undefined });
 }

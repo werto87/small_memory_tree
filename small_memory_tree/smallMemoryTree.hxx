@@ -199,20 +199,19 @@ private:
  * in this example a path with 1 and 3 would have 4 and 5 as a result
 -----------0
 ---------/---\
---------1---2
+--------1----1
 -------/
 -----3
 ----/-\
 ---4---5
  * @param treeAsVector vector in tree form
  * @param path vector with the values of nodes
- * @return value of the children of the node at the end of the path. Empty result means no
+ * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
  */
 template <typename T>
-std::vector<T>
+std::optional<std::vector<T> >
 childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const &path)
 {
-  auto result = std::vector<T>{};
   auto const &levels = smallMemoryTree.getLevels ();
   auto positionOfChildren = int64_t{};
   for (auto i = uint64_t{}; i < path.size (); ++i)
@@ -228,6 +227,7 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
           auto const &childrenLevel = levels.at (i + 1);
           if (i == path.size () - 1)
             {
+              auto result = std::vector<T>{};
               for (auto j = int64_t{}; j < maxChildren; ++j)
                 {
                   auto const &value = childrenLevel[boost::numeric_cast<uint64_t> (positionOfChildren * maxChildren + j)];
@@ -236,6 +236,7 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
                       result.push_back (value);
                     }
                 }
+              return result;
             }
         }
       else
@@ -243,12 +244,12 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
           return {};
         }
     }
-  return result;
+  return {};
 }
 
 /**
  * @param smallMemoryTree
- * @return Root element of the tree
+ * @return Root element of the tree. Empty optional if tree is empty
  */
 template <typename T>
 std::optional<T>

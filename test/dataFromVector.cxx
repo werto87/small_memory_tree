@@ -28,7 +28,30 @@ TEST_CASE ("childrenByPath empty path")
   tree.root ().insert (2);
   auto smt = SmallMemoryTree<int>{ tree, 255 };
   auto myChildren = childrenByPath (smt, {});
-  REQUIRE (myChildren.empty ());
+  REQUIRE_FALSE (myChildren.has_value ());
+}
+
+TEST_CASE ("childrenByPath wrong path")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto smt = SmallMemoryTree<int>{ tree, 255 };
+  auto myChildren = childrenByPath (smt, { 42 });
+  REQUIRE_FALSE (myChildren.has_value ());
+}
+
+TEST_CASE ("childrenByPath no children")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto smt = SmallMemoryTree<int>{ tree, 255 };
+  auto myChildren = childrenByPath (smt, { 0, 1 });
+  REQUIRE (myChildren.has_value ());
+  REQUIRE (myChildren->empty ());
 }
 
 TEST_CASE ("childrenByPath root as path")
@@ -39,9 +62,9 @@ TEST_CASE ("childrenByPath root as path")
   tree.root ().insert (2);
   auto smt = SmallMemoryTree<int>{ tree, 255 };
   auto myChildren = childrenByPath (smt, { 0 });
-  REQUIRE (myChildren.size () == 2);
-  REQUIRE (myChildren.at (0) == 1);
-  REQUIRE (myChildren.at (1) == 2);
+  REQUIRE (myChildren->size () == 2);
+  REQUIRE (myChildren->at (0) == 1);
+  REQUIRE (myChildren->at (1) == 2);
 }
 
 TEST_CASE ("childrenByPath 3 nodes and sibling has same number")
@@ -57,8 +80,8 @@ TEST_CASE ("childrenByPath 3 nodes and sibling has same number")
   tree.root ()[1][1].insert (69);
   auto smt = SmallMemoryTree<int>{ tree, 255 };
   auto myChildren = childrenByPath (smt, { 0, 2, 4 });
-  REQUIRE (myChildren.size () == 1);
-  REQUIRE (myChildren.at (0) == 69);
+  REQUIRE (myChildren->size () == 1);
+  REQUIRE (myChildren->at (0) == 69);
 }
 
 TEST_CASE ("childrenByPath path with 2 values")
@@ -73,8 +96,8 @@ TEST_CASE ("childrenByPath path with 2 values")
     }
   auto smt = SmallMemoryTree<uint8_t>{ tree, 255 };
   auto myChildren = childrenByPath (smt, { 10, 11 });
-  REQUIRE (uint64_t{ myChildren.at (0) } == 12);
-  REQUIRE (uint64_t{ myChildren.at (1) } == 13);
+  REQUIRE (uint64_t{ myChildren->at (0) } == 12);
+  REQUIRE (uint64_t{ myChildren->at (1) } == 13);
 }
 
 TEST_CASE ("childrenByPath 2 children")
@@ -86,7 +109,7 @@ TEST_CASE ("childrenByPath 2 children")
   tree.root ()[0][0].insert (5);
   auto smt = SmallMemoryTree<int>{ tree, 255 };
   auto children1 = childrenByPath (smt, { 1, 2, 4 });
-  REQUIRE (children1.at (0) == 5);
+  REQUIRE (children1->at (0) == 5);
 }
 
 TEST_CASE ("childrenByPath 3 children and tuple")
@@ -99,7 +122,8 @@ TEST_CASE ("childrenByPath 3 children and tuple")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto smt = SmallMemoryTree<std::tuple<uint8_t, int8_t> >{ tree, { 255, -1 } };
-  for (auto &value : childrenByPath (smt, { { 2, 2 }, { 4, 4 } }))
+  auto children = childrenByPath (smt, { { 2, 2 }, { 4, 4 } }).value ();
+  for (auto const &value : children)
     {
       REQUIRE (value == std::tuple<uint8_t, int8_t>{ 42, 42 });
     }
