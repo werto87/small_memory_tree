@@ -1,43 +1,19 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.15.7)
 project(project VERSION 1.0.0
         DESCRIPTION project
         LANGUAGES CXX
         )
-find_package(Boost REQUIRED)
-find_package(st_tree REQUIRED)
-find_package(confu_algorithm REQUIRED)
-cmake_policy(SET CMP0015 NEW)
 include(cmake/Cache.cmake)
-set(PROJECT_WARNINGS project_warning)
-add_library(${PROJECT_WARNINGS} INTERFACE)
+add_library(project_warning INTERFACE)
 include(cmake/CompilerWarnings.cmake)
-set_project_warnings(${PROJECT_WARNINGS})
-set(PROJECT_OPTIONS project_options)
-add_library(${PROJECT_OPTIONS} INTERFACE)
-target_compile_features(${PROJECT_OPTIONS} INTERFACE cxx_std_20)
+set_project_warnings(project_warning)
+add_library(project_options INTERFACE)
 include(cmake/StaticAnalyzers.cmake)
 include(cmake/Sanitizers.cmake)
-enable_sanitizers(${PROJECT_OPTIONS})
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(TARGET_NAME_LIB project_lib)
-add_library(${TARGET_NAME_LIB} OBJECT)
-set_target_properties(${TARGET_NAME_LIB} PROPERTIES LINKER_LANGUAGE CXX)
+enable_sanitizers(project_options)
 add_subdirectory(small_memory_tree)
-target_include_directories(${TARGET_NAME_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${TARGET_NAME_LIB} PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        )
-target_link_libraries(${TARGET_NAME_LIB} PUBLIC
-        ${PROJECT_WARNINGS}
-        ${PROJECT_OPTIONS}
-        st_tree::st_tree
-        Boost::headers
-        confu_algorithm::confu_algorithm
-        )
-target_compile_definitions(${TARGET_NAME_LIB} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
-target_compile_definitions(${TARGET_NAME_LIB} PUBLIC _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
-
-enable_testing()
-add_subdirectory(test)
-
+OPTION(BUILD_TESTS "enable tests" OFF)
+IF (BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+ENDIF (BUILD_TESTS)
