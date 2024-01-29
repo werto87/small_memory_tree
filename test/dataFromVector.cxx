@@ -142,3 +142,22 @@ TEST_CASE ("childrenByPath 3 children and tuple crash")
   auto children = childrenByPath (smt, { { 2, 2 }, { 4, 4 } });
   REQUIRE_FALSE (children.has_value ());
 }
+
+TEST_CASE ("childrenByPath only root get children of root")
+{
+  auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
+  tree.insert ({ 1, 1 });
+  auto smt = SmallMemoryTree<std::tuple<uint8_t, int8_t> >{ tree, { 255, -1 } };
+  auto children = childrenByPath (smt, { { 1, 1 } });
+  REQUIRE (children.has_value ());
+  REQUIRE (children->empty ());
+}
+
+TEST_CASE ("childrenByPath only root get children of root wrong path")
+{
+  auto tree = st_tree::tree<std::tuple<uint8_t, int8_t> >{};
+  tree.insert ({ 1, 1 });
+  auto smt = SmallMemoryTree<std::tuple<uint8_t, int8_t> >{ tree, { 255, -1 } };
+  auto children = childrenByPath (smt, { { 2, 2 } });
+  REQUIRE_FALSE (children.has_value ());
+}
