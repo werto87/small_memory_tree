@@ -8,7 +8,14 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
+/////////////////////////////////////////////////////////////////////////////////
+// workaround until "https://github.com/erikerlandson/st_tree/issues/37" is fixed
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfree-nonheap-object"
 #include <st_tree.h>
+#pragma GCC diagnostic pop
+/////////////////////////////////////////////////////////////////////////////////
+
 #include <tuple>
 
 namespace small_memory_tree::internals
