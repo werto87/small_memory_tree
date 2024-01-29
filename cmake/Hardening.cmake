@@ -14,8 +14,11 @@ macro(
     elseif (CMAKE_CXX_COMPILER_ID MATCHES ".*Clang|GNU")
         set(NEW_CXX_DEFINITIONS "${NEW_CXX_DEFINITIONS} -D_GLIBCXX_ASSERTIONS")
         message(STATUS "*** GLIBC++ Assertions (vector[], string[], ...) enabled")
-        set(NEW_COMPILE_OPTIONS "${NEW_COMPILE_OPTIONS} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -O") #_FORTIFY_SOURCE needs -O and not -g
-        message(STATUS "*** g++/clang _FORTIFY_SOURCE=3 enabled")
+        if ()
+            set(NEW_COMPILE_OPTIONS "${NEW_COMPILE_OPTIONS} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -O") #_FORTIFY_SOURCE needs -O and not -g
+            message(STATUS "*** g++/clang _FORTIFY_SOURCE=3 enabled")
+        endif ()
+
         check_cxx_compiler_flag(-fstack-protector-strong STACK_PROTECTOR)
         if (STACK_PROTECTOR)
             set(NEW_COMPILE_OPTIONS "${NEW_COMPILE_OPTIONS} -fstack-protector-strong")

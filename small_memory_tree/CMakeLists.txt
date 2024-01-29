@@ -3,25 +3,7 @@
 ##
 ## Distributed under the Boost Software License, Version 1.0.
 ## (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-##
-#add_library(small_memory_tree INTERFACE)
-#
-#install(FILES
-#        smallMemoryTree.hxx
-#        util.hxx
-#        DESTINATION include/small_memory_tree
-#        )
-#
 
-## state that anybody linking to us needs to include the current source dir
-## to find MathFunctions.h, while we don't.
-#target_include_directories(small_memory_tree
-#        INTERFACE
-#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-#        $<INSTALL_INTERFACE:include>
-#        )
-#install(TARGETS small_memory_tree DESTINATION lib)
-#
 
 add_library(small_memory_tree INTERFACE)
 
@@ -49,3 +31,10 @@ set_target_properties(
         PROPERTIES VERSION ${PROJECT_VERSION}
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN YES)
+
+install(FILES
+        smallMemoryTree.hxx
+        util.hxx
+        DESTINATION include/small_memory_tree
+        )
+install(TARGETS small_memory_tree DESTINATION lib)
