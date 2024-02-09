@@ -26,12 +26,6 @@ target_include_directories(small_memory_tree INTERFACE $<BUILD_INTERFACE:${PROJE
 
 target_compile_features(small_memory_tree INTERFACE cxx_std_20)
 
-set_target_properties(
-        small_memory_tree
-        PROPERTIES VERSION ${PROJECT_VERSION}
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN YES)
-
 install(FILES
         smallMemoryTree.hxx
         util.hxx
