@@ -8,6 +8,9 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
+#include <ranges>
+#include <stdexcept>
+#include <vector>
 /////////////////////////////////////////////////////////////////////////////////
 // workaround until "https://github.com/erikerlandson/st_tree/issues/37" is fixed
 #pragma GCC diagnostic push
@@ -57,13 +60,20 @@ template <typename T>
 uint64_t
 getMaxChildren (std::vector<T> const &treeAsVector)
 {
-  if constexpr (TupleLike<T>)
+  if (treeAsVector.empty ())
     {
-      return boost::numeric_cast<uint64_t> (std::get<0> (treeAsVector.back ()));
+      throw std::logic_error{ "empty vector" };
     }
   else
     {
-      return boost::numeric_cast<uint64_t> (treeAsVector.back ());
+      if constexpr (TupleLike<T>)
+        {
+          return boost::numeric_cast<uint64_t> (std::get<0> (treeAsVector.back ()));
+        }
+      else
+        {
+          return boost::numeric_cast<uint64_t> (treeAsVector.back ());
+        }
     }
 }
 
@@ -81,4 +91,32 @@ getMaxChildren (auto const &tree)
   return maxChildren;
 }
 
+auto
+treeData (auto const &tree)
+{
+  typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
+  auto results = std::vector<TreeDataElementType>{};
+  for (auto const &node : tree)
+    {
+      results.push_back (node.data ());
+    }
+  return results;
+}
+
+inline std::vector<bool>
+treeHierarchy (auto const &tree)
+{
+  auto const maxChildrenInTree = internals::getMaxChildren (tree);
+  auto result = std::vector<bool>{};
+  result.push_back (true);
+  for (auto &node : tree)
+    {
+      std::for_each (node.begin (), node.end (), [&result] (auto const &) { result.push_back (true); });
+      for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
+        {
+          result.push_back (false);
+        }
+    }
+  return result;
+}
 }

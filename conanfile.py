@@ -1,7 +1,5 @@
 from conan import ConanFile
-from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps
-from conan.tools.files import collect_libs, rmdir
+from conan.tools.cmake import CMakeToolchain
 
 class Project(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
@@ -16,9 +14,10 @@ class Project(ConanFile):
     def configure(self):
         self.options["catch2"].with_main = True
         self.options["catch2"].with_benchmark = True
+        self.options["boost"].header_only = True
 
     def requirements(self):
         self.requires("boost/1.84.0", force=True)
         self.requires("st_tree/1.2.2")
         self.requires("catch2/2.13.7")
-        self.requires("confu_algorithm/0.0.1")
+        self.requires("confu_algorithm/1.0.1")

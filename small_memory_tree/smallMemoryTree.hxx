@@ -127,14 +127,14 @@ generateTree (std::vector<T> const &treeAsVector, auto const &treeLevels)
 
 template <typename T>
 auto
-calculateLevels (std::vector<T> const &treeAsVector)
+calculateLevels (std::vector<T> &treeAsVector)
 {
   uint64_t maxChildren = internals::getMaxChildren (treeAsVector);
   auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
-  auto treeLevels = confu_algorithm::createChainViewsIncludeBreakingElement (treeAsVector.begin (), treeAsVector.end () - 1, [parentCount = uint64_t{ 0 }, &maxChildren, &markerForEmpty] (auto sequence) mutable {
-    if (sequence.size () == parentCount * maxChildren || parentCount == 0)
+  auto treeLevels = confu_algorithm::createChainViewsIncludeBreakingElement (treeAsVector.cbegin (), treeAsVector.cend () - 1, [parentCount = uint64_t{ 0 }, &maxChildren, &markerForEmpty] (auto cbegin, auto cend) mutable {
+    if (boost::numeric_cast<uint64_t> (std::distance (cbegin, cend)) == parentCount * maxChildren || parentCount == 0)
       {
-        parentCount = boost::numeric_cast<uint64_t> (std::count_if (sequence.begin (), sequence.end (), [&markerForEmpty] (auto num) { return num != markerForEmpty; }));
+        parentCount = boost::numeric_cast<uint64_t> (std::count_if (cbegin, cend, [&markerForEmpty] (auto num) { return num != markerForEmpty; }));
         return false;
       }
     else
