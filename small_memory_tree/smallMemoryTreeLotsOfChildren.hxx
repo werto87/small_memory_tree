@@ -37,7 +37,7 @@ calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
       auto result = std::vector<T>{ hierarchy.front () };
       for (auto i = uint64_t{ 1 }; i != levels.size (); ++i)
         {
-          result.push_back (boost::numeric_cast<T> (std::count (hierarchy.begin () + levels.at (i - 1), hierarchy.begin () + levels.at (i), true)));
+          result.push_back (boost::numeric_cast<T> (std::count (hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1)), hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i)), true)));
         }
       std::inclusive_scan (result.begin (), result.end (), result.begin ());
       return result;
@@ -64,20 +64,40 @@ calculateLevelSmallMemoryTreeLotsOfChildrenData (auto const &smallMemoryTreeLots
 }
 
 auto
-treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t const &level)
+treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t const &level, uint64_t node)
 {
   auto const &levels = smallMemoryTreeLotsOfChildren.getLevels ();
+  if (levels.size () == level)
+    {
+      throw std::logic_error{ "level value is to high" };
+    }
   auto const &data = smallMemoryTreeLotsOfChildren.getData ();
   auto const &hierarchy = smallMemoryTreeLotsOfChildren.getHierarchy ();
   if (level == 0)
     {
-      return std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{ data.front () };
+      if (node == 0)
+        {
+          return std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{ data.front () };
+        }
+      else
+        {
+          throw std::logic_error{ "node value should be 0 if level is 0. There should be only one root in the tree" };
+        }
     }
   else
     {
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       auto valuesUsed = smallMemoryTreeLotsOfChildren.getValuesPerLevel ().at (level - 1);
-      for (auto i = int64_t{ levels.at (level - 1) }; i != levels.at (level); ++i)
+      auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTreeLotsOfChildren.getMaxChildren ());
+      auto const &nodeOffsetBegin = boost::numeric_cast<int64_t> (levels.at (level - 1));
+      auto const &nodeOffsetEnd = nodeOffsetBegin + maxChildren * boost::numeric_cast<int64_t> (node);
+      if (nodeOffsetEnd >= boost::numeric_cast<int64_t> (levels.at (level)))
+        {
+          throw std::logic_error{ "node value is to high" };
+        }
+      valuesUsed += boost::numeric_cast<typename std::decay<decltype (valuesUsed)>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
+      auto processedChildren = int64_t{};
+      for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
         {
           if (*(hierarchy.begin () + i))
             {
@@ -206,27 +226,23 @@ childrenByPath (SmallMemoryTreeLotsOfChildren<T, Y, Z> const &smallMemoryTreeLot
       for (auto i = uint64_t{}; i < path.size (); ++i)
         {
           auto const &valueToLookFor = path.at (i);
-          // The next function could create millions of elements we do not need
-          auto const &levelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i);
+          auto const &levelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i, boost::numeric_cast<uint64_t> (positionOfChildren));
           auto valuesAndHoles = std::span{ levelValuesAndHoles.cbegin (), levelValuesAndHoles.cend () };
           auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTreeLotsOfChildren.getMaxChildren ());
-          if (i != 0)
+          if (auto itr = std::ranges::find_if (levelValuesAndHoles, [&valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != levelValuesAndHoles.end ())
             {
-              valuesAndHoles = std::span{ levelValuesAndHoles.begin () + positionOfChildren * maxChildren, levelValuesAndHoles.begin () + positionOfChildren * maxChildren + maxChildren };
-            }
-          if (auto itr = std::ranges::find_if (valuesAndHoles, [&valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != valuesAndHoles.end ())
-            {
-              auto childOffset = std::distance (valuesAndHoles.begin (), itr);
-              positionOfChildren = std::count_if (levelValuesAndHoles.begin (), levelValuesAndHoles.begin () + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
-              auto const &childLevelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i + 1);
+              auto childOffset = std::distance (levelValuesAndHoles.begin (), itr);
+              auto const &hierarchy = smallMemoryTreeLotsOfChildren.getHierarchy ();
+              positionOfChildren = std::count_if (hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))), hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))) + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
+              auto const &childLevelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
               if (i == path.size () - 1)
                 {
                   auto result = std::vector<T>{};
-                  for (auto j = int64_t{}; j < maxChildren; ++j)
+                  for (auto const &childValueOrHole : childLevelValuesAndHoles)
                     {
-                      if (childLevelValuesAndHoles[(boost::numeric_cast<uint64_t> (positionOfChildren * maxChildren + j))])
+                      if (childValueOrHole)
                         {
-                          result.push_back (childLevelValuesAndHoles[(boost::numeric_cast<uint64_t> (positionOfChildren * maxChildren + j))].value ());
+                          result.push_back (childValueOrHole.value ());
                         }
                     }
                   return result;
