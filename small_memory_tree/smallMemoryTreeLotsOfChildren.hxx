@@ -75,10 +75,8 @@ treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t
     }
   else
     {
-      // This function is supper expensive find a cheaper way. maybe add some extra information so it is easier to calculate which data to use for the level
-      // This could be millions of values to count
-      auto valuesUsed = boost::numeric_cast<uint64_t> (std::count (hierarchy.begin (), hierarchy.begin () + levels.at (level - 1), true));
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
+      auto valuesUsed = smallMemoryTreeLotsOfChildren.getValuesPerLevel ().at (level - 1);
       for (auto i = int64_t{ levels.at (level - 1) }; i != levels.at (level); ++i)
         {
           if (*(hierarchy.begin () + i))
