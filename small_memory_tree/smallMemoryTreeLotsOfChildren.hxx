@@ -7,12 +7,12 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include "small_memory_tree/smallMemoryTree.hxx"
 #include "small_memory_tree/util.hxx"
-#include <__algorithm/ranges_transform.h>
 #include <boost/numeric/conversion/cast.hpp>
 #include <concepts>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <iterator>
+#include <numeric>
 #include <optional>
 #include <ranges>
 #include <stdexcept>
@@ -23,6 +23,26 @@ namespace small_memory_tree
 
 namespace internals
 {
+
+template <typename T = uint64_t>
+std::vector<T>
+calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
+{
+  if (hierarchy.empty ())
+    {
+      return {};
+    }
+  else
+    {
+      auto result = std::vector<T>{ hierarchy.front () };
+      for (auto i = uint64_t{ 1 }; i != levels.size (); ++i)
+        {
+          result.push_back (boost::numeric_cast<T> (std::count (hierarchy.begin () + levels.at (i - 1), hierarchy.begin () + levels.at (i), true)));
+        }
+      std::inclusive_scan (result.begin (), result.end (), result.begin ());
+      return result;
+    }
+}
 
 template <typename T>
 std::vector<T>
@@ -55,6 +75,8 @@ treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t
     }
   else
     {
+      // This function is supper expensive find a cheaper way. maybe add some extra information so it is easier to calculate which data to use for the level
+      // This could be millions of values to count
       auto valuesUsed = boost::numeric_cast<uint64_t> (std::count (hierarchy.begin (), hierarchy.begin () + levels.at (level - 1), true));
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       for (auto i = int64_t{ levels.at (level - 1) }; i != levels.at (level); ++i)
@@ -91,10 +113,10 @@ template <typename T, typename Y> struct SmallMemoryTreeLotsOfChildrenData
   Y maxChildren{};
 };
 
-template <typename T, typename Y, typename Z> struct SmallMemoryTreeLotsOfChildren
+template <typename T, typename Y, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTreeLotsOfChildren
 {
 public:
-  SmallMemoryTreeLotsOfChildren (auto smallMemoryTreeLotsOfChildrenData) : _smallMemoryTreeLotsOfChildrenData{ std::move (smallMemoryTreeLotsOfChildrenData) }, _levels{ internals::calculateLevelSmallMemoryTreeLotsOfChildrenData<Z> (_smallMemoryTreeLotsOfChildrenData) } {}
+  SmallMemoryTreeLotsOfChildren (auto smallMemoryTreeLotsOfChildrenData) : _smallMemoryTreeLotsOfChildrenData{ std::move (smallMemoryTreeLotsOfChildrenData) }, _levels{ internals::calculateLevelSmallMemoryTreeLotsOfChildrenData<LevelType> (_smallMemoryTreeLotsOfChildrenData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryTreeLotsOfChildrenData.hierarchy, _levels) } {}
 
   [[nodiscard]] SmallMemoryTreeLotsOfChildrenData<T, Y>
   createSmallMemoryTreeLotsOfChildrenData () const &
@@ -102,7 +124,7 @@ public:
     return _smallMemoryTreeLotsOfChildrenData;
   }
 
-  [[nodiscard]] std::vector<Z> const &
+  [[nodiscard]] std::vector<LevelType> const &
   getLevels () const
   {
     return _levels;
@@ -144,9 +166,16 @@ public:
     return _smallMemoryTreeLotsOfChildrenData.data;
   }
 
+  [[nodiscard]] std::vector<ValuesPerLevelType> const &
+  getValuesPerLevel () const
+  {
+    return _valuesPerLevel;
+  }
+
 private:
   SmallMemoryTreeLotsOfChildrenData<T, Y> _smallMemoryTreeLotsOfChildrenData{};
-  std::vector<Z> _levels{};
+  std::vector<LevelType> _levels{};
+  std::vector<ValuesPerLevelType> _valuesPerLevel{};
 };
 
 /**
@@ -179,6 +208,7 @@ childrenByPath (SmallMemoryTreeLotsOfChildren<T, Y, Z> const &smallMemoryTreeLot
       for (auto i = uint64_t{}; i < path.size (); ++i)
         {
           auto const &valueToLookFor = path.at (i);
+          // The next function could create millions of elements we do not need
           auto const &levelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i);
           auto valuesAndHoles = std::span{ levelValuesAndHoles.cbegin (), levelValuesAndHoles.cend () };
           auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTreeLotsOfChildren.getMaxChildren ());

@@ -6,7 +6,9 @@
 #include <catch2/catch.hpp>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <type_traits>
+#include <vector>
 
 TEST_CASE ("treeData only root")
 {
@@ -148,23 +150,35 @@ TEST_CASE ("childrenByPath multiple elements")
   tree.root ()[1][1].insert (7);
   auto smallMemoryTreeLotsOfChildrenData = small_memory_tree::SmallMemoryTreeLotsOfChildrenData<int, uint8_t> (tree);
   auto smallMemoryTreeLotsOfChildren = small_memory_tree::SmallMemoryTreeLotsOfChildren<int, uint8_t, uint8_t>{ smallMemoryTreeLotsOfChildrenData };
-  auto result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0 });
-  REQUIRE (result.has_value ());
-  REQUIRE (result->size () == 2);
-  REQUIRE (result->at (0) == 1);
-  REQUIRE (result->at (1) == 2);
-  result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0, 2 });
-  REQUIRE (result.has_value ());
-  REQUIRE (result->size () == 2);
-  REQUIRE (result->at (0) == 5);
-  REQUIRE (result->at (1) == 6);
-  result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0, 2, 6 });
-  REQUIRE (result.has_value ());
-  REQUIRE (result->size () == 1);
-  REQUIRE (result->at (0) == 7);
-  result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0, 2, 6, 7 });
-  REQUIRE (result.has_value ());
-  REQUIRE (result->empty ());
+  SECTION ("0")
+  {
+    auto result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0 });
+    REQUIRE (result.has_value ());
+    REQUIRE (result->size () == 2);
+    REQUIRE (result->at (0) == 1);
+    REQUIRE (result->at (1) == 2);
+  }
+  SECTION ("0 2")
+  {
+    auto result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0, 2 });
+    REQUIRE (result.has_value ());
+    REQUIRE (result->size () == 2);
+    REQUIRE (result->at (0) == 5);
+    REQUIRE (result->at (1) == 6);
+  }
+  SECTION ("0 2 6")
+  {
+    auto result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0, 2, 6 });
+    REQUIRE (result.has_value ());
+    REQUIRE (result->size () == 1);
+    REQUIRE (result->at (0) == 7);
+  }
+  SECTION ("0 2 6 7")
+  {
+    auto result = small_memory_tree::childrenByPath (smallMemoryTreeLotsOfChildren, std::vector<int>{ 0, 2, 6, 7 });
+    REQUIRE (result.has_value ());
+    REQUIRE (result->empty ());
+  }
 }
 
 TEST_CASE ("treeLevelWithOptionalValues root only")
@@ -229,4 +243,33 @@ TEST_CASE ("treeLevelWithOptionalValues multiple elements")
     REQUIRE (result.at (6) == 7);
     REQUIRE_FALSE (result.at (7).has_value ());
   }
+}
+
+TEST_CASE ("calculateValuesPerLevel only root")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  auto smallMemoryTreeLotsOfChildrenData = small_memory_tree::SmallMemoryTreeLotsOfChildrenData<int, uint8_t> (tree);
+  auto smallMemoryTreeLotsOfChildren = small_memory_tree::SmallMemoryTreeLotsOfChildren<int, uint8_t, uint8_t>{ smallMemoryTreeLotsOfChildrenData };
+  auto result = small_memory_tree::internals::calculateValuesPerLevel (smallMemoryTreeLotsOfChildren.getHierarchy (), smallMemoryTreeLotsOfChildren.getLevels ());
+  REQUIRE (result.size () == 1);
+  REQUIRE (result.front () == 1);
+}
+
+TEST_CASE ("calculateValuesPerLevel multiple elements")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  tree.root ()[0].insert (4);
+  tree.root ()[1].insert (5);
+  tree.root ()[1].insert (6);
+  tree.root ()[1][1].insert (7);
+  auto smallMemoryTreeLotsOfChildrenData = small_memory_tree::SmallMemoryTreeLotsOfChildrenData<int, uint8_t> (tree);
+  auto smallMemoryTreeLotsOfChildren = small_memory_tree::SmallMemoryTreeLotsOfChildren<int, uint8_t, uint8_t>{ smallMemoryTreeLotsOfChildrenData };
+  auto result = small_memory_tree::internals::calculateValuesPerLevel (smallMemoryTreeLotsOfChildren.getHierarchy (), smallMemoryTreeLotsOfChildren.getLevels ());
+  REQUIRE (result.size () == 5);
+  REQUIRE (result.back () == 8);
 }
