@@ -118,25 +118,25 @@ treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t
 /**
  * @brief This struct is meant to hold all the information of the tree using as less memory as possible when max children is greater 10 //TODO calculate number 10 is a guess
  *
- * @tparam T type of the tree elements
- * @tparam Y type of max children. For example if your biggest node has less than 255 children use uint8_t
+ * @tparam DataType type of the tree elements
+ * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
  */
-template <typename T, typename Y> struct SmallMemoryTreeLotsOfChildrenData
+template <typename DataType, typename MaxChildrenType> struct SmallMemoryTreeLotsOfChildrenData
 {
 
-  SmallMemoryTreeLotsOfChildrenData (auto const &tree) : hierarchy{ internals::treeHierarchy (tree) }, data{ internals::treeData (tree) }, maxChildren{ boost::numeric_cast<Y> (internals::getMaxChildren (tree)) } {}
+  SmallMemoryTreeLotsOfChildrenData (auto const &tree) : hierarchy{ internals::treeHierarchy (tree) }, data{ internals::treeData (tree) }, maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::getMaxChildren (tree)) } {}
 
   std::vector<bool> hierarchy{};
-  std::vector<T> data{};
-  Y maxChildren{};
+  std::vector<DataType> data{};
+  MaxChildrenType maxChildren{};
 };
 
-template <typename T, typename Y, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTreeLotsOfChildren
+template <typename DataType, typename MaxChildrenType, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTreeLotsOfChildren
 {
 public:
   SmallMemoryTreeLotsOfChildren (auto smallMemoryTreeLotsOfChildrenData) : _smallMemoryTreeLotsOfChildrenData{ std::move (smallMemoryTreeLotsOfChildrenData) }, _levels{ internals::calculateLevelSmallMemoryTreeLotsOfChildrenData<LevelType> (_smallMemoryTreeLotsOfChildrenData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryTreeLotsOfChildrenData.hierarchy, _levels) } {}
 
-  [[nodiscard]] SmallMemoryTreeLotsOfChildrenData<T, Y>
+  [[nodiscard]] SmallMemoryTreeLotsOfChildrenData<DataType, MaxChildrenType>
   createSmallMemoryTreeLotsOfChildrenData () const &
   {
     return _smallMemoryTreeLotsOfChildrenData;
@@ -154,7 +154,7 @@ public:
     return false; // resulting from the way the tree gets saved false is the marker for empty
   }
 
-  [[nodiscard]] Y
+  [[nodiscard]] MaxChildrenType
   getMaxChildren () const
   {
     return _smallMemoryTreeLotsOfChildrenData.maxChildren;
@@ -170,7 +170,7 @@ public:
    * creates a st_tree from the underlying vector
    * @return st_tree
    */
-  st_tree::tree<T>
+  st_tree::tree<DataType>
   generateTreeFromVector () const
   {
     // return internals::generateTree (_treeAsVector, _levels);
@@ -178,7 +178,7 @@ public:
     return {};
   }
 
-  [[nodiscard]] std::vector<T> const &
+  [[nodiscard]] std::vector<DataType> const &
   getData () const
   {
     return _smallMemoryTreeLotsOfChildrenData.data;
@@ -191,7 +191,7 @@ public:
   }
 
 private:
-  SmallMemoryTreeLotsOfChildrenData<T, Y> _smallMemoryTreeLotsOfChildrenData{};
+  SmallMemoryTreeLotsOfChildrenData<DataType, MaxChildrenType> _smallMemoryTreeLotsOfChildrenData{};
   std::vector<LevelType> _levels{};
   std::vector<ValuesPerLevelType> _valuesPerLevel{};
 };
