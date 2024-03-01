@@ -47,7 +47,7 @@ TEST_CASE ("treeHierarchy only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto result = small_memory_tree::internals::treeHierarchy (tree);
+  auto result = small_memory_tree::internals::treeHierarchy (tree, small_memory_tree::internals::getMaxChildren (tree));
   REQUIRE (result.size () == 1);
   REQUIRE (result.at (0) == true);
 }
@@ -63,7 +63,7 @@ TEST_CASE ("treeHierarchy multiple elements")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto result = small_memory_tree::internals::treeHierarchy (tree);
+  auto result = small_memory_tree::internals::treeHierarchy (tree, small_memory_tree::internals::getMaxChildren (tree));
   REQUIRE (result.size () == 17);
   REQUIRE (result.at (0) == true);
 }

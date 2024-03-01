@@ -104,9 +104,8 @@ treeData (auto const &tree)
 }
 
 inline std::vector<bool>
-treeHierarchy (auto const &tree)
+treeHierarchy (auto const &tree, uint64_t maxChildrenInTree)
 {
-  auto const maxChildrenInTree = internals::getMaxChildren (tree);
   auto result = std::vector<bool>{};
   result.push_back (true);
   for (auto &node : tree)

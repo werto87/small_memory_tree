@@ -47,7 +47,7 @@ template <typename T>
 std::vector<T>
 calculateLevelSmallMemoryTreeLotsOfChildrenData (auto const &smallMemoryTreeLotsOfChildrenData)
 {
-  auto const &[hierarchy, data, maxChildren] = smallMemoryTreeLotsOfChildrenData;
+  auto const &[maxChildren, hierarchy, data] = smallMemoryTreeLotsOfChildrenData;
   auto treeLevels = confu_algorithm::chainBreaksIncludeBreakingElement<T> (hierarchy.begin (), hierarchy.end (), [parentCount = uint64_t{ 0 }, &maxChildren] (auto cbegin, auto cend) mutable {
     if (boost::numeric_cast<uint64_t> (std::distance (cbegin, cend)) == parentCount * maxChildren || parentCount == 0)
       {
@@ -123,11 +123,11 @@ treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t
 template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeLotsOfChildrenData
 {
 
-  SmallMemoryTreeLotsOfChildrenData (auto const &tree) : hierarchy{ internals::treeHierarchy (tree) }, data{ internals::treeData (tree) }, maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::getMaxChildren (tree)) } {}
+  SmallMemoryTreeLotsOfChildrenData (auto const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::getMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
 
+  MaxChildrenType maxChildren{};
   std::vector<bool> hierarchy{};
   std::vector<DataType> data{};
-  MaxChildrenType maxChildren{};
 };
 
 template <typename DataType, typename MaxChildrenType, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTreeLotsOfChildren
@@ -254,5 +254,4 @@ childrenByPath (SmallMemoryTreeLotsOfChildren<T, Y, Z> const &smallMemoryTreeLot
     }
   return {};
 }
-
 }
