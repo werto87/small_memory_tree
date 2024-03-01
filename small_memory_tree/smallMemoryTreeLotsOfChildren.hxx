@@ -5,7 +5,6 @@ Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include "small_memory_tree/smallMemoryTree.hxx"
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <concepts>
@@ -121,7 +120,7 @@ treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t
  * @tparam DataType type of the tree elements
  * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
  */
-template <typename DataType, typename MaxChildrenType> struct SmallMemoryTreeLotsOfChildrenData
+template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeLotsOfChildrenData
 {
 
   SmallMemoryTreeLotsOfChildrenData (auto const &tree) : hierarchy{ internals::treeHierarchy (tree) }, data{ internals::treeData (tree) }, maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::getMaxChildren (tree)) } {}
@@ -137,7 +136,7 @@ public:
   SmallMemoryTreeLotsOfChildren (auto smallMemoryTreeLotsOfChildrenData) : _smallMemoryTreeLotsOfChildrenData{ std::move (smallMemoryTreeLotsOfChildrenData) }, _levels{ internals::calculateLevelSmallMemoryTreeLotsOfChildrenData<LevelType> (_smallMemoryTreeLotsOfChildrenData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryTreeLotsOfChildrenData.hierarchy, _levels) } {}
 
   [[nodiscard]] SmallMemoryTreeLotsOfChildrenData<DataType, MaxChildrenType>
-  createSmallMemoryTreeLotsOfChildrenData () const &
+  getSmallMemoryTreeLotsOfChildrenData () const &
   {
     return _smallMemoryTreeLotsOfChildrenData;
   }
@@ -160,7 +159,7 @@ public:
     return _smallMemoryTreeLotsOfChildrenData.maxChildren;
   }
 
-  [[nodiscard]] std::vector<bool>
+  [[nodiscard]] std::vector<bool> const &
   getHierarchy () const
   {
     return _smallMemoryTreeLotsOfChildrenData.hierarchy;
@@ -227,7 +226,6 @@ childrenByPath (SmallMemoryTreeLotsOfChildren<T, Y, Z> const &smallMemoryTreeLot
         {
           auto const &valueToLookFor = path.at (i);
           auto const &levelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i, boost::numeric_cast<uint64_t> (positionOfChildren));
-          auto valuesAndHoles = std::span{ levelValuesAndHoles.cbegin (), levelValuesAndHoles.cend () };
           auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTreeLotsOfChildren.getMaxChildren ());
           if (auto itr = std::ranges::find_if (levelValuesAndHoles, [&valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != levelValuesAndHoles.end ())
             {
