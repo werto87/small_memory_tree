@@ -108,7 +108,7 @@ treeHierarchy (auto const &tree, uint64_t maxChildrenInTree)
 {
   auto result = std::vector<bool>{};
   result.push_back (true);
-  for (auto &node : tree)
+  for (auto const &node : tree)
     {
       std::for_each (node.begin (), node.end (), [&result] (auto const &) { result.push_back (true); });
       for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
