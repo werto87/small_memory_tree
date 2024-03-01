@@ -22,7 +22,6 @@ target_include_directories(
 
 target_compile_features(small_memory_tree INTERFACE cxx_std_20)
 
-install(FILES smallMemoryTree.hxx util.hxx
-              small_memory_tree/smallMemoryTreeLotsOfChildren.hxx
+install(FILES smallMemoryTree.hxx util.hxx smallMemoryTreeLotsOfChildren.hxx
         DESTINATION include/small_memory_tree)
 install(TARGETS small_memory_tree DESTINATION lib)
