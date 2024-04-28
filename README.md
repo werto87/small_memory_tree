@@ -26,8 +26,8 @@ Every node has to have the same amount of children as the node with the most chi
        1      2
       /\     / \
      3 255 255 255
-    /  \
-   4   255
+    /   \
+   4    255
   / \
 255 255
 ```
