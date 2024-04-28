@@ -1,14 +1,9 @@
 
-#include "small_memory_tree/smallMemoryTreeLotsOfChildren.hxx"
 #include "small_memory_tree/smallMemoryTree.hxx"
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 #include <cstdint>
-#include <iostream>
-#include <iterator>
-#include <stdexcept>
-#include <type_traits>
 #include <vector>
 
 TEST_CASE ("treeData only root")
@@ -93,28 +88,6 @@ TEST_CASE (" SmallMemoryTreeLotsOfChildrenData multiple elements")
   REQUIRE (result.hierarchy.size () == 17);
   REQUIRE (result.data.size () == 8);
   REQUIRE (result.maxChildren == 2);
-}
-
-TEST_CASE ("calculateLevelSmallMemoryTreeLotsOfChildrenData and calculateLevels multiple elements")
-{
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto result = small_memory_tree::internals::calculateLevelSmallMemoryTreeLotsOfChildrenData<uint64_t> (small_memory_tree::SmallMemoryTreeLotsOfChildrenData<int, uint8_t> (tree));
-  auto vec = small_memory_tree::internals::treeToVector (tree, 4444);
-  auto levels = small_memory_tree::internals::calculateLevels (vec);
-  REQUIRE (result.size () == 5);
-  REQUIRE (result.at (0) == levels.at (0).size ());
-  REQUIRE (result.at (1) - result.at (0) == levels.at (1).size ());
-  REQUIRE (result.at (2) - result.at (1) == levels.at (2).size ());
-  REQUIRE (result.at (3) - result.at (2) == levels.at (3).size ());
-  REQUIRE (result.at (4) - result.at (3) == levels.at (4).size ());
 }
 
 TEST_CASE ("childrenByPath only root")

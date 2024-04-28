@@ -56,27 +56,6 @@ template <typename T> concept TupleLike = requires (T a)
   std::get<0> (a);
 };
 
-template <typename T>
-uint64_t
-getMaxChildren (std::vector<T> const &treeAsVector)
-{
-  if (treeAsVector.empty ())
-    {
-      throw std::logic_error{ "empty vector" };
-    }
-  else
-    {
-      if constexpr (TupleLike<T>)
-        {
-          return boost::numeric_cast<uint64_t> (std::get<0> (treeAsVector.back ()));
-        }
-      else
-        {
-          return boost::numeric_cast<uint64_t> (treeAsVector.back ());
-        }
-    }
-}
-
 uint64_t
 getMaxChildren (auto const &tree)
 {

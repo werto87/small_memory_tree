@@ -6,135 +6,52 @@ Distributed under the Boost Software License, Version 1.0.
  */
 
 #include "small_memory_tree/util.hxx"
+#include <boost/numeric/conversion/cast.hpp>
+#include <concepts>
+#include <confu_algorithm/createChainViews.hxx>
+#include <cstdint>
+#include <iterator>
+#include <numeric>
+#include <optional>
 #include <ranges>
+#include <stdexcept>
+#include <vector>
+
 namespace small_memory_tree
 {
 
 namespace internals
 {
 
-/**
- * transforms a st_tree into a vector
- * @param tree st_tree which has a numeric data type or something which can be transformed into a number using the nodeToData function
- * @param markerForEmpty marker for empty. Will be used internally should not appear in the actual data
- * @param nodeToData this can be useful if your st_tree contains some data you do not want to save into the vector. Note that this is not lossless so you wont end up with exactly the same st_tree after calling vectorToTree
-   @return if nodeToData is not set returns a vector containing all the information of the st_tree. If nodeToData is set the data in the vector will differ
- */
-template <typename T>
-auto
-treeToVector (auto const &tree, T const &markerForEmpty, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*tree.begin ())>::type const &node)> nodeToData = {})
+template <typename T = uint64_t>
+std::vector<T>
+calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
 {
-  auto const maxChildrenInTree = internals::getMaxChildren (tree);
-  auto result = std::vector<T>{};
-  if (nodeToData)
+  if (hierarchy.empty ())
     {
-      result.push_back (nodeToData (tree.root ()));
+      return {};
     }
   else
     {
-      if constexpr (std::is_same<typename std::decay<decltype (tree.root ().data ())>::type, T>::value)
+      auto result = std::vector<T>{ hierarchy.front () };
+      for (auto i = uint64_t{ 1 }; i != levels.size (); ++i)
         {
-          result.push_back (tree.root ().data ());
+          result.push_back (boost::numeric_cast<T> (std::count (hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1)), hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i)), true)));
         }
-      else
-        {
-          throw std::logic_error{ "node type and element type of result vector is not the same." };
-        }
+      std::inclusive_scan (result.begin (), result.end (), result.begin ());
+      return result;
     }
-  for (auto &node : tree)
-    {
-      for (auto const &child : node)
-        {
-          if (nodeToData)
-            {
-              result.push_back (nodeToData (child));
-            }
-          else
-            {
-              if constexpr (std::is_same<typename std::decay<decltype (child.data ())>::type, T>::value)
-                {
-                  result.push_back (child.data ());
-                }
-              else
-                {
-                  throw std::logic_error{ "node type and element type of result vector is not the same." };
-                }
-            }
-        }
-      for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
-        {
-          result.push_back (markerForEmpty);
-        }
-    }
-  if constexpr (internals::TupleLike<T>)
-    {
-      result.push_back ({ boost::numeric_cast<std::decay_t<decltype (std::get<0> (T{}))> > (maxChildrenInTree), {} });
-    }
-  else
-    {
-      result.push_back (boost::numeric_cast<T> (maxChildrenInTree));
-    }
-  return result;
 }
 
 template <typename T>
-st_tree::tree<T>
-generateTree (std::vector<T> const &treeAsVector, auto const &treeLevels)
+std::vector<T>
+calculateLevelSmallMemoryTreeLotsOfChildrenData (auto const &smallMemoryTreeLotsOfChildrenData)
 {
-  auto const &maxChildren = internals::getMaxChildren (treeAsVector);
-  auto treeToFill = st_tree::tree<T>{};
-  auto trees = std::deque<st_tree::tree<T> >{};
-  for (auto rItr = treeLevels.crbegin (); rItr != treeLevels.crend () - 1; ++rItr)
-    {
-      if (rItr == treeLevels.crend () - 2)
-        {
-          treeToFill.insert (treeAsVector.front ()); // the first element of treeAsVector is allways the root of the tree
-          for (auto j = uint64_t{}; j < maxChildren; ++j)
-            {
-              treeToFill.root ().insert (trees.front ());
-              trees.pop_front ();
-            }
-        }
-      else
-        {
-          auto const &upperLevel = *(rItr + 1);
-          auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
-          auto const &notMarkerForEmpty = [&markerForEmpty] (auto const &element) { return element != markerForEmpty; };
-          auto currentChild = uint64_t{};
-          for (auto parent : upperLevel | std::views::filter (notMarkerForEmpty))
-            {
-              auto tree = st_tree::tree<T>{};
-              tree.insert (parent);
-              if (not trees.empty () and rItr != treeLevels.crbegin ())
-                {
-                  for (auto j = uint64_t{}; j < maxChildren; ++j)
-                    {
-                      auto const &currentLevel = *rItr;
-                      if (currentLevel[currentChild] != markerForEmpty)
-                        {
-                          tree.root ().insert (trees.front ());
-                          trees.pop_front ();
-                        }
-                      ++currentChild;
-                    }
-                }
-              trees.push_back (tree);
-            }
-        }
-    }
-  return treeToFill;
-}
-
-template <typename T>
-auto
-calculateLevels (std::vector<T> &treeAsVector)
-{
-  uint64_t maxChildren = internals::getMaxChildren (treeAsVector);
-  auto const &markerForEmpty = *(treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element
-  auto treeLevels = confu_algorithm::createChainViewsIncludeBreakingElement (treeAsVector.cbegin (), treeAsVector.cend () - 1, [parentCount = uint64_t{ 0 }, &maxChildren, &markerForEmpty] (auto cbegin, auto cend) mutable {
+  auto const &[maxChildren, hierarchy, data] = smallMemoryTreeLotsOfChildrenData;
+  auto treeLevels = confu_algorithm::chainBreaksIncludeBreakingElement<T> (hierarchy.begin (), hierarchy.end (), [parentCount = uint64_t{ 0 }, &maxChildren] (auto cbegin, auto cend) mutable {
     if (boost::numeric_cast<uint64_t> (std::distance (cbegin, cend)) == parentCount * maxChildren || parentCount == 0)
       {
-        parentCount = boost::numeric_cast<uint64_t> (std::count_if (cbegin, cend, [&markerForEmpty] (auto num) { return num != markerForEmpty; }));
+        parentCount = boost::numeric_cast<uint64_t> (std::count_if (cbegin, cend, [] (auto num) { return num != false; }));
         return false;
       }
     else
@@ -144,54 +61,138 @@ calculateLevels (std::vector<T> &treeAsVector)
   });
   return treeLevels;
 }
+
+auto
+treeLevelWithOptionalValues (auto const &smallMemoryTreeLotsOfChildren, uint64_t const &level, uint64_t node)
+{
+  auto const &levels = smallMemoryTreeLotsOfChildren.getLevels ();
+  if (levels.size () == level)
+    {
+      throw std::logic_error{ "level value is to high" };
+    }
+  auto const &data = smallMemoryTreeLotsOfChildren.getData ();
+  auto const &hierarchy = smallMemoryTreeLotsOfChildren.getHierarchy ();
+  if (level == 0)
+    {
+      if (node == 0)
+        {
+          return std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{ data.front () };
+        }
+      else
+        {
+          throw std::logic_error{ "node value should be 0 if level is 0. There should be only one root in the tree" };
+        }
+    }
+  else
+    {
+      auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
+      auto valuesUsed = smallMemoryTreeLotsOfChildren.getValuesPerLevel ().at (level - 1);
+      auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTreeLotsOfChildren.getMaxChildren ());
+      auto const &nodeOffsetBegin = boost::numeric_cast<int64_t> (levels.at (level - 1));
+      auto const &nodeOffsetEnd = nodeOffsetBegin + maxChildren * boost::numeric_cast<int64_t> (node);
+      if (nodeOffsetEnd >= boost::numeric_cast<int64_t> (levels.at (level)))
+        {
+          throw std::logic_error{ "node value is to high" };
+        }
+      valuesUsed += boost::numeric_cast<typename std::decay<decltype (valuesUsed)>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
+      auto processedChildren = int64_t{};
+      for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
+        {
+          if (*(hierarchy.begin () + i))
+            {
+              result.push_back (data.at (valuesUsed));
+              valuesUsed++;
+            }
+          else
+            {
+              result.push_back ({});
+            }
+        }
+      return result;
+    }
 }
 
-template <typename T> class SmallMemoryTree
+}
+
+/**
+ * @brief This struct is meant to hold all the information of the tree using as less memory as possible when max children is greater 10 //TODO calculate number 10 is a guess
+ *
+ * @tparam DataType type of the tree elements
+ * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
+ */
+template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeLotsOfChildrenData
+{
+
+  SmallMemoryTreeLotsOfChildrenData (auto const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::getMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
+
+  MaxChildrenType maxChildren{};
+  std::vector<bool> hierarchy{};
+  std::vector<DataType> data{};
+};
+
+template <typename DataType, typename MaxChildrenType, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTreeLotsOfChildren
 {
 public:
-  SmallMemoryTree (auto const &st_tree, T const &markerForEmpty) : _treeAsVector{ internals::treeToVector (st_tree, markerForEmpty) }, _levels{ internals::calculateLevels (_treeAsVector) } {}
+  SmallMemoryTreeLotsOfChildren (auto smallMemoryTreeLotsOfChildrenData) : _smallMemoryTreeLotsOfChildrenData{ std::move (smallMemoryTreeLotsOfChildrenData) }, _levels{ internals::calculateLevelSmallMemoryTreeLotsOfChildrenData<LevelType> (_smallMemoryTreeLotsOfChildrenData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryTreeLotsOfChildrenData.hierarchy, _levels) } {}
 
-  SmallMemoryTree (auto const &st_tree, T const &markerForEmpty, std::function<typename std::decay<decltype (markerForEmpty)>::type (typename std::decay<decltype (*st_tree.begin ())>::type const &node)> nodeToData) : _treeAsVector{ internals::treeToVector (st_tree, markerForEmpty, nodeToData) }, _levels{ internals::calculateLevels (_treeAsVector) } {}
-
-  explicit SmallMemoryTree (std::vector<T> treeAsVector) : _treeAsVector{ std::move (treeAsVector) }, _levels{ internals::calculateLevels (_treeAsVector) } {}
-
-  [[nodiscard]] std::vector<T> const &
-  getTreeAsVector () const
+  [[nodiscard]] SmallMemoryTreeLotsOfChildrenData<DataType, MaxChildrenType>
+  getSmallMemoryTreeLotsOfChildrenData () const &
   {
-    return _treeAsVector;
+    return _smallMemoryTreeLotsOfChildrenData;
   }
 
-  [[nodiscard]] std::vector<std::span<T const> > const &
+  [[nodiscard]] std::vector<LevelType> const &
   getLevels () const
   {
     return _levels;
   }
 
-  [[nodiscard]] T const &
+  [[nodiscard]] bool
   getMarkerForEmpty () const
   {
-    return *(_treeAsVector.end () - 2); // resulting from the way the tree gets saved in the vector the marker for empty will be allways the second last element;
+    return false; // resulting from the way the tree gets saved false is the marker for empty
   }
 
-  [[nodiscard]] uint64_t
+  [[nodiscard]] MaxChildrenType
   getMaxChildren () const
   {
-    return internals::getMaxChildren (_treeAsVector);
+    return _smallMemoryTreeLotsOfChildrenData.maxChildren;
+  }
+
+  [[nodiscard]] std::vector<bool> const &
+  getHierarchy () const
+  {
+    return _smallMemoryTreeLotsOfChildrenData.hierarchy;
   }
 
   /**
    * creates a st_tree from the underlying vector
    * @return st_tree
    */
-  st_tree::tree<T>
+  st_tree::tree<DataType>
   generateTreeFromVector () const
   {
-    return internals::generateTree (_treeAsVector, _levels);
+    // return internals::generateTree (_treeAsVector, _levels);
+    // TODO later
+    return {};
+  }
+
+  [[nodiscard]] std::vector<DataType> const &
+  getData () const
+  {
+    return _smallMemoryTreeLotsOfChildrenData.data;
+  }
+
+  [[nodiscard]] std::vector<ValuesPerLevelType> const &
+  getValuesPerLevel () const
+  {
+    return _valuesPerLevel;
   }
 
 private:
-  std::vector<T> _treeAsVector{};
-  std::vector<std::span<T const> > _levels{};
+  SmallMemoryTreeLotsOfChildrenData<DataType, MaxChildrenType> _smallMemoryTreeLotsOfChildrenData{};
+  std::vector<LevelType> _levels{};
+  std::vector<ValuesPerLevelType> _valuesPerLevel{};
 };
 
 /**
@@ -208,12 +209,12 @@ private:
  * @param path vector with the values of nodes
  * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
  */
-template <typename T>
+template <typename T, typename Y, typename Z>
 std::optional<std::vector<T> >
-childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const &path)
+childrenByPath (SmallMemoryTreeLotsOfChildren<T, Y, Z> const &smallMemoryTreeLotsOfChildren, std::vector<T> const &path)
 {
-  auto const &levels = smallMemoryTree.getLevels ();
-  if (levels.size () == 1 and path.size () == 1 and path.front () == levels.at (0).front ())
+  auto const &levels = smallMemoryTreeLotsOfChildren.getLevels ();
+  if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTreeLotsOfChildren.getData ().at (levels.at (0)))
     {
       // only one element in tree. Path is equal to the value of the element but element has no children so return empty vector
       return std::vector<T>{};
@@ -224,27 +225,22 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
       for (auto i = uint64_t{}; i < path.size (); ++i)
         {
           auto const &valueToLookFor = path.at (i);
-          auto const &level = levels.at (i);
-          auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-          auto nodesToChoseFrom = level;
-          if (i != 0)
+          auto const &levelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i, boost::numeric_cast<uint64_t> (positionOfChildren));
+          auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTreeLotsOfChildren.getMaxChildren ());
+          if (auto itr = std::ranges::find_if (levelValuesAndHoles, [&valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != levelValuesAndHoles.end ())
             {
-              nodesToChoseFrom = std::span<T const>{ level.begin () + positionOfChildren * maxChildren, level.begin () + positionOfChildren * maxChildren + maxChildren };
-            }
-          if (auto itr = std::ranges::find_if (nodesToChoseFrom, [&valueToLookFor] (auto value) { return value == valueToLookFor; }); itr != nodesToChoseFrom.end ())
-            {
-              auto childOffset = std::distance (nodesToChoseFrom.begin (), itr);
-              positionOfChildren = std::count_if (level.begin (), level.begin () + positionOfChildren * maxChildren + childOffset, [&markerForEmpty = smallMemoryTree.getMarkerForEmpty ()] (auto const &element) { return element != markerForEmpty; });
-              auto const &childrenLevel = levels.at (i + 1);
+              auto childOffset = std::distance (levelValuesAndHoles.begin (), itr);
+              auto const &hierarchy = smallMemoryTreeLotsOfChildren.getHierarchy ();
+              positionOfChildren = std::count_if (hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))), hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))) + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
+              auto const &childLevelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTreeLotsOfChildren, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
               if (i == path.size () - 1)
                 {
                   auto result = std::vector<T>{};
-                  for (auto j = int64_t{}; j < maxChildren; ++j)
+                  for (auto const &childValueOrHole : childLevelValuesAndHoles)
                     {
-                      auto const &value = childrenLevel[boost::numeric_cast<uint64_t> (positionOfChildren * maxChildren + j)];
-                      if (value != smallMemoryTree.getMarkerForEmpty ())
+                      if (childValueOrHole)
                         {
-                          result.push_back (value);
+                          result.push_back (childValueOrHole.value ());
                         }
                     }
                   return result;
@@ -258,23 +254,4 @@ childrenByPath (SmallMemoryTree<T> const &smallMemoryTree, std::vector<T> const 
     }
   return {};
 }
-
-/**
- * @param smallMemoryTree
- * @return Root element of the tree. Empty optional if tree is empty
- */
-template <typename T>
-std::optional<T>
-rootElement (SmallMemoryTree<T> const &smallMemoryTree)
-{
-  if (smallMemoryTree.getTreeAsVector ().empty ())
-    {
-      return {};
-    }
-  else
-    {
-      return { smallMemoryTree.getTreeAsVector ().front () };
-    }
-}
-
 }

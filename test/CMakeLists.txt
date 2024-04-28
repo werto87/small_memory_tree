@@ -1,5 +1,4 @@
-add_executable(_test dataFromVector.cxx treeToVectorToTree.cxx
-                     benchmarkTest.cxx smallMemoryTreeLotsOfChildren.cxx)
+add_executable(_test benchmarkTest.cxx smallMemoryTreeLotsOfChildren.cxx)
 find_package(Catch2)
 target_link_libraries(_test myproject_options myproject_warnings
                       small_memory_tree Catch2::Catch2WithMain)
