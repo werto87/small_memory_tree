@@ -9,7 +9,6 @@ Distributed under the Boost Software License, Version 1.0.
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
 #include <ranges>
-#include <stdexcept>
 #include <vector>
 /////////////////////////////////////////////////////////////////////////////////
 // workaround until "https://github.com/erikerlandson/st_tree/issues/37" is fixed

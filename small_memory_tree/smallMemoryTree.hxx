@@ -7,13 +7,11 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
-#include <concepts>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <iterator>
 #include <numeric>
 #include <optional>
-#include <ranges>
 #include <stdexcept>
 #include <vector>
 
