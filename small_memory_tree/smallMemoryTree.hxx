@@ -113,11 +113,12 @@ treeLevelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level,
 }
 
 /**
- * @brief This struct is meant to hold all the information of the tree using as less memory as possible when max children is greater 10 //TODO calculate number 10 is a guess
+ * @brief This struct is meant to hold all the information of the tree using as less memory as possible
  *
  * @tparam DataType type of the tree elements
  * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
  */
+
 template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeData
 {
 
@@ -128,6 +129,14 @@ template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMe
   std::vector<DataType> data{};
 };
 
+/**
+ * @brief
+ *
+ * @tparam DataType type of the tree elements
+ * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
+ * @tparam LevelType 
+ * @tparam ValuesPerLevelType
+ */
 template <typename DataType, typename MaxChildrenType = uint64_t, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTree
 {
 public:
