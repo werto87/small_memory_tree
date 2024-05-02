@@ -1,6 +1,4 @@
-
 #include "small_memory_tree/smallMemoryTree.hxx"
-#include "small_memory_tree/util.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 #include <cstdint>
@@ -9,7 +7,7 @@
 TEST_CASE ("treeData only root")
 {
   auto tree = st_tree::tree<int>{};
-  tree.insert ({ 0 });
+  tree.insert (0);
   auto result = small_memory_tree::internals::treeData (tree);
   REQUIRE (result.size () == 1);
   REQUIRE (result.at (0) == 0);

@@ -4,9 +4,7 @@ Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 #include "small_memory_tree/smallMemoryTree.hxx"
-#include "small_memory_tree/util.hxx"
 #include <catch2/catch.hpp>
-#include <iostream>
 
 using namespace small_memory_tree;
 
