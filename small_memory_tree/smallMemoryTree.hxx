@@ -11,6 +11,7 @@ Distributed under the Boost Software License, Version 1.0.
 #include <iterator>
 #include <numeric>
 #include <optional>
+#include <ranges>
 #include <st_tree.h>
 #include <stdexcept>
 #include <vector>
@@ -194,8 +195,62 @@ template <typename DataType, typename MaxChildrenType, typename LevelType, typen
 auto
 generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
 {
-  auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 3, boost::numeric_cast<uint64_t> (0));
-  return st_tree::tree<DataType>{};
+  auto const &maxChildren = smallMemoryTree.getMaxChildren ();
+  auto const &levels = smallMemoryTree.getLevels ();
+  auto const &data = smallMemoryTree.getData ();
+  auto treeToFill = st_tree::tree<DataType>{};
+  auto trees = std::deque<st_tree::tree<DataType> >{};
+  auto const &maxLevel = levels.size () - 1;
+  auto currentLevel = std::vector<std::optional<DataType> >{};
+  auto upperLevel = std::vector<std::optional<DataType> >{};
+  if (maxLevel == 0)
+    {
+      treeToFill.insert (data.front ());
+      return treeToFill;
+    }
+  else
+    {
+
+      for (auto level = maxLevel; level >= 0; --level)
+        {
+          if (level == 0)
+            {
+              treeToFill.insert (data.front ()); // the first element of treeAsVector is always the root of the tree
+              for (auto j = uint64_t{}; j < maxChildren; ++j)
+                {
+                  treeToFill.root ().insert (trees.front ());
+                  trees.pop_front ();
+                }
+            }
+          else
+            {
+              currentLevel = (upperLevel.empty ()) ? levelWithOptionalValues (smallMemoryTree, level) : upperLevel; // old upperLevel value is the same as currentLevel in this iteration
+              upperLevel = levelWithOptionalValues (smallMemoryTree, level - 1);
+              auto const &notMarkerForEmpty = [&] (std::optional<DataType> const &element) { return element.has_value (); };
+              auto currentChild = uint64_t{};
+              for (auto parent : upperLevel | std::views::filter (notMarkerForEmpty))
+                {
+                  auto tree = st_tree::tree<DataType>{};
+                  tree.insert (parent.value ());
+                  if (not trees.empty () and rItr != treeLevels.crbegin ())
+                    {
+                      for (auto j = uint64_t{}; j < maxChildren; ++j)
+                        {
+
+                          if (currentLevel[currentChild])
+                            {
+                              tree.root ().insert (trees.front ());
+                              trees.pop_front ();
+                            }
+                          ++currentChild;
+                        }
+                    }
+                  trees.push_back (tree);
+                }
+            }
+        }
+      return treeToFill;
+    }
 }
 }
 

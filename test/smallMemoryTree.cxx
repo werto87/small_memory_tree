@@ -263,6 +263,7 @@ TEST_CASE ("my test")
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
   auto result = small_memory_tree::SmallMemoryTree<int> (tree);
+  using small_memory_tree::internals::levelWithOptionalValues;
   REQUIRE (levelWithOptionalValues (result, 0).size () == 1);
   REQUIRE (levelWithOptionalValues (result, 1).size () == 2);
   REQUIRE (levelWithOptionalValues (result, 2).size () == 4);
