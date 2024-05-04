@@ -188,7 +188,7 @@ TEST_CASE ("treeLevelWithOptionalValues only root")
   tree.insert (0);
   auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
-  auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 0, 0);
+  auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
   REQUIRE (result.size () == 1);
   REQUIRE (result.front () == 0);
 }
@@ -208,45 +208,64 @@ TEST_CASE ("treeLevelWithOptionalValues multiple elements")
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
   SECTION ("0 0")
   {
-    auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 0, 0);
+    auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
     REQUIRE (result.size () == 1);
     REQUIRE (result.at (0) == 0);
   }
   SECTION ("1 0")
   {
-    auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 1, 0);
+    auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 1, 0);
     REQUIRE (result.size () == 2);
     REQUIRE (result.at (0) == 1);
     REQUIRE (result.at (1) == 2);
   }
   SECTION ("2 1")
   {
-    auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 2, 1);
+    auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 2, 1);
     REQUIRE (result.size () == 2);
     REQUIRE (result.at (0) == 5);
     REQUIRE (result.at (1) == 6);
   }
   SECTION ("3 0")
   {
-    auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 3, 0);
+    auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 3, 0);
     REQUIRE (result.size () == 2);
     REQUIRE_FALSE (result.at (0).has_value ());
     REQUIRE_FALSE (result.at (1).has_value ());
   }
   SECTION ("3 1")
   {
-    auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 3, 3);
+    auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 3, 3);
     REQUIRE (result.size () == 2);
     REQUIRE (result.at (0) == 7);
     REQUIRE_FALSE (result.at (1).has_value ());
   }
   SECTION ("4 0")
   {
-    auto result = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 4, 0);
+    auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 4, 0);
     REQUIRE (result.size () == 2);
     REQUIRE_FALSE (result.at (0).has_value ());
     REQUIRE_FALSE (result.at (1).has_value ());
   }
-  SECTION ("4 1 node value to high") { REQUIRE_THROWS (small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 4, 1)); }
-  SECTION ("5 0") { REQUIRE_THROWS (small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, 5, 0)); }
+  SECTION ("4 1 node value to high") { REQUIRE_THROWS (small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 4, 1)); }
+  SECTION ("5 0") { REQUIRE_THROWS (small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 5, 0)); }
+}
+
+TEST_CASE ("my test")
+{
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  tree.root ()[0].insert (4);
+  tree.root ()[1].insert (5);
+  tree.root ()[1].insert (6);
+  tree.root ()[1][1].insert (7);
+  auto result = small_memory_tree::SmallMemoryTree<int> (tree);
+  REQUIRE (levelWithOptionalValues (result, 0).size () == 1);
+  REQUIRE (levelWithOptionalValues (result, 1).size () == 2);
+  REQUIRE (levelWithOptionalValues (result, 2).size () == 4);
+  REQUIRE (levelWithOptionalValues (result, 3).size () == 8);
+  REQUIRE (levelWithOptionalValues (result, 4).size () == 2);
 }
