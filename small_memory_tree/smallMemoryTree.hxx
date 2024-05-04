@@ -231,7 +231,7 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
                 {
                   auto tree = st_tree::tree<DataType>{};
                   tree.insert (parent.value ());
-                  if (not trees.empty () and level != 2)
+                  if (not trees.empty () and level != maxLevel)
                     {
                       for (auto j = uint64_t{}; j < maxChildren; ++j)
                         {
