@@ -210,10 +210,9 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
     }
   else
     {
-
-      for (auto level = maxLevel; level >= 0; --level)
+      for (auto level = maxLevel; level >= 1; --level)
         {
-          if (level == 0)
+          if (level == 1)
             {
               treeToFill.insert (data.front ()); // the first element of treeAsVector is always the root of the tree
               for (auto j = uint64_t{}; j < maxChildren; ++j)
@@ -232,11 +231,10 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
                 {
                   auto tree = st_tree::tree<DataType>{};
                   tree.insert (parent.value ());
-                  if (not trees.empty () and rItr != treeLevels.crbegin ())
+                  if (not trees.empty () and level != 2)
                     {
                       for (auto j = uint64_t{}; j < maxChildren; ++j)
                         {
-
                           if (currentLevel[currentChild])
                             {
                               tree.root ().insert (trees.front ());
