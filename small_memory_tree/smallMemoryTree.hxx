@@ -129,7 +129,6 @@ treeLevelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level,
   else
     {
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
-      auto valuesUsed = smallMemoryTree.getValuesPerLevel ().at (level - 1);
       auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
       auto const &nodeOffsetBegin = boost::numeric_cast<int64_t> (levels.at (level - 1));
       auto const &nodeOffsetEnd = nodeOffsetBegin + maxChildren * boost::numeric_cast<int64_t> (node);
@@ -137,8 +136,8 @@ treeLevelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level,
         {
           throw std::logic_error{ "node value is to high" };
         }
-      valuesUsed += boost::numeric_cast<typename std::decay<decltype (valuesUsed)>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
       auto processedChildren = int64_t{};
+      auto valuesUsed = smallMemoryTree.getValuesPerLevel ().at (level - 1) + boost::numeric_cast<typename std::decay<decltype (smallMemoryTree.getValuesPerLevel ().at (level - 1))>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
       for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
         {
           if (*(hierarchy.begin () + i))
@@ -169,38 +168,34 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
     }
   else
     {
-      auto positionOfChildren = int64_t{};
-      for (auto i = uint64_t{}; i < levels.size (); ++i)
+      auto const &data = smallMemoryTree.getData ();
+      result.insert (data.front ());
+      auto const &hierarchy = smallMemoryTree.getHierarchy ();
+      auto processedChildren = int64_t{};
+      auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
+      for (auto level = uint64_t{}; level < levels.size (); ++level)
         {
-          auto const &levelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, i, boost::numeric_cast<uint64_t> (positionOfChildren));
-          auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-          if (auto itr = std::ranges::find_if (levelValuesAndHoles, [&valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != levelValuesAndHoles.end ())
+          auto subTree = st_tree::tree<DataType>{};
+          auto const &nodeOffsetBegin = boost::numeric_cast<int64_t> (levels.at (level - 1));
+          auto valuesUsed = smallMemoryTree.getValuesPerLevel ().at (level - 1);
+          for (auto node = int64_t{}; node + nodeOffsetBegin != levels.at (level); ++node)
             {
-              auto childOffset = std::distance (levelValuesAndHoles.begin (), itr);
-              auto const &hierarchy = smallMemoryTree.getHierarchy ();
-              positionOfChildren = std::count_if (hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))), hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))) + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
-              auto const &childLevelValuesAndHoles = small_memory_tree::internals::treeLevelWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
-              //     if (i == path.size () - 1)
-              //       {
-              //         auto result = std::vector<T>{};
-              //         for (auto const &childValueOrHole : childLevelValuesAndHoles)
-              //           {
-              //             if (childValueOrHole)
-              //               {
-              //                 result.push_back (childValueOrHole.value ());
-              //               }
-              //           }
-              //         return result;
-              //       }
-              //   }
-              // else
-              //   {
-              //     return {};
-              //   }
+              auto const &nodeOffsetEnd = nodeOffsetBegin + maxChildren * node;
+              for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
+                {
+                  if (*(hierarchy.begin () + i))
+                    {
+                      result.push_back (data.at (valuesUsed));
+                      valuesUsed++;
+                    }
+                  else
+                    {
+                      result.push_back ({});
+                    }
+                }
             }
         }
-      // return {};
-      return st_tree::tree<DataType>{};
+      return result;
     }
 }
 }
