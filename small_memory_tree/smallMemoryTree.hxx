@@ -238,6 +238,7 @@ template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMe
   SmallMemoryTreeData (auto const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::calculateMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
 
   // clang-format off
+    [[nodiscard]]
   auto operator<=> (const SmallMemoryTreeData &) const = default;
   // clang-format on
 
@@ -260,6 +261,7 @@ public:
   SmallMemoryTree (auto smallMemoryTreeData) : _smallMemoryData{ std::move (smallMemoryTreeData) }, _levels{ internals::calculateLevelSmallMemoryTree<LevelType> (_smallMemoryData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryData.hierarchy, _levels) } {}
 
   // clang-format off
+  [[nodiscard]]
 auto operator<=> (const SmallMemoryTree &) const = default;
   // clang-format on
 
@@ -298,7 +300,7 @@ auto operator<=> (const SmallMemoryTree &) const = default;
    * creates a st_tree from the underlying vector
    * @return st_tree
    */
-  st_tree::tree<DataType>
+  [[nodiscard]] st_tree::tree<DataType>
   generateTree () const
   {
     return internals::generateTree (*this);
