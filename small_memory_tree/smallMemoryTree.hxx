@@ -23,7 +23,7 @@ namespace internals
 {
 
 uint64_t
-getMaxChildren (auto const &tree)
+calculateMaxChildren (auto const &tree)
 {
   auto maxChildren = uint64_t{};
   for (auto const &node : tree)
@@ -202,7 +202,7 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
     }
   else
     {
-      auto itr = result.begin ();
+      auto itr = result.bf_begin ();
       auto const &maxLevel = smallMemoryTree.getLevels ().size () - 1; // skipping the last level because it only has empty values by design
       for (auto level = uint64_t{ 1 }; level < maxLevel; ++level)      // already added the root so we start at level 1
         {
@@ -235,7 +235,7 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
 template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeData
 {
 
-  SmallMemoryTreeData (auto const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::getMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
+  SmallMemoryTreeData (auto const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::calculateMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
 
   // clang-format off
   auto operator<=> (const SmallMemoryTreeData &) const = default;
