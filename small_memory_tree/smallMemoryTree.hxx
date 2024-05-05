@@ -338,16 +338,16 @@ private:
  * @param path vector with the values of nodes
  * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
  */
-template <typename T, typename Y, typename Z>
-std::optional<std::vector<T> >
-childrenByPath (SmallMemoryTree<T, Y, Z> const &smallMemoryTree, std::vector<T> const &path)
+template <typename DataType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
+std::optional<std::vector<DataType> >
+childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<DataType> const &path)
 {
 
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
       // only one element in tree. Path is equal to the value of the element but element has no children so return empty vector
-      return std::vector<T>{};
+      return std::vector<DataType>{};
     }
   else
     {
@@ -365,7 +365,7 @@ childrenByPath (SmallMemoryTree<T, Y, Z> const &smallMemoryTree, std::vector<T> 
               auto const &childLevelValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
               if (i == path.size () - 1)
                 {
-                  auto result = std::vector<T>{};
+                  auto result = std::vector<DataType>{};
                   for (auto const &childValueOrHole : childLevelValuesAndHoles)
                     {
                       if (childValueOrHole)
