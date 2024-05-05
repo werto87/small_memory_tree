@@ -262,7 +262,7 @@ public:
 
   // clang-format off
   [[nodiscard]]
-auto operator<=> (const SmallMemoryTree &) const = default;
+  auto operator<=> (const SmallMemoryTree &) const = default;
   // clang-format on
 
   // TODO there should be an option to sort the children so we can use binary search
