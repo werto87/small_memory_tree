@@ -203,8 +203,8 @@ generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLev
   else
     {
       auto itr = result.begin ();
-      auto const &levels = smallMemoryTree.getLevels ();
-      for (auto level = uint64_t{ 1 }; level < levels.size (); ++level) // already added the root so we start at level 1
+      auto const &maxLevel = smallMemoryTree.getLevels ().size () - 1; // skipping the last level because it only has empty values by design
+      for (auto level = uint64_t{ 1 }; level < maxLevel; ++level)      // already added the root so we start at level 1
         {
           auto const &currentLevel = levelWithOptionalValues (smallMemoryTree, level);
           for (auto node = uint64_t{}; node < currentLevel.size (); ++node)
