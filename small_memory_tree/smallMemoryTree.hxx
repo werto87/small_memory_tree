@@ -322,7 +322,6 @@ template <typename DataType, typename MaxChildrenType, typename LevelType, typen
 std::optional<std::vector<DataType> >
 childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<DataType> const &path)
 {
-
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
