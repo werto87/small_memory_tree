@@ -306,7 +306,7 @@ private:
 
 /**
  * traverses the tree by picking the first matching value
- * in this example a path with 1 and 3 would have 4 and 5 as a result
+ * in this example a path with 0 1 and 3 would have 4 and 5 as a result
 -----------0
 ---------/---\
 --------1----1
