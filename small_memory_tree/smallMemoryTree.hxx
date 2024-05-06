@@ -225,7 +225,7 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, 
 template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeData
 {
 
-  SmallMemoryTreeData (auto const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::calculateMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
+  template <internals::HasIteratorToNode Tree> SmallMemoryTreeData (Tree const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::calculateMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
 
   // clang-format off
     [[nodiscard]]
@@ -248,7 +248,7 @@ template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMe
 template <typename DataType, typename MaxChildrenType = uint64_t, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTree
 {
 public:
-  SmallMemoryTree (auto smallMemoryTreeData) : _smallMemoryData{ std::move (smallMemoryTreeData) }, _levels{ internals::calculateLevelSmallMemoryTree<LevelType> (_smallMemoryData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryData.hierarchy, _levels) } {}
+  explicit SmallMemoryTree (SmallMemoryTreeData<DataType, MaxChildrenType> smallMemoryTreeData) : _smallMemoryData{ std::move (smallMemoryTreeData) }, _levels{ internals::calculateLevelSmallMemoryTree<LevelType> (_smallMemoryData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryData.hierarchy, _levels) } {}
 
   // clang-format off
   [[nodiscard]]
