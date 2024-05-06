@@ -2,6 +2,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 #include <cstdint>
+#include <st_tree.h>
 #include <vector>
 
 TEST_CASE ("treeData only root")

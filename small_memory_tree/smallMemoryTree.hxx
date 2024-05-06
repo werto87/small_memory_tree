@@ -6,13 +6,11 @@ Distributed under the Boost Software License, Version 1.0.
  */
 
 #include <boost/numeric/conversion/cast.hpp>
-#include <concepts>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <iterator>
 #include <numeric>
 #include <optional>
-#include <st_tree.h>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>

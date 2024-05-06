@@ -5,6 +5,7 @@ Distributed under the Boost Software License, Version 1.0.
  */
 #include "small_memory_tree/smallMemoryTree.hxx"
 #include <catch2/catch.hpp>
+#include <st_tree.h>
 
 using namespace small_memory_tree;
 

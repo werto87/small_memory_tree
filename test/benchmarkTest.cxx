@@ -7,7 +7,7 @@
 #include "small_memory_tree/smallMemoryTree.hxx"
 #include <catch2/catch.hpp>
 #include <cstdint>
-
+#include <st_tree.h>
 using namespace small_memory_tree;
 
 TEST_CASE ("childrenByPath", "[!benchmark]")
