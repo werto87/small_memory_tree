@@ -182,7 +182,7 @@ TEST_CASE ("calculateValuesPerLevel multiple elements")
   REQUIRE (result.back () == 8);
 }
 
-TEST_CASE ("treeLevelWithOptionalValues only root")
+TEST_CASE ("childrenWithOptionalValues only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
@@ -193,7 +193,7 @@ TEST_CASE ("treeLevelWithOptionalValues only root")
   REQUIRE (result.front () == 0);
 }
 
-TEST_CASE ("treeLevelWithOptionalValues multiple elements")
+TEST_CASE ("childrenWithOptionalValues multiple elements")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
@@ -251,7 +251,7 @@ TEST_CASE ("treeLevelWithOptionalValues multiple elements")
   SECTION ("5 0") { REQUIRE_THROWS (small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 5, 0)); }
 }
 
-TEST_CASE ("my test")
+TEST_CASE ("levelWithOptionalValues")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
