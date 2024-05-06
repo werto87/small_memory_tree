@@ -32,20 +32,21 @@ template <typename T> concept IsNode = requires (T a)
   { a.data () };
 };
 
-template <typename T> concept HasIteratorToNode = requires (T a)
+// TODO This only checks
+template <typename T> concept HasBreadthFirstIteratorToNode = requires (T a)
 {
-  { a.begin () };
+  { a.bf_begin () };
   { a.end () };
   {
-    *a.begin ()
+    *a.bf_begin ()
   } -> IsNode;
   {
-    *a.end ()
+    *a.bf_end ()
   } -> IsNode;
 };
 
 uint64_t
-calculateMaxChildren (HasIteratorToNode auto const &tree)
+calculateMaxChildren (HasBreadthFirstIteratorToNode auto const &tree)
 {
   auto maxChildren = uint64_t{};
   for (auto const &node : tree)
@@ -59,7 +60,7 @@ calculateMaxChildren (HasIteratorToNode auto const &tree)
 }
 
 auto
-treeData (HasIteratorToNode auto const &tree)
+treeData (HasBreadthFirstIteratorToNode auto const &tree)
 {
   typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
   auto results = std::vector<TreeDataElementType>{};
