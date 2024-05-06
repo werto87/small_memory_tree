@@ -238,8 +238,8 @@ template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMe
 };
 
 /**
- * @brief
- *  Extends small memory tree data by adding caching variables which are used for value lookup when using childrenByPath function and generate st tree function
+ * @brief Extends small memory tree data by adding caching variables which are used for value lookup when using childrenByPath function and generate st tree function
+ *
  * @tparam DataType type of the tree elements
  * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
  * @tparam LevelType lookup to find out which node has which value. saves indicies to denote where a level begins and ends. If you are sure that you know the max tree width you can change the type to a better fitting type and maybe save some memory. I do not think it will lead to savings in storage because databases are good in optimizing this and use only the needed amount of storage
