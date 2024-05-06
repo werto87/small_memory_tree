@@ -18,5 +18,12 @@ target_include_directories(small_memory_tree INTERFACE ${CMAKE_SOURCE_DIR})
 
 target_compile_features(small_memory_tree INTERFACE cxx_std_20)
 
-install(FILES smallMemoryTree.hxx generateStTree.hxx DESTINATION include/small_memory_tree)
+if(WITH_ST_TREE)
+  install(FILES smallMemoryTree.hxx generateStTree.hxx DESTINATION include/small_memory_tree)
+else()
+  install(FILES smallMemoryTree.hxx  DESTINATION include/small_memory_tree)
+endif()
+
+
+
 install(TARGETS small_memory_tree DESTINATION lib)
