@@ -130,7 +130,7 @@ calculateLevelSmallMemoryTree (auto const &smallMemoryTreeData)
 [[nodiscard]] auto
 levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
 {
-  // TODO this has bad performance because of all the optionals it creates.
+  // TODO this has bad performance
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == level)
     {
@@ -166,7 +166,7 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
 [[nodiscard]] auto
 childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, uint64_t node)
 {
-  // TODO this has bad performance because of all the optionals it creates.
+  // TODO this has bad performance
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == level)
     {
@@ -322,6 +322,7 @@ template <typename DataType, typename MaxChildrenType, typename LevelType, typen
 std::optional<std::vector<DataType> >
 childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<DataType> const &path)
 {
+  // TODO this has bad performance
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
