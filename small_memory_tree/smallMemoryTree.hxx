@@ -6,6 +6,7 @@ Distributed under the Boost Software License, Version 1.0.
  */
 
 #include <boost/numeric/conversion/cast.hpp>
+#include <concepts>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <iterator>
@@ -13,6 +14,7 @@ Distributed under the Boost Software License, Version 1.0.
 #include <optional>
 #include <st_tree.h>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 namespace small_memory_tree
 {
@@ -22,8 +24,28 @@ template <typename DataType, typename MaxChildrenType, typename LevelType, typen
 namespace internals
 {
 
+template <typename T> concept IsNode = requires (T a)
+{
+  { a.begin () };
+  { a.end () };
+  { a.size () };
+  { a.data () };
+};
+
+template <typename T> concept HasIteratorToNode = requires (T a)
+{
+  { a.begin () };
+  { a.end () };
+  {
+    *a.begin ()
+  } -> IsNode;
+  {
+    *a.end ()
+  } -> IsNode;
+};
+
 uint64_t
-calculateMaxChildren (auto const &tree)
+calculateMaxChildren (HasIteratorToNode auto const &tree)
 {
   auto maxChildren = uint64_t{};
   for (auto const &node : tree)
@@ -37,7 +59,7 @@ calculateMaxChildren (auto const &tree)
 }
 
 auto
-treeData (auto const &tree)
+treeData (HasIteratorToNode auto const &tree)
 {
   typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
   auto results = std::vector<TreeDataElementType>{};
@@ -262,36 +284,36 @@ public:
 
   // clang-format off
   [[nodiscard]]
-  auto operator<=> (const SmallMemoryTree &) const = default;
+  auto operator<=> (const SmallMemoryTree &)  const noexcept = default;
   // clang-format on
 
   // TODO there should be an option to sort the children so we can use binary search
   [[nodiscard]] SmallMemoryTreeData<DataType, MaxChildrenType>
-  getSmallMemoryData () const &
+  getSmallMemoryData () const &noexcept
   {
     return _smallMemoryData;
   }
 
   [[nodiscard]] std::vector<LevelType> const &
-  getLevels () const
+  getLevels () const noexcept
   {
     return _levels;
   }
 
   [[nodiscard]] bool
-  getMarkerForEmpty () const
+  getMarkerForEmpty () const noexcept
   {
     return false; // resulting from the way the tree gets saved false is the marker for empty
   }
 
   [[nodiscard]] MaxChildrenType
-  getMaxChildren () const
+  getMaxChildren () const noexcept
   {
     return _smallMemoryData.maxChildren;
   }
 
   [[nodiscard]] std::vector<bool> const &
-  getHierarchy () const
+  getHierarchy () const noexcept
   {
     return _smallMemoryData.hierarchy;
   }
@@ -301,19 +323,19 @@ public:
    * @return st_tree
    */
   [[nodiscard]] st_tree::tree<DataType>
-  generateTree () const
+  generateTree () const noexcept
   {
     return internals::generateTree (*this);
   }
 
   [[nodiscard]] std::vector<DataType> const &
-  getData () const
+  getData () const noexcept
   {
     return _smallMemoryData.data;
   }
 
   [[nodiscard]] std::vector<ValuesPerLevelType> const &
-  getTotalValuesUsedUntilLevel () const
+  getTotalValuesUsedUntilLevel () const noexcept
   {
     return _valuesPerLevel;
   }
