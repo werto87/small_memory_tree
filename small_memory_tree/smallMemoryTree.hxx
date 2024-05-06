@@ -26,17 +26,21 @@ namespace internals
 
 template <typename T> concept IsNode = requires (T a)
 {
-  { a.begin () };
-  { a.end () };
+  {
+    a.begin ()
+  } -> std::forward_iterator;
+  {
+    a.end ()
+  } -> std::forward_iterator;
   { a.size () };
   { a.data () };
 };
 
-// TODO This only checks
+// TODO This does not check what kind of iterator it is.
 template <typename T> concept HasBreadthFirstIteratorToNode = requires (T a)
 {
-  { a.bf_begin () };
-  { a.end () };
+  { ++a.bf_begin () };
+  { ++a.bf_end () };
   {
     *a.bf_begin ()
   } -> IsNode;
