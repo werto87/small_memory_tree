@@ -6,8 +6,8 @@ namespace small_memory_tree
 {
 
 template <typename DataType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
-auto
-generateTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
+st_tree::tree<DataType>
+generateStTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
 {
   auto const &data = smallMemoryTree.getData ();
   auto result = st_tree::tree<DataType>{};

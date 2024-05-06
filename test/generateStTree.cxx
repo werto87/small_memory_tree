@@ -14,7 +14,7 @@ TEST_CASE ("generateTree root only")
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
   auto smt = SmallMemoryTree<int>{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree root two children")
@@ -24,7 +24,7 @@ TEST_CASE ("generateTree root two children")
   tree.root ().insert (1);
   tree.root ().insert (2);
   auto smt = SmallMemoryTree<int>{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree root three children")
@@ -35,7 +35,7 @@ TEST_CASE ("generateTree root three children")
   tree.root ().insert (2);
   tree.root ().insert (3);
   auto smt = SmallMemoryTree<int>{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree root one child max child 2")
@@ -46,7 +46,7 @@ TEST_CASE ("generateTree root one child max child 2")
   tree.root ()[0].insert (2);
   tree.root ()[0].insert (3);
   auto smt = SmallMemoryTree<int>{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree 4 levels and sibling has same number")
@@ -61,7 +61,7 @@ TEST_CASE ("generateTree 4 levels and sibling has same number")
   tree.root ()[1].insert (4);
   tree.root ()[1][0].insert (69);
   auto smt = SmallMemoryTree<int>{ tree };
-  auto generatedTree = generateTree (smt);
+  auto generatedTree = generateStTree (smt);
   auto smtFromGeneratedTree = SmallMemoryTree<int>{ tree };
   REQUIRE (smt == smtFromGeneratedTree);
 }
@@ -77,7 +77,7 @@ TEST_CASE ("generateTree depth 10")
       node = node->insert (boost::numeric_cast<int> (((i + 1) * 10) + int{ 3 }));
     }
   auto smt = SmallMemoryTree<int>{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree 3 children and tuple")
@@ -90,7 +90,7 @@ TEST_CASE ("generateTree 3 children and tuple")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree 3 children and tuple crash")
@@ -103,7 +103,7 @@ TEST_CASE ("generateTree 3 children and tuple crash")
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
   auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree only root get children of root")
@@ -111,7 +111,7 @@ TEST_CASE ("generateTree only root get children of root")
   auto tree = st_tree::tree<std::tuple<int, int> >{};
   tree.insert ({ 1, 1 });
   auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
 
 TEST_CASE ("generateTree only root get children of root wrong path")
@@ -119,5 +119,5 @@ TEST_CASE ("generateTree only root get children of root wrong path")
   auto tree = st_tree::tree<std::tuple<int, int> >{};
   tree.insert ({ 1, 1 });
   auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
-  REQUIRE (tree == generateTree (smt));
+  REQUIRE (tree == generateStTree (smt));
 }
