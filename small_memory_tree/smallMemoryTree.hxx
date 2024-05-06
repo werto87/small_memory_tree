@@ -48,7 +48,7 @@ template <typename T> concept HasIteratorToNode = requires (T a)
   } -> IsNode;
 };
 
-uint64_t
+[[nodiscard]] uint64_t
 calculateMaxChildren (HasIteratorToNode auto const &tree)
 {
   auto maxChildren = uint64_t{};
@@ -62,7 +62,7 @@ calculateMaxChildren (HasIteratorToNode auto const &tree)
   return maxChildren;
 }
 
-auto
+[[nodiscard]] auto
 treeData (HasIteratorToNode auto const &tree)
 {
   typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
@@ -74,7 +74,7 @@ treeData (HasIteratorToNode auto const &tree)
   return results;
 }
 
-inline std::vector<bool>
+[[nodiscard]] inline std::vector<bool>
 treeHierarchy (auto const &tree, uint64_t maxChildrenInTree)
 {
   auto result = std::vector<bool>{};
@@ -91,7 +91,7 @@ treeHierarchy (auto const &tree, uint64_t maxChildrenInTree)
 }
 
 template <typename T = uint64_t>
-std::vector<T>
+[[nodiscard]] std::vector<T>
 calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
 {
   if (hierarchy.empty ())
@@ -129,7 +129,7 @@ calculateLevelSmallMemoryTree (auto const &smallMemoryTreeData)
   return treeLevels;
 }
 
-auto
+[[nodiscard]] auto
 levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
 {
   // TODO this has bad performance because of all the optionals it creates.
@@ -165,7 +165,7 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
     }
 }
 
-auto
+[[nodiscard]] auto
 childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, uint64_t node)
 {
   // TODO this has bad performance because of all the optionals it creates.
