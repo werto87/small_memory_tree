@@ -37,7 +37,8 @@ template <typename T> concept IsNode = requires (T a)
 };
 
 // TODO This does not check what kind of iterator it is.
-template <typename T> concept HasBreadthFirstIteratorToNode = requires (T a)
+// if we find out how to check if it is a breath first iterator or not we can rename this
+template <typename T> concept HasIteratorToNode = requires (T a)
 {
   { ++a.bf_begin () };
   { ++a.bf_end () };
@@ -50,7 +51,7 @@ template <typename T> concept HasBreadthFirstIteratorToNode = requires (T a)
 };
 
 uint64_t
-calculateMaxChildren (HasBreadthFirstIteratorToNode auto const &tree)
+calculateMaxChildren (HasIteratorToNode auto const &tree)
 {
   auto maxChildren = uint64_t{};
   for (auto const &node : tree)
@@ -64,7 +65,7 @@ calculateMaxChildren (HasBreadthFirstIteratorToNode auto const &tree)
 }
 
 auto
-treeData (HasBreadthFirstIteratorToNode auto const &tree)
+treeData (HasIteratorToNode auto const &tree)
 {
   typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
   auto results = std::vector<TreeDataElementType>{};
