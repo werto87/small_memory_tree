@@ -20,7 +20,7 @@ namespace small_memory_tree
 namespace internals
 {
 
-template <typename T> concept IsNode = requires (T a)
+template <typename T> concept IsNode = requires (T const a)
 {
   {
     a.begin ()
@@ -36,6 +36,7 @@ template <typename T> concept IsNode = requires (T a)
 // if we find out how to check if it is a breath first iterator or not we can rename this
 template <typename T> concept HasIteratorToNode = requires (T a)
 {
+  { a.root () };
   { ++a.bf_begin () };
   { ++a.bf_end () };
   {
@@ -50,13 +51,12 @@ template <typename T> concept HasIteratorToNode = requires (T a)
 calculateMaxChildren (HasIteratorToNode auto const &tree)
 {
   auto maxChildren = uint64_t{};
-  for (auto const &node : tree)
-    {
-      if (maxChildren < node.size ())
-        {
-          maxChildren = node.size ();
-        }
-    }
+  std::for_each (tree.bf_begin (), tree.bf_end (), [&maxChildren] (auto const &node) {
+    if (maxChildren < node.size ())
+      {
+        maxChildren = node.size ();
+      }
+  });
   return maxChildren;
 }
 
@@ -65,10 +65,7 @@ treeData (HasIteratorToNode auto const &tree)
 {
   typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
   auto results = std::vector<TreeDataElementType>{};
-  for (auto const &node : tree)
-    {
-      results.push_back (node.data ());
-    }
+  std::for_each (tree.bf_begin (), tree.bf_end (), [&results] (auto const &node) { results.push_back (node.data ()); });
   return results;
 }
 
