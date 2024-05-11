@@ -2,17 +2,15 @@
 # Copyright (c) 2024 Waldemar Schneider (w-schneider1987 at web dot de)
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
-# file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+# file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 add_library(small_memory_tree INTERFACE)
 
 find_package(Boost)
 find_package(st_tree)
 find_package(confu_algorithm)
-
-target_link_libraries(
-  small_memory_tree INTERFACE st_tree::st_tree Boost::headers
-                              confu_algorithm::confu_algorithm)
+find_package(stlplus)
+target_link_libraries(small_memory_tree INTERFACE st_tree::st_tree Boost::headers confu_algorithm::confu_algorithm stlplus::stlplus)
 
 target_include_directories(small_memory_tree INTERFACE ${CMAKE_SOURCE_DIR})
 
