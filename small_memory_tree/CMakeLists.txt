@@ -6,22 +6,36 @@
 
 add_library(small_memory_tree INTERFACE)
 
+
 find_package(Boost)
-find_package(st_tree)
 find_package(confu_algorithm)
-find_package(stlplus)
-target_link_libraries(small_memory_tree INTERFACE st_tree::st_tree Boost::headers confu_algorithm::confu_algorithm stlplus::stlplus)
+set(OptionalLibrary)
+if(WITH_ST_TREE)
+  find_package(st_tree)
+  list(APPEND OptionalLibrary st_tree::st_tree)
+endif()
+if(WITH_STLPLUS_TREE)
+  find_package(stlplus)
+  list(APPEND OptionalLibrary stlplus::stlplus)
+endif()
+
+
+set(LibraryToAlwaysLink Boost::headers confu_algorithm::confu_algorithm )
+target_link_libraries(small_memory_tree INTERFACE ${LibraryToAlwaysLink} ${OptionalLibrary})
 
 target_include_directories(small_memory_tree INTERFACE ${CMAKE_SOURCE_DIR})
 
 target_compile_features(small_memory_tree INTERFACE cxx_std_20)
 
+set(HeaderToAlwaysInstall smallMemoryTree.hxx)
+set(OptionalHeader)
 if(WITH_ST_TREE)
-  install(FILES smallMemoryTree.hxx generateStTree.hxx DESTINATION include/small_memory_tree)
-else()
-  install(FILES smallMemoryTree.hxx  DESTINATION include/small_memory_tree)
+  list(APPEND OptionalHeader generateStTree.hxx) 
 endif()
-
+if(WITH_STLPLUS_TREE)
+  list(APPEND OptionalHeader generateStlplusTree.hxx) 
+endif()
+install(FILES ${HeaderToAlwaysInstall} ${OptionalHeader} DESTINATION include/small_memory_tree)
 
 
 install(TARGETS small_memory_tree DESTINATION lib)

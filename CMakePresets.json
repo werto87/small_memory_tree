@@ -10,7 +10,9 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
-                "BUILD_TESTS": "True",
+                                "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_CXX_FLAGS": "-stdlib=libc++  -fstack-usage",
@@ -27,6 +29,8 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
                 "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_CXX_FLAGS": "-stdlib=libc++ -fstack-usage",
@@ -44,6 +48,8 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
                 "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
@@ -58,6 +64,8 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
                 "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
                 "myproject_ENABLE_HARDENING": "OFF"
@@ -73,6 +81,8 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
                 "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
                 "myproject_ENABLE_FORTIFY_SOURCE_AND_SET_OPTIMIZATION_TO_O0": "ON"
@@ -88,6 +98,8 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
                 "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
                 "myproject_ENABLE_SANITIZER_MEMORY": "ON"
@@ -103,6 +115,8 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
                 "BUILD_TESTS": "True",
+                "WITH_ST_TREE": "True",
+                "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "myproject_ENABLE_SANITIZER_ADDRESS": "ON",
