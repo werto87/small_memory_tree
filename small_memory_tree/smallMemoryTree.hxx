@@ -74,14 +74,13 @@ treeHierarchy (auto const &tree, uint64_t maxChildrenInTree)
 {
   auto result = std::vector<bool>{};
   result.push_back (true);
-  for (auto const &node : tree)
-    {
-      std::ranges::for_each (node, [&result] (auto const &) { result.push_back (true); });
-      for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
-        {
-          result.push_back (false);
-        }
-    }
+  std::for_each (tree.bf_begin (), tree.bf_end (), [&result, maxChildrenInTree] (auto const &node) {
+    std::ranges::for_each (node, [&result] (auto const &) { result.push_back (true); });
+    for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
+      {
+        result.push_back (false);
+      }
+  });
   return result;
 }
 

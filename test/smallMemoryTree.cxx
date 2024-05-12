@@ -291,34 +291,6 @@ TEST_CASE ("st_tree levelWithOptionalValues")
   REQUIRE (levelWithOptionalValues (result, 4).size () == 2);
 }
 
-// template <typename T> concept IsNode = requires (T a)
-// {
-//   {
-//     a.begin ()
-//   } -> std::forward_iterator;
-//   {
-//     a.end ()
-//   } -> std::forward_iterator;
-//   { a.size () };
-//   { a.data () };
-// };
-
-// // TODO This does not check what kind of iterator it is.
-// // if we find out how to check if it is a breath first iterator or not we can rename this
-// template <typename T> concept HasIteratorToNode = requires (T a)
-// {
-//   { ++a.bf_begin () };
-//   { ++a.bf_end () };
-//   {
-//     *a.bf_begin ()
-//   } -> IsNode;
-//   {
-//     *a.bf_end ()
-//   } -> IsNode;
-// };
-
-// TODO write an adaptor iterator for ntree
-
 template <typename ValueType> struct MyNode
 {
   MyNode () = default;
@@ -357,9 +329,9 @@ private:
   std::vector<ValueType> childrenValues{};
 };
 
-template <typename ValueType> struct StlplusTreeWrapper
+template <typename ValueType> struct StlplusTreeAdapter
 {
-  StlplusTreeWrapper (stlplus::ntree<ValueType> const &tree)
+  StlplusTreeAdapter (stlplus::ntree<ValueType> const &tree)
   {
     std::ranges::transform (tree.breadth_first_traversal (), std::back_inserter (myNodes), [] (auto node) { return MyNode<int>{ std::move (node.node ()) }; });
   }
@@ -391,25 +363,23 @@ TEST_CASE ("stlplus_tree treeData only root")
 {
   stlplus::ntree<int> tree{};
   auto root = tree.insert (0);
-  auto test = StlplusTreeWrapper{ tree };
-  auto result = small_memory_tree::internals::treeData (test);
+  auto result = small_memory_tree::internals::treeData (StlplusTreeAdapter{ tree });
   REQUIRE (result.size () == 1);
   REQUIRE (result.at (0) == 0);
 }
 
 TEST_CASE ("stlplus_tree treeData multiple elements")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto result = small_memory_tree::internals::treeData (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto result = small_memory_tree::internals::treeData (StlplusTreeAdapter{ tree });
   REQUIRE (result.size () == 8);
   REQUIRE (result.at (0) == 0);
   REQUIRE (result.at (1) == 1);
@@ -423,37 +393,34 @@ TEST_CASE ("stlplus_tree treeData multiple elements")
 
 TEST_CASE ("stlplus_tree treeHierarchy only root")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  auto result = small_memory_tree::internals::treeHierarchy (tree, small_memory_tree::internals::calculateMaxChildren (tree));
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto result = small_memory_tree::internals::treeHierarchy (StlplusTreeAdapter{ tree }, small_memory_tree::internals::calculateMaxChildren (StlplusTreeAdapter{ tree }));
   REQUIRE (result.size () == 1);
   REQUIRE (result.at (0) == true);
 }
 
 TEST_CASE ("stlplus_tree treeHierarchy multiple elements")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto result = small_memory_tree::internals::treeHierarchy (tree, small_memory_tree::internals::calculateMaxChildren (tree));
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto result = small_memory_tree::internals::treeHierarchy (StlplusTreeAdapter{ tree }, small_memory_tree::internals::calculateMaxChildren (StlplusTreeAdapter{ tree }));
   REQUIRE (result.size () == 17);
   REQUIRE (result.at (0) == true);
 }
 
 TEST_CASE ("stlplus_tree treeToSmallMemoryTreeLotsOfChildrenData only root")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  auto result = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto result = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   REQUIRE (result.hierarchy.size () == 1);
   REQUIRE (result.data.size () == 1);
   REQUIRE (result.maxChildren == 0);
@@ -461,17 +428,16 @@ TEST_CASE ("stlplus_tree treeToSmallMemoryTreeLotsOfChildrenData only root")
 
 TEST_CASE ("stlplus_tree  SmallMemoryTreeData multiple elements")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto result = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto result = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   REQUIRE (result.hierarchy.size () == 17);
   REQUIRE (result.data.size () == 8);
   REQUIRE (result.maxChildren == 2);
@@ -479,10 +445,9 @@ TEST_CASE ("stlplus_tree  SmallMemoryTreeData multiple elements")
 
 TEST_CASE ("stlplus_tree childrenByPath only root")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
   auto result = small_memory_tree::childrenByPath (smallMemoryTree, std::vector<int>{ 0 });
   REQUIRE (result.has_value ());
@@ -491,10 +456,9 @@ TEST_CASE ("stlplus_tree childrenByPath only root")
 
 TEST_CASE ("stlplus_tree childrenByPath root only")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
   auto result = small_memory_tree::childrenByPath (smallMemoryTree, std::vector<int>{ 0 });
   REQUIRE (result.has_value ());
@@ -502,17 +466,16 @@ TEST_CASE ("stlplus_tree childrenByPath root only")
 
 TEST_CASE ("stlplus_tree childrenByPath multiple elements")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
   SECTION ("0")
   {
@@ -547,10 +510,9 @@ TEST_CASE ("stlplus_tree childrenByPath multiple elements")
 
 TEST_CASE ("stlplus_tree calculateValuesPerLevel only root")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
   auto result = small_memory_tree::internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 1);
@@ -559,17 +521,16 @@ TEST_CASE ("stlplus_tree calculateValuesPerLevel only root")
 
 TEST_CASE ("stlplus_tree calculateValuesPerLevel multiple elements")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
   auto result = small_memory_tree::internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 5);
@@ -578,10 +539,9 @@ TEST_CASE ("stlplus_tree calculateValuesPerLevel multiple elements")
 
 TEST_CASE ("stlplus_tree childrenWithOptionalValues only root")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
   auto result = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
   REQUIRE (result.size () == 1);
@@ -590,17 +550,16 @@ TEST_CASE ("stlplus_tree childrenWithOptionalValues only root")
 
 TEST_CASE ("stlplus_tree childrenWithOptionalValues multiple elements")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto smallMemoryTreeData = small_memory_tree::SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
   SECTION ("0 0")
   {
@@ -649,17 +608,16 @@ TEST_CASE ("stlplus_tree childrenWithOptionalValues multiple elements")
 
 TEST_CASE ("stlplus_tree levelWithOptionalValues")
 {
-  FAIL ("impl plx");
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  tree.root ()[0].insert (4);
-  tree.root ()[1].insert (5);
-  tree.root ()[1].insert (6);
-  tree.root ()[1][1].insert (7);
-  auto result = small_memory_tree::SmallMemoryTree<int> (tree);
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto result = small_memory_tree::SmallMemoryTree<int> (StlplusTreeAdapter{ tree });
   using small_memory_tree::internals::levelWithOptionalValues;
   REQUIRE (levelWithOptionalValues (result, 0).size () == 1);
   REQUIRE (levelWithOptionalValues (result, 1).size () == 2);
