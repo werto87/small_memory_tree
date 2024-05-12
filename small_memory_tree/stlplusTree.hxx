@@ -79,4 +79,6 @@ private:
   std::vector<StlplusNodeAdapter<ValueType> > stlplusNodeAdapters{};
 };
 
+// TODO write generate function
+
 }
