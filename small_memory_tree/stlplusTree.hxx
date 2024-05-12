@@ -62,7 +62,7 @@ template <typename ValueType> struct StlplusTreeAdapter
     if (stlplusNodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
     return stlplusNodeAdapters.front ();
   }
-  // TODO should be named cbf_begin() and cbf_end or better constant_breadth_first_traversal_begin() and constant_breadth_first_traversal_end(). Problem is why call it constant_breadth_first_traversal_begin then if it is always const. Maybe cbf_begin but than we cant use the library with st_tree out of the box so we have to write this wrapper also for st_tree :(
+
   auto
   constant_breadth_first_traversal_begin () const
   {
