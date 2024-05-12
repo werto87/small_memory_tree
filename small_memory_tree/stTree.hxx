@@ -10,6 +10,74 @@ Distributed under the Boost Software License, Version 1.0.
 namespace small_memory_tree
 {
 
+template <typename ValueType> struct StNodeAdapter
+{
+  StNodeAdapter () = default;
+  explicit StNodeAdapter (auto node) : _data{ std::move (node.data ()) }
+  {
+    std::ranges::transform (node, std::back_inserter (childrenValues), [] (auto const &node) { return node.data (); });
+  }
+  auto
+  begin () const
+  {
+    return childrenValues.begin ();
+  }
+  auto
+  end () const
+  {
+    return childrenValues.end ();
+  }
+  size_t
+  size () const
+  {
+    return childrenValues.size ();
+  }
+
+  ValueType const &
+  data () const
+  {
+    return _data;
+  }
+
+private:
+  ValueType _data{};
+  std::vector<ValueType> childrenValues{};
+};
+
+template <typename ValueType> struct StTreeAdapter
+{
+  StTreeAdapter (st_tree::tree<ValueType> const &tree)
+  {
+    // transform does not work here because the iterator does not satisfy some concepts for example 'input_iterator' 'weakly_incrementable'
+    for (auto const &node : tree)
+      {
+        stNodeAdapters.push_back (StNodeAdapter<ValueType>{ node });
+      }
+  }
+
+  auto
+  root () const
+  {
+    if (stNodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
+    return stNodeAdapters.front ();
+  }
+
+  auto
+  constant_breadth_first_traversal_begin () const
+  {
+    return stNodeAdapters.begin ();
+  }
+
+  auto
+  constant_breadth_first_traversal_end () const
+  {
+    return stNodeAdapters.end ();
+  }
+
+private:
+  std::vector<StNodeAdapter<ValueType> > stNodeAdapters{};
+};
+
 template <typename DataType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
 inline st_tree::tree<DataType>
 generateStTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)

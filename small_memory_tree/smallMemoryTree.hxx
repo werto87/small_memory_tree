@@ -37,13 +37,13 @@ template <typename T> concept IsNode = requires (T const a)
 template <typename T> concept HasIteratorToNode = requires (T a)
 {
   { a.root () };
-  { ++a.bf_begin () };
-  { ++a.bf_end () };
+  { ++a.constant_breadth_first_traversal_begin () };
+  { ++a.constant_breadth_first_traversal_end () };
   {
-    *a.bf_begin ()
+    *a.constant_breadth_first_traversal_begin ()
   } -> IsNode;
   {
-    *a.bf_end ()
+    *a.constant_breadth_first_traversal_end ()
   } -> IsNode;
 };
 
@@ -51,7 +51,7 @@ template <typename T> concept HasIteratorToNode = requires (T a)
 calculateMaxChildren (HasIteratorToNode auto const &tree)
 {
   auto maxChildren = uint64_t{};
-  std::for_each (tree.bf_begin (), tree.bf_end (), [&maxChildren] (auto const &node) {
+  std::for_each (tree.constant_breadth_first_traversal_begin (), tree.constant_breadth_first_traversal_end (), [&maxChildren] (auto const &node) {
     if (maxChildren < node.size ())
       {
         maxChildren = node.size ();
@@ -65,16 +65,16 @@ treeData (HasIteratorToNode auto const &tree)
 {
   typedef typename std::decay<decltype (tree.root ().data ())>::type TreeDataElementType;
   auto results = std::vector<TreeDataElementType>{};
-  std::for_each (tree.bf_begin (), tree.bf_end (), [&results] (auto const &node) { results.push_back (node.data ()); });
+  std::for_each (tree.constant_breadth_first_traversal_begin (), tree.constant_breadth_first_traversal_end (), [&results] (auto const &node) { results.push_back (node.data ()); });
   return results;
 }
 
 [[nodiscard]] inline std::vector<bool>
-treeHierarchy (auto const &tree, uint64_t maxChildrenInTree)
+treeHierarchy (HasIteratorToNode auto const &tree, uint64_t maxChildrenInTree)
 {
   auto result = std::vector<bool>{};
   result.push_back (true);
-  std::for_each (tree.bf_begin (), tree.bf_end (), [&result, maxChildrenInTree] (auto const &node) {
+  std::for_each (tree.constant_breadth_first_traversal_begin (), tree.constant_breadth_first_traversal_end (), [&result, maxChildrenInTree] (auto const &node) {
     std::ranges::for_each (node, [&result] (auto const &) { result.push_back (true); });
     for (auto addedMarkerForEmpty = uint64_t{}; (node.size () + addedMarkerForEmpty) != maxChildrenInTree; ++addedMarkerForEmpty)
       {

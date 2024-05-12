@@ -4,10 +4,10 @@
 (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
   */
 
-#include "small_memory_tree/smallMemoryTree.hxx"
+#include "small_memory_tree/stTree.hxx"
 #include <catch2/catch.hpp>
 #include <cstdint>
-#include <st_tree.h>
+
 using namespace small_memory_tree;
 
 TEST_CASE ("childrenByPath", "[!benchmark]")
@@ -25,8 +25,7 @@ TEST_CASE ("childrenByPath", "[!benchmark]")
     tree.root ()[1][1].insert (7);
     SECTION ("childrenByPath 0 2 6 7")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
+      auto smallMemoryTree = SmallMemoryTree<int, uint8_t>{ StTreeAdapter{ tree } };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<int>{ 0, 2, 6, 7 }); };
     }
   }
@@ -40,14 +39,12 @@ TEST_CASE ("childrenByPath", "[!benchmark]")
       }
     SECTION ("childrenByPath 0 1")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<uint64_t, uint8_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint8_t>{ smallMemoryTreeData };
+      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint8_t>{ StTreeAdapter{ tree } };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 1 }); };
     }
     SECTION ("childrenByPath 0 99")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<uint64_t, uint8_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint8_t>{ smallMemoryTreeData };
+      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint8_t>{ StTreeAdapter{ tree } };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 99 }); };
     }
   }
@@ -59,16 +56,13 @@ TEST_CASE ("childrenByPath", "[!benchmark]")
       {
         tree.root ().insert (i);
       }
+    auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ StTreeAdapter{ tree } };
     SECTION ("childrenByPath 0 0")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<uint64_t, uint64_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ smallMemoryTreeData };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 0 }); };
     }
     SECTION ("childrenByPath 0 999")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<uint64_t, uint64_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ smallMemoryTreeData };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 999 }); };
     }
   }
@@ -80,16 +74,13 @@ TEST_CASE ("childrenByPath", "[!benchmark]")
       {
         tree.root ().insert (i);
       }
+    auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ StTreeAdapter{ tree } };
     SECTION ("childrenByPath 0 0")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<uint64_t, uint64_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ smallMemoryTreeData };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 0 }); };
     }
     SECTION ("childrenByPath 0 9999")
     {
-      auto smallMemoryTreeData = SmallMemoryTreeData<uint64_t, uint64_t> (tree);
-      auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ smallMemoryTreeData };
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 9999 }); };
     }
   }

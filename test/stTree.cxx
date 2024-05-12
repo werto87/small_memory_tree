@@ -13,74 +13,6 @@ Distributed under the Boost Software License, Version 1.0.
 
 using namespace small_memory_tree;
 
-template <typename ValueType> struct StNodeAdapter
-{
-  StNodeAdapter () = default;
-  explicit StNodeAdapter (auto node) : _data{ std::move (node.data ()) }
-  {
-    std::ranges::transform (node, std::back_inserter (childrenValues), [] (auto const &node) { return node.data (); });
-  }
-  auto
-  begin () const
-  {
-    return childrenValues.begin ();
-  }
-  auto
-  end () const
-  {
-    return childrenValues.end ();
-  }
-  size_t
-  size () const
-  {
-    return childrenValues.size ();
-  }
-
-  ValueType const &
-  data () const
-  {
-    return _data;
-  }
-
-private:
-  ValueType _data{};
-  std::vector<ValueType> childrenValues{};
-};
-
-template <typename ValueType> struct StTreeAdapter
-{
-  StTreeAdapter (st_tree::tree<ValueType> const &tree)
-  {
-    // transform does not work here because the iterator does not does not satisfy some concepts for 'input_iterator' 'weakly_incrementable'
-    for (auto const &node : tree)
-      {
-        stNodeAdapters.push_back (StNodeAdapter<ValueType>{ node });
-      }
-  }
-
-  auto
-  root () const
-  {
-    if (stNodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
-    return stNodeAdapters.front ();
-  }
-  // TODO should be named cbf_begin() and cbf_end or better constant_breadth_first_traversal_begin() and constant_breadth_first_traversal_end(). Problem is why call it bf_begin then if it is always const. Maybe cbf_begin but than we cant use the library with st_tree out of the box so we have to write this wrapper also for st_tree :(
-  auto
-  bf_begin () const
-  {
-    return stNodeAdapters.begin ();
-  }
-
-  auto
-  bf_end () const
-  {
-    return stNodeAdapters.end ();
-  }
-
-private:
-  std::vector<StNodeAdapter<ValueType> > stNodeAdapters{};
-};
-
 TEST_CASE ("st_tree treeData only root")
 {
   auto tree = st_tree::tree<int>{};
@@ -117,7 +49,7 @@ TEST_CASE ("st_tree treeHierarchy only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto result = internals::treeHierarchy (tree, internals::calculateMaxChildren (StTreeAdapter{ tree }));
+  auto result = internals::treeHierarchy (StTreeAdapter{ tree }, internals::calculateMaxChildren (StTreeAdapter{ tree }));
   REQUIRE (result.size () == 1);
   REQUIRE (result.at (0) == true);
 }
@@ -133,7 +65,7 @@ TEST_CASE ("st_tree treeHierarchy multiple elements")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto result = internals::treeHierarchy (tree, internals::calculateMaxChildren (StTreeAdapter{ tree }));
+  auto result = internals::treeHierarchy (StTreeAdapter{ tree }, internals::calculateMaxChildren (StTreeAdapter{ tree }));
   REQUIRE (result.size () == 17);
   REQUIRE (result.at (0) == true);
 }
@@ -352,7 +284,7 @@ TEST_CASE ("generateTree root only")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto smt = SmallMemoryTree<int>{ tree };
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -362,7 +294,7 @@ TEST_CASE ("generateTree root two children")
   tree.insert (0);
   tree.root ().insert (1);
   tree.root ().insert (2);
-  auto smt = SmallMemoryTree<int>{ tree };
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -373,7 +305,7 @@ TEST_CASE ("generateTree root three children")
   tree.root ().insert (1);
   tree.root ().insert (2);
   tree.root ().insert (3);
-  auto smt = SmallMemoryTree<int>{ tree };
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -384,7 +316,7 @@ TEST_CASE ("generateTree root one child max child 2")
   tree.root ().insert (1);
   tree.root ()[0].insert (2);
   tree.root ()[0].insert (3);
-  auto smt = SmallMemoryTree<int>{ tree };
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -399,9 +331,9 @@ TEST_CASE ("generateTree 4 levels and sibling has same number")
   tree.root ()[1].insert (3);
   tree.root ()[1].insert (4);
   tree.root ()[1][0].insert (69);
-  auto smt = SmallMemoryTree<int>{ tree };
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   auto generatedTree = generateStTree (smt);
-  auto smtFromGeneratedTree = SmallMemoryTree<int>{ tree };
+  auto smtFromGeneratedTree = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   REQUIRE (smt == smtFromGeneratedTree);
 }
 
@@ -415,7 +347,7 @@ TEST_CASE ("generateTree depth 10")
       node->insert (boost::numeric_cast<int> (((i + 1) * 10) + int{ 2 }));
       node = node->insert (boost::numeric_cast<int> (((i + 1) * 10) + int{ 3 }));
     }
-  auto smt = SmallMemoryTree<int>{ tree };
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -428,7 +360,7 @@ TEST_CASE ("generateTree 3 children and tuple")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
+  auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -441,7 +373,7 @@ TEST_CASE ("generateTree 3 children and tuple crash")
   tree.root ().insert ({ 69, 69 });
   tree.root ()[0].insert ({ 4, 4 });
   tree.root ()[0][0].insert ({ 42, 42 });
-  auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
+  auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -449,7 +381,7 @@ TEST_CASE ("generateTree only root get children of root")
 {
   auto tree = st_tree::tree<std::tuple<int, int> >{};
   tree.insert ({ 1, 1 });
-  auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
+  auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
 
@@ -457,6 +389,6 @@ TEST_CASE ("generateTree only root get children of root wrong path")
 {
   auto tree = st_tree::tree<std::tuple<int, int> >{};
   tree.insert ({ 1, 1 });
-  auto smt = SmallMemoryTree<std::tuple<int, int> >{ tree };
+  auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
   REQUIRE (tree == generateStTree (smt));
 }
