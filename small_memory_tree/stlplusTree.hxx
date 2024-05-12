@@ -104,6 +104,8 @@ private:
   std::vector<NodeAdapterImpl<ValueType, NodeType> > nodeAdapters{};
 };
 
+// TODO check if we really need this template parameter maybe we can write something with using
+// using MyNodeType = stlplus::ntree_node<ValueType> *;
 template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType> *, typename TreeType = stlplus::ntree<ValueType> > struct StlplusTreeAdapter : public BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>
 {
   StlplusTreeAdapter (stlplus::ntree<ValueType> const &tree) : BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
