@@ -70,11 +70,11 @@ TEST_CASE ("st_tree treeHierarchy multiple elements")
   REQUIRE (result.at (0) == true);
 }
 
-TEST_CASE ("st_tree treeToSmallMemoryTreeLotsOfChildrenData only root")
+TEST_CASE ("st_tree SmallMemoryTreeData only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto result = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
+  auto result = SmallMemoryTreeData<int, uint8_t>{ StTreeAdapter{ tree } };
   REQUIRE (result.hierarchy.size () == 1);
   REQUIRE (result.data.size () == 1);
   REQUIRE (result.maxChildren == 0);
@@ -91,7 +91,7 @@ TEST_CASE ("st_tree  SmallMemoryTreeData multiple elements")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto result = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
+  auto result = SmallMemoryTreeData<int, uint8_t>{ StTreeAdapter{ tree } };
   REQUIRE (result.hierarchy.size () == 17);
   REQUIRE (result.data.size () == 8);
   REQUIRE (result.maxChildren == 2);
@@ -101,8 +101,7 @@ TEST_CASE ("st_tree childrenByPath only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   auto result = childrenByPath (smallMemoryTree, std::vector<int>{ 0 });
   REQUIRE (result.has_value ());
   REQUIRE (result->empty ());
@@ -112,8 +111,7 @@ TEST_CASE ("st_tree childrenByPath root only")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   auto result = childrenByPath (smallMemoryTree, std::vector<int>{ 0 });
   REQUIRE (result.has_value ());
 }
@@ -129,8 +127,7 @@ TEST_CASE ("st_tree childrenByPath multiple elements")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   SECTION ("0")
   {
     auto result = childrenByPath (smallMemoryTree, std::vector<int>{ 0 });
@@ -166,8 +163,7 @@ TEST_CASE ("st_tree calculateValuesPerLevel only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   auto result = internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 1);
   REQUIRE (result.front () == 1);
@@ -184,8 +180,7 @@ TEST_CASE ("st_tree calculateValuesPerLevel multiple elements")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   auto result = internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 5);
   REQUIRE (result.back () == 8);
@@ -195,8 +190,7 @@ TEST_CASE ("st_tree childrenWithOptionalValues only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   auto result = internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
   REQUIRE (result.size () == 1);
   REQUIRE (result.front () == 0);
@@ -213,8 +207,7 @@ TEST_CASE ("st_tree childrenWithOptionalValues multiple elements")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
   SECTION ("0 0")
   {
     auto result = internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
@@ -271,7 +264,7 @@ TEST_CASE ("st_tree levelWithOptionalValues")
   tree.root ()[1].insert (5);
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
-  auto result = SmallMemoryTree<int> (StTreeAdapter{ tree });
+  auto result = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
   using internals::levelWithOptionalValues;
   REQUIRE (levelWithOptionalValues (result, 0).size () == 1);
   REQUIRE (levelWithOptionalValues (result, 1).size () == 2);
