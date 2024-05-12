@@ -15,22 +15,22 @@ template <typename ValueType> struct StNodeAdapter
   StNodeAdapter () = default;
   explicit StNodeAdapter (auto node) : _data{ std::move (node.data ()) }
   {
-    std::ranges::transform (node, std::back_inserter (childrenValues), [] (auto const &node) { return node.data (); });
+    std::ranges::transform (node, std::back_inserter (childrenData), [] (auto const &node_) { return node_.data (); });
   }
   auto
   begin () const
   {
-    return childrenValues.begin ();
+    return childrenData.begin ();
   }
   auto
   end () const
   {
-    return childrenValues.end ();
+    return childrenData.end ();
   }
   size_t
   size () const
   {
-    return childrenValues.size ();
+    return childrenData.size ();
   }
 
   ValueType const &
@@ -41,7 +41,7 @@ template <typename ValueType> struct StNodeAdapter
 
 private:
   ValueType _data{};
-  std::vector<ValueType> childrenValues{};
+  std::vector<ValueType> childrenData{};
 };
 
 template <typename ValueType> struct StTreeAdapter

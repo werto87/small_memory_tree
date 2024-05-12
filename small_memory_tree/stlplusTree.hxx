@@ -11,72 +11,110 @@ Distributed under the Boost Software License, Version 1.0.
 #include <stlplus/strings/print_int.hpp>
 #include <stlplus/strings/print_ntree.hpp>
 #include <stlplus/strings/print_string.hpp>
+#include <type_traits>
 
 namespace small_memory_tree
 {
 
-template <typename ValueType> struct StlplusNodeAdapter
+template <typename ValueType, typename NodeType> class BaseNodeAdapter
 {
-  StlplusNodeAdapter () = default;
-  explicit StlplusNodeAdapter (auto node) : _data{ std::move (node->m_data) }
-  {
-    std::ranges::transform (node->m_children, std::back_inserter (childrenValues), [] (auto node) { return node->m_data; });
-  }
+public:
+  BaseNodeAdapter () = delete;
+  BaseNodeAdapter (ValueType const &nodeData_, std::vector<ValueType> const &childrenData_) : nodeData{ nodeData_ }, childrenData{ childrenData_ } {}
+
+  virtual ValueType generateNodeData (NodeType const &node) = 0;
+
+  virtual std::vector<ValueType> generateChildrenData (NodeType const &node) = 0;
+
+  virtual ~BaseNodeAdapter () = default;
+
   auto
   begin () const
   {
-    return childrenValues.begin ();
+    return childrenData.begin ();
   }
   auto
   end () const
   {
-    return childrenValues.end ();
+    return childrenData.end ();
   }
   size_t
   size () const
   {
-    return childrenValues.size ();
+    return childrenData.size ();
   }
 
   ValueType const &
   data () const
   {
-    return _data;
+    return nodeData;
   }
 
 private:
-  ValueType _data{};
-  std::vector<ValueType> childrenValues{};
+  ValueType nodeData{};
+  std::vector<ValueType> childrenData{};
 };
 
-template <typename ValueType> struct StlplusTreeAdapter
+template <typename ValueType, typename NodeType> struct StlplusNodeAdapter : public BaseNodeAdapter<ValueType, NodeType>
 {
-  StlplusTreeAdapter (stlplus::ntree<ValueType> const &tree)
-  {
-    std::ranges::transform (tree.breadth_first_traversal (), std::back_inserter (stlplusNodeAdapters), [] (auto node) { return StlplusNodeAdapter<ValueType>{ std::move (node.node ()) }; });
-  }
 
+  StlplusNodeAdapter (NodeType const &node) : BaseNodeAdapter<ValueType, NodeType>{ generateNodeData (node), generateChildrenData (node) } {}
+
+  ValueType
+  generateNodeData (NodeType const &node) override
+  {
+    return node->m_data;
+  };
+
+  std::vector<ValueType>
+  generateChildrenData (NodeType const &node) override
+  {
+    auto result = std::vector<ValueType>{};
+    std::ranges::transform (node->m_children, std::back_inserter (result), [] (NodeType const &childNode) { return childNode->m_data; });
+    return result;
+  };
+};
+
+template <template <class, class> class NodeAdapterImpl, typename ValueType, typename NodeType, typename Tree> struct BaseTreeAdapter
+{
+  BaseTreeAdapter (std::vector<NodeAdapterImpl<ValueType, NodeType> > const &nodeAdapters_) : nodeAdapters{ nodeAdapters_ } {}
+
+  std::vector<NodeAdapterImpl<ValueType, NodeType> > virtual generateNodeAdapters (Tree const &tree) = 0;
+  virtual ~BaseTreeAdapter () = default;
   auto
   root () const
   {
-    if (stlplusNodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
-    return stlplusNodeAdapters.front ();
+    if (nodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
+    return nodeAdapters.front ();
   }
 
   auto
   constant_breadth_first_traversal_begin () const
   {
-    return stlplusNodeAdapters.begin ();
+    return nodeAdapters.begin ();
   }
 
   auto
   constant_breadth_first_traversal_end () const
   {
-    return stlplusNodeAdapters.end ();
+    return nodeAdapters.end ();
   }
 
 private:
-  std::vector<StlplusNodeAdapter<ValueType> > stlplusNodeAdapters{};
+  std::vector<NodeAdapterImpl<ValueType, NodeType> > nodeAdapters{};
+};
+
+template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType> *, typename TreeType = stlplus::ntree<ValueType> > struct StlplusTreeAdapter : public BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>
+{
+  StlplusTreeAdapter (stlplus::ntree<ValueType> const &tree) : BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
+  // TODO implement this also for st_tree
+  std::vector<StlplusNodeAdapter<ValueType, NodeType> >
+  generateNodeAdapters (TreeType const &tree)
+  {
+    auto results = std::vector<StlplusNodeAdapter<ValueType, NodeType> >{};
+    std::ranges::transform (tree.breadth_first_traversal (), std::back_inserter (results), [] (auto const &nodeWrapper) { return StlplusNodeAdapter<ValueType, NodeType>{ nodeWrapper.node () }; });
+    return results;
+  }
 };
 
 // TODO write generate function
