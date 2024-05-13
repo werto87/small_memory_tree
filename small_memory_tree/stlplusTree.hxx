@@ -63,14 +63,15 @@ template <typename ValueType, typename NodeType> struct StlplusNodeAdapter : pub
   ValueType
   generateNodeData (NodeType const &node) override
   {
-    return node->m_data;
+    return node.m_data;
   };
 
   std::vector<ValueType>
   generateChildrenData (NodeType const &node) override
   {
     auto results = std::vector<ValueType>{};
-    std::ranges::transform (node->m_children, std::back_inserter (results), [] (NodeType const &childNode) { return childNode->m_data; });
+    [[maybe_unused]] auto test = node.m_children;
+    std::ranges::transform (node.m_children, std::back_inserter (results), [] (auto const &childNode) { return childNode->m_data; });
     return results;
   };
 };
@@ -104,9 +105,7 @@ private:
   std::vector<NodeAdapterImpl<ValueType, NodeType> > nodeAdapters{};
 };
 
-// TODO check if we really need this template parameter maybe we can write something with using
-// using MyNodeType = stlplus::ntree_node<ValueType> *;
-template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType> *, typename TreeType = stlplus::ntree<ValueType> > struct StlplusTreeAdapter : public BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>
+template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>, typename TreeType = stlplus::ntree<ValueType> > struct StlplusTreeAdapter : public BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>
 {
   StlplusTreeAdapter (stlplus::ntree<ValueType> const &tree) : BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
   // TODO implement this also for st_tree
@@ -114,7 +113,7 @@ template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>
   generateNodeAdapters (TreeType const &tree)
   {
     auto results = std::vector<StlplusNodeAdapter<ValueType, NodeType> >{};
-    std::ranges::transform (tree.breadth_first_traversal (), std::back_inserter (results), [] (auto const &nodeWrapper) { return StlplusNodeAdapter<ValueType, NodeType>{ nodeWrapper.node () }; });
+    std::ranges::transform (tree.breadth_first_traversal (), std::back_inserter (results), [] (auto const &nodeWrapper) { return StlplusNodeAdapter<ValueType, NodeType>{ *nodeWrapper.node () }; });
     return results;
   }
 };
