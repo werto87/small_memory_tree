@@ -69,9 +69,9 @@ template <typename ValueType, typename NodeType> struct StlplusNodeAdapter : pub
   std::vector<ValueType>
   generateChildrenData (NodeType const &node) override
   {
-    auto result = std::vector<ValueType>{};
-    std::ranges::transform (node->m_children, std::back_inserter (result), [] (NodeType const &childNode) { return childNode->m_data; });
-    return result;
+    auto results = std::vector<ValueType>{};
+    std::ranges::transform (node->m_children, std::back_inserter (results), [] (NodeType const &childNode) { return childNode->m_data; });
+    return results;
   };
 };
 
