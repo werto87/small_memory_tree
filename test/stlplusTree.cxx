@@ -5,6 +5,7 @@ Distributed under the Boost Software License, Version 1.0.
  */
 
 #include "small_memory_tree/stlplusTree.hxx"
+#include "small_memory_tree/smallMemoryTree.hxx"
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 

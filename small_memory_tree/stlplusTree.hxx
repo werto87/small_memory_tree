@@ -5,55 +5,15 @@ Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include "smallMemoryTree.hxx"
+#include "SmallMemoryTreeAdapter.hxx"
 #include <stlplus/containers/ntree.hpp>
 #include <stlplus/strings/print_basic.hpp>
 #include <stlplus/strings/print_int.hpp>
 #include <stlplus/strings/print_ntree.hpp>
 #include <stlplus/strings/print_string.hpp>
 #include <type_traits>
-
 namespace small_memory_tree
 {
-
-template <typename ValueType, typename NodeType> class BaseNodeAdapter
-{
-public:
-  BaseNodeAdapter () = delete;
-  BaseNodeAdapter (ValueType const &nodeData_, std::vector<ValueType> const &childrenData_) : nodeData{ nodeData_ }, childrenData{ childrenData_ } {}
-
-  virtual ValueType generateNodeData (NodeType const &node) = 0;
-
-  virtual std::vector<ValueType> generateChildrenData (NodeType const &node) = 0;
-
-  virtual ~BaseNodeAdapter () = default;
-
-  auto
-  begin () const
-  {
-    return childrenData.begin ();
-  }
-  auto
-  end () const
-  {
-    return childrenData.end ();
-  }
-  size_t
-  size () const
-  {
-    return childrenData.size ();
-  }
-
-  ValueType const &
-  data () const
-  {
-    return nodeData;
-  }
-
-private:
-  ValueType nodeData{};
-  std::vector<ValueType> childrenData{};
-};
 
 template <typename ValueType, typename NodeType> struct StlplusNodeAdapter : public BaseNodeAdapter<ValueType, NodeType>
 {
@@ -74,35 +34,6 @@ template <typename ValueType, typename NodeType> struct StlplusNodeAdapter : pub
     std::ranges::transform (node.m_children, std::back_inserter (results), [] (auto const &childNode) { return childNode->m_data; });
     return results;
   };
-};
-
-template <template <class, class> class NodeAdapterImpl, typename ValueType, typename NodeType, typename Tree> struct BaseTreeAdapter
-{
-  BaseTreeAdapter (std::vector<NodeAdapterImpl<ValueType, NodeType> > const &nodeAdapters_) : nodeAdapters{ nodeAdapters_ } {}
-
-  std::vector<NodeAdapterImpl<ValueType, NodeType> > virtual generateNodeAdapters (Tree const &tree) = 0;
-  virtual ~BaseTreeAdapter () = default;
-  auto
-  root () const
-  {
-    if (nodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
-    return nodeAdapters.front ();
-  }
-
-  auto
-  constant_breadth_first_traversal_begin () const
-  {
-    return nodeAdapters.begin ();
-  }
-
-  auto
-  constant_breadth_first_traversal_end () const
-  {
-    return nodeAdapters.end ();
-  }
-
-private:
-  std::vector<NodeAdapterImpl<ValueType, NodeType> > nodeAdapters{};
 };
 
 template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>, typename TreeType = stlplus::ntree<ValueType> > struct StlplusTreeAdapter : public BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>

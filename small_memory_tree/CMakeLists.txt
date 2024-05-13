@@ -27,7 +27,7 @@ target_include_directories(small_memory_tree INTERFACE ${CMAKE_SOURCE_DIR})
 
 target_compile_features(small_memory_tree INTERFACE cxx_std_20)
 
-set(HeaderToAlwaysInstall smallMemoryTree.hxx)
+set(HeaderToAlwaysInstall smallMemoryTree.hxx SmallMemoryTreeAdapter.hxx)
 set(OptionalHeader)
 if(WITH_ST_TREE)
   list(APPEND OptionalHeader stTree.hxx) 
