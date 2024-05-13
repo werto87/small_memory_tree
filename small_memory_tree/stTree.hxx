@@ -6,76 +6,46 @@ Distributed under the Boost Software License, Version 1.0.
  */
 
 #include "smallMemoryTree.hxx"
+#include "smallMemoryTreeAdapter.hxx"
 #include <st_tree.h>
+#include <type_traits>
 namespace small_memory_tree
 {
 
-template <typename ValueType> struct StNodeAdapter
+template <typename ValueType, typename NodeType> struct StTreeNodeAdapter : public BaseNodeAdapter<ValueType, NodeType>
 {
-  StNodeAdapter () = default;
-  explicit StNodeAdapter (auto node) : _data{ std::move (node.data ()) }
-  {
-    std::ranges::transform (node, std::back_inserter (childrenData), [] (auto const &node_) { return node_.data (); });
-  }
-  auto
-  begin () const
-  {
-    return childrenData.begin ();
-  }
-  auto
-  end () const
-  {
-    return childrenData.end ();
-  }
-  size_t
-  size () const
-  {
-    return childrenData.size ();
-  }
 
-  ValueType const &
-  data () const
-  {
-    return _data;
-  }
+  StTreeNodeAdapter (NodeType const &node) : BaseNodeAdapter<ValueType, NodeType>{ generateNodeData (node), generateChildrenData (node) } {}
 
-private:
-  ValueType _data{};
-  std::vector<ValueType> childrenData{};
+  ValueType
+  generateNodeData (NodeType const &node) override
+  {
+    return node.data ();
+  };
+
+  std::vector<ValueType>
+  generateChildrenData (NodeType const &node) override
+  {
+    auto results = std::vector<ValueType>{};
+    std::ranges::transform (node, std::back_inserter (results), [] (auto const &node_) { return node_.data (); });
+    return results;
+  };
 };
 
-template <typename ValueType> struct StTreeAdapter
+template <typename ValueType, typename NodeType = st_tree::detail::node_raw<st_tree::tree<ValueType>, ValueType>, typename TreeType = st_tree::tree<ValueType> > struct StTreeAdapter : public BaseTreeAdapter<StTreeNodeAdapter, ValueType, NodeType, TreeType>
 {
-  StTreeAdapter (st_tree::tree<ValueType> const &tree)
+  StTreeAdapter (st_tree::tree<ValueType> const &tree) : BaseTreeAdapter<StTreeNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
+  // TODO implement this also for st_tree
+  std::vector<StTreeNodeAdapter<ValueType, NodeType> >
+  generateNodeAdapters (TreeType const &tree) override
   {
-    // transform does not work here because the iterator does not satisfy some concepts for example 'input_iterator' 'weakly_incrementable'
+    auto results = std::vector<StTreeNodeAdapter<ValueType, NodeType> >{};
     for (auto const &node : tree)
       {
-        stNodeAdapters.push_back (StNodeAdapter<ValueType>{ node });
+        results.push_back (StTreeNodeAdapter<ValueType, NodeType>{ node });
       }
+    return results;
   }
-
-  auto
-  root () const
-  {
-    if (stNodeAdapters.empty ()) throw std::logic_error{ "empty tree has no root" };
-    return stNodeAdapters.front ();
-  }
-
-  auto
-  constant_breadth_first_traversal_begin () const
-  {
-    return stNodeAdapters.begin ();
-  }
-
-  auto
-  constant_breadth_first_traversal_end () const
-  {
-    return stNodeAdapters.end ();
-  }
-
-private:
-  std::vector<StNodeAdapter<ValueType> > stNodeAdapters{};
 };
 
 template <typename DataType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
