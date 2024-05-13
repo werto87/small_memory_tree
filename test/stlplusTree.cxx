@@ -277,3 +277,126 @@ TEST_CASE ("stlplus_tree levelWithOptionalValues")
   REQUIRE (levelWithOptionalValues (result, 3).size () == 8);
   REQUIRE (levelWithOptionalValues (result, 4).size () == 2);
 }
+
+TEST_CASE ("stlplus generateTree root only")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<int>{};
+  // tree.insert (0);
+  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree root two children")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<int>{};
+  // tree.insert (0);
+  // tree.root ().insert (1);
+  // tree.root ().insert (2);
+  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree root three children")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<int>{};
+  // tree.insert (0);
+  // tree.root ().insert (1);
+  // tree.root ().insert (2);
+  // tree.root ().insert (3);
+  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree root one child max child 2")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<int>{};
+  // tree.insert (0);
+  // tree.root ().insert (1);
+  // tree.root ()[0].insert (2);
+  // tree.root ()[0].insert (3);
+  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree 4 levels and sibling has same number")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<int>{};
+  // tree.insert (0);
+  // tree.root ().insert (1);
+  // tree.root ().insert (2);
+  // tree.root ()[0].insert (3);
+  // tree.root ()[0].insert (4);
+  // tree.root ()[1].insert (3);
+  // tree.root ()[1].insert (4);
+  // tree.root ()[1][0].insert (69);
+  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // auto generatedTree = generateStTree (smt);
+  // auto smtFromGeneratedTree = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // REQUIRE (smt == smtFromGeneratedTree);
+}
+
+TEST_CASE ("stlplus generateTree depth 10")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<int>{};
+  // tree.insert (10);
+  // auto node = tree.root ().insert (11);
+  // for (int i = 0; i < 10; ++i)
+  //   {
+  //     node->insert (boost::numeric_cast<int> (((i + 1) * 10) + int{ 2 }));
+  //     node = node->insert (boost::numeric_cast<int> (((i + 1) * 10) + int{ 3 }));
+  //   }
+  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree 3 children and tuple")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<std::tuple<int, int> >{};
+  // tree.insert ({ 1, 1 });
+  // tree.root ().insert ({ 2, 2 });
+  // tree.root ().insert ({ 3, 3 });
+  // tree.root ().insert ({ 69, 69 });
+  // tree.root ()[0].insert ({ 4, 4 });
+  // tree.root ()[0][0].insert ({ 42, 42 });
+  // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree 3 children and tuple crash")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<std::tuple<int, int> >{};
+  // tree.insert ({ 1, 1 });
+  // tree.root ().insert ({ 2, 2 });
+  // tree.root ().insert ({ 3, 3 });
+  // tree.root ().insert ({ 69, 69 });
+  // tree.root ()[0].insert ({ 4, 4 });
+  // tree.root ()[0][0].insert ({ 42, 42 });
+  // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree only root get children of root")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<std::tuple<int, int> >{};
+  // tree.insert ({ 1, 1 });
+  // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}
+
+TEST_CASE ("stlplus generateTree only root get children of root wrong path")
+{
+  FAIL ("impl plx");
+  // auto tree = st_tree::tree<std::tuple<int, int> >{};
+  // tree.insert ({ 1, 1 });
+  // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
+  // REQUIRE (tree == generateStTree (smt));
+}

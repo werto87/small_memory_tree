@@ -47,12 +47,12 @@ template <typename ValueType, typename NodeType = st_tree::detail::node_raw<st_t
   }
 };
 
-template <typename DataType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
-inline st_tree::tree<DataType>
-generateStTree (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
+template <typename ValueType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
+inline st_tree::tree<ValueType>
+generateStTree (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
 {
   auto const &data = smallMemoryTree.getData ();
-  auto result = st_tree::tree<DataType>{};
+  auto result = st_tree::tree<ValueType>{};
   result.insert (data.front ());
   if (data.size () == 1) // only one element which means tree with only a root node
     {
