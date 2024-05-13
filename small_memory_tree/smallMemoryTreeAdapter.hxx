@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdexcept>
+
+namespace small_memory_tree
+{
 template <typename ValueType, typename NodeType> class BaseNodeAdapter
 {
 public:
@@ -68,3 +71,4 @@ template <template <class, class> class NodeAdapterImpl, typename ValueType, typ
 private:
   std::vector<NodeAdapterImpl<ValueType, NodeType> > nodeAdapters{};
 };
+}
