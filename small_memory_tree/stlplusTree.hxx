@@ -52,35 +52,50 @@ template <typename ValueType, typename MaxChildrenType, typename LevelType, type
 inline stlplus::ntree<ValueType>
 generateStlplusTree (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
 {
+  // TODO implement this
   auto const &data = smallMemoryTree.getData ();
   auto result = stlplus::ntree<ValueType>{};
-  result.insert (data.front ());
+  auto parentNode = result.insert (data.front ());
   if (data.size () == 1) // only one element which means tree with only a root node
     {
       return result;
     }
   else
     {
-      auto itr = result.bf_begin ();
-      auto const &maxLevel = smallMemoryTree.getLevels ().size () - 1; // skipping the last level because it only has empty values by design
-      for (auto level = uint64_t{ 1 }; level < maxLevel; ++level)      // already added the root so we start at level 1
-        {
-          auto const &currentLevel = internals::levelWithOptionalValues (smallMemoryTree, level);
-          for (auto node = uint64_t{}; node < currentLevel.size (); ++node)
-            {
-              if (currentLevel.at (node))
-                {
-                  itr->insert (currentLevel.at (node).value ());
-                }
-              auto const &maxChildren = smallMemoryTree.getMaxChildren ();
-              if (node % maxChildren == maxChildren - 1) // after processing the same amount of nodes as the amount of maxChildren we increment the itr to put the nodes under the sibling
-                {
-                  itr++;
-                }
-            }
-        }
+      throw "implement";
     }
   return result;
 }
+}
 
+namespace stlplus
+{
+template <typename ValueType>
+bool
+operator== (ntree<ValueType> const &lhs, ntree<ValueType> const &rhs)
+{
+  if (lhs.size () != rhs.size ())
+    {
+      return false;
+    }
+  else
+    {
+      auto rhsItr = rhs.postfix_begin ();
+      for (auto lhsItr = lhs.postfix_begin (); lhsItr != lhs.postfix_end (); lhsItr++, rhsItr++)
+        {
+          if (lhsItr.simplify ().node ()->m_data != rhsItr.simplify ().node ()->m_data)
+            {
+              return false;
+            }
+        }
+    }
+  return true;
+}
+
+template <typename ValueType>
+bool
+operator!= (ntree<ValueType> const &lhs, ntree<ValueType> const &rhs)
+{
+  return !(lhs == rhs);
+}
 }

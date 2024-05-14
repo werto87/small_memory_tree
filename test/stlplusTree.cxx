@@ -6,6 +6,7 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include "small_memory_tree/stlplusTree.hxx"
 #include "small_memory_tree/smallMemoryTree.hxx"
+#include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
 
@@ -278,13 +279,38 @@ TEST_CASE ("stlplus_tree levelWithOptionalValues")
   REQUIRE (levelWithOptionalValues (result, 4).size () == 2);
 }
 
+TEST_CASE ("stlplus tree == test")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  stlplus::ntree<int> newTree{};
+  auto root1 = newTree.insert (0);
+  auto rootChild01 = newTree.append (root1, 1);
+  auto rootChild11 = newTree.append (root1, 2);
+  newTree.append (rootChild01, 3);
+  newTree.append (rootChild01, 4);
+  newTree.append (rootChild11, 5);
+  auto myChild1 = newTree.append (rootChild11, 6);
+  newTree.append (myChild1, 7);
+  REQUIRE (tree == newTree);
+  REQUIRE_FALSE (tree != newTree);
+}
+
 TEST_CASE ("stlplus generateTree root only")
 {
-  FAIL ("impl plx");
-  // auto tree = st_tree::tree<int>{};
-  // tree.insert (0);
-  // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto smt = SmallMemoryTree<int> (StlplusTreeAdapter{ tree });
+  auto test = generateStlplusTree (smt);
+  [[maybe_unused]] auto breakA = int{};
+  REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree root two children")
@@ -295,7 +321,7 @@ TEST_CASE ("stlplus generateTree root two children")
   // tree.root ().insert (1);
   // tree.root ().insert (2);
   // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree root three children")
@@ -307,7 +333,7 @@ TEST_CASE ("stlplus generateTree root three children")
   // tree.root ().insert (2);
   // tree.root ().insert (3);
   // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree root one child max child 2")
@@ -319,7 +345,7 @@ TEST_CASE ("stlplus generateTree root one child max child 2")
   // tree.root ()[0].insert (2);
   // tree.root ()[0].insert (3);
   // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree 4 levels and sibling has same number")
@@ -352,7 +378,7 @@ TEST_CASE ("stlplus generateTree depth 10")
   //     node = node->insert (boost::numeric_cast<int> (((i + 1) * 10) + int{ 3 }));
   //   }
   // auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree 3 children and tuple")
@@ -366,7 +392,7 @@ TEST_CASE ("stlplus generateTree 3 children and tuple")
   // tree.root ()[0].insert ({ 4, 4 });
   // tree.root ()[0][0].insert ({ 42, 42 });
   // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree 3 children and tuple crash")
@@ -380,7 +406,7 @@ TEST_CASE ("stlplus generateTree 3 children and tuple crash")
   // tree.root ()[0].insert ({ 4, 4 });
   // tree.root ()[0][0].insert ({ 42, 42 });
   // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree only root get children of root")
@@ -389,7 +415,7 @@ TEST_CASE ("stlplus generateTree only root get children of root")
   // auto tree = st_tree::tree<std::tuple<int, int> >{};
   // tree.insert ({ 1, 1 });
   // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
 
 TEST_CASE ("stlplus generateTree only root get children of root wrong path")
@@ -398,5 +424,5 @@ TEST_CASE ("stlplus generateTree only root get children of root wrong path")
   // auto tree = st_tree::tree<std::tuple<int, int> >{};
   // tree.insert ({ 1, 1 });
   // auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
-  // REQUIRE (tree == generateStTree (smt));
+  // REQUIRE (tree == generateStlplusTree (smt));
 }
