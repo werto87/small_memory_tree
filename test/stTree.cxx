@@ -325,9 +325,7 @@ TEST_CASE ("generateTree 4 levels and sibling has same number")
   tree.root ()[1].insert (4);
   tree.root ()[1][0].insert (69);
   auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  auto generatedTree = generateStTree (smt);
-  auto smtFromGeneratedTree = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  REQUIRE (smt == smtFromGeneratedTree);
+  REQUIRE (smt == SmallMemoryTree<int>{ StTreeAdapter{ generateStTree (smt) } });
 }
 
 TEST_CASE ("generateTree depth 10")
@@ -357,28 +355,7 @@ TEST_CASE ("generateTree 3 children and tuple")
   REQUIRE (tree == generateStTree (smt));
 }
 
-TEST_CASE ("generateTree 3 children and tuple crash")
-{
-  auto tree = st_tree::tree<std::tuple<int, int> >{};
-  tree.insert ({ 1, 1 });
-  tree.root ().insert ({ 2, 2 });
-  tree.root ().insert ({ 3, 3 });
-  tree.root ().insert ({ 69, 69 });
-  tree.root ()[0].insert ({ 4, 4 });
-  tree.root ()[0][0].insert ({ 42, 42 });
-  auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
-  REQUIRE (tree == generateStTree (smt));
-}
-
-TEST_CASE ("generateTree only root get children of root")
-{
-  auto tree = st_tree::tree<std::tuple<int, int> >{};
-  tree.insert ({ 1, 1 });
-  auto smt = SmallMemoryTree<std::tuple<int, int> >{ StTreeAdapter{ tree } };
-  REQUIRE (tree == generateStTree (smt));
-}
-
-TEST_CASE ("generateTree only root get children of root wrong path")
+TEST_CASE ("generateTree only root")
 {
   auto tree = st_tree::tree<std::tuple<int, int> >{};
   tree.insert ({ 1, 1 });

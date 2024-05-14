@@ -7,6 +7,8 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include "smallMemoryTree.hxx"
 #include "smallMemoryTreeAdapter.hxx"
+#include <cstdint>
+#include <deque>
 #include <stlplus/containers/ntree.hpp>
 #include <stlplus/strings/print_basic.hpp>
 #include <stlplus/strings/print_int.hpp>
@@ -55,14 +57,33 @@ generateStlplusTree (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, Valu
   // TODO implement this
   auto const &data = smallMemoryTree.getData ();
   auto result = stlplus::ntree<ValueType>{};
-  auto parentNode = result.insert (data.front ());
+  auto parentNodes = std::deque{ result.insert (data.front ()) };
+  auto currentLevelNodes = std::decay_t<decltype (parentNodes)>{};
   if (data.size () == 1) // only one element which means tree with only a root node
     {
       return result;
     }
   else
     {
-      throw "implement";
+      auto const &maxLevel = smallMemoryTree.getLevels ().size () - 1; // skipping the last level because it only has empty values by design
+      for (auto level = uint64_t{ 1 }; level < maxLevel; ++level)      // already added the root so we start at level 1
+        {
+          auto const &currentLevel = internals::levelWithOptionalValues (smallMemoryTree, level);
+          for (auto node = uint64_t{}; node < currentLevel.size (); ++node)
+            {
+              if (currentLevel.at (node))
+                {
+                  currentLevelNodes.push_back (result.append (parentNodes.front (), currentLevel.at (node).value ()));
+                }
+              auto const &maxChildren = smallMemoryTree.getMaxChildren ();
+              if (node % maxChildren == maxChildren - 1) // after processing the same amount of nodes as the amount of maxChildren we increment the itr to put the nodes under the sibling
+                {
+                  parentNodes.pop_front ();
+                }
+            }
+          parentNodes = std::move (currentLevelNodes);
+          currentLevelNodes.clear (); // should be empty but it is not guaranteed by the standard
+        }
     }
   return result;
 }
