@@ -54,7 +54,6 @@ template <typename ValueType, typename MaxChildrenType, typename LevelType, type
 inline stlplus::ntree<ValueType>
 generateStlplusTree (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree)
 {
-  // TODO implement this
   auto const &data = smallMemoryTree.getData ();
   auto result = stlplus::ntree<ValueType>{};
   auto parentNodes = std::deque{ result.insert (data.front ()) };
