@@ -4,10 +4,10 @@ Copyright (c) 2024 Waldemar Schneider (w-schneider1987 at web dot de)
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
-
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
+#include <execution>
 #include <iterator>
 #include <numeric>
 #include <optional>
@@ -126,7 +126,6 @@ calculateLevelSmallMemoryTree (auto const &smallMemoryTreeData)
 [[nodiscard]] auto
 levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
 {
-  // TODO this has bad performance
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == level)
     {
@@ -162,7 +161,6 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
 [[nodiscard]] auto
 childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, uint64_t node)
 {
-  // TODO this has bad performance
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == level)
     {
