@@ -160,7 +160,7 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level)
 }
 
 [[nodiscard]] auto
-childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, uint64_t node)
+childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, uint64_t const &node)
 {
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == level)
