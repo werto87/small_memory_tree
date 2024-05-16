@@ -7,7 +7,6 @@ Distributed under the Boost Software License, Version 1.0.
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
-#include <execution>
 #include <iterator>
 #include <numeric>
 #include <optional>
@@ -332,7 +331,7 @@ childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerL
           auto const &valueToLookFor = path.at (i);
           auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i, boost::numeric_cast<uint64_t> (positionOfChildren));
           auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-          if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
+          if (auto itr = std::find_if (childrenValuesAndHoles.begin (), childrenValuesAndHoles.end (), [valueToLookFor] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
             {
               auto const childOffset = std::distance (childrenValuesAndHoles.begin (), itr);
               auto const &hierarchy = smallMemoryTree.getHierarchy ();
