@@ -4,12 +4,14 @@ Copyright (c) 2024 Waldemar Schneider (w-schneider1987 at web dot de)
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
+#include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <iterator>
 #include <numeric>
 #include <optional>
+#include <ranges>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
@@ -316,7 +318,7 @@ template <typename DataType, typename MaxChildrenType, typename LevelType, typen
 std::optional<std::vector<DataType> >
 childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<DataType> const &path)
 {
-  // TODO this has bad performance
+  // TODO this has bad performance if maxChildren is high. Maybe sort the children by value and use binary search in small memory tree but this will increase the time it takes to create the small memory tree. An option would be nice
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
@@ -328,25 +330,17 @@ childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerL
       auto positionOfChildren = int64_t{};
       for (auto i = uint64_t{}; i < path.size (); ++i)
         {
-          auto const &valueToLookFor = path.at (i);
           auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i, boost::numeric_cast<uint64_t> (positionOfChildren));
-          auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-          if (auto itr = std::find_if (childrenValuesAndHoles.begin (), childrenValuesAndHoles.end (), [valueToLookFor] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
+          if (auto const &itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor = path.at (i)] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
             {
-              auto const childOffset = std::distance (childrenValuesAndHoles.begin (), itr);
-              auto const &hierarchy = smallMemoryTree.getHierarchy ();
-              positionOfChildren = std::count_if (hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))), hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))) + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
+              auto const &levelBegin = smallMemoryTree.getHierarchy ().cbegin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1)));
+              auto const &levelEnd = levelBegin + positionOfChildren * boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ()) + std::distance (childrenValuesAndHoles.cbegin (), itr);
+              positionOfChildren = std::count_if (levelBegin, levelEnd, [] (auto const &element) { return element; });
               if (i == path.size () - 1)
                 {
-                  auto const &childLevelValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
                   auto result = std::vector<DataType>{};
-                  for (auto const &childValueOrHole : childLevelValuesAndHoles)
-                    {
-                      if (childValueOrHole)
-                        {
-                          result.push_back (childValueOrHole.value ());
-                        }
-                    }
+                  auto const &resultNodes = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
+                  std::ranges::for_each (resultNodes | std::views::filter ([] (auto const &optionalValue) { return optionalValue.has_value (); }), [&result] (auto const &childValueOrHole) { result.push_back (childValueOrHole.value ()); });
                   return result;
                 }
             }
