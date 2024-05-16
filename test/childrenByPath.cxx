@@ -65,7 +65,7 @@ TEST_CASE ("childrenByPath root as path")
   REQUIRE (myChildren->at (1) == 2);
 }
 
-TEST_CASE ("childrenByPath 3 nodes and sibling has same number")
+TEST_CASE ("childrenByPath max nodes 2 and sibling has same number")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
