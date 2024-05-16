@@ -339,9 +339,9 @@ childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerL
               auto const childOffset = std::distance (childrenValuesAndHoles.begin (), itr);
               auto const &hierarchy = smallMemoryTree.getHierarchy ();
               positionOfChildren = std::count_if (hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))), hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))) + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
-              auto const &childLevelValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
               if (i == path.size () - 1)
                 {
+                  auto const &childLevelValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
                   auto result = std::vector<DataType>{};
                   for (auto const &childValueOrHole : childLevelValuesAndHoles)
                     {
