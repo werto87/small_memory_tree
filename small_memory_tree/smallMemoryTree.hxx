@@ -310,7 +310,7 @@ private:
 -----3
 ----/-\
 ---4---5
- * @param treeAsVector vector in tree form
+ * @param smallMemoryTree vector in tree form
  * @param path vector with the values of nodes
  * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
  */

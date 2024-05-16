@@ -15,7 +15,7 @@
                 "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-stdlib=libc++  -fstack-usage",
+                "CMAKE_CXX_FLAGS": "-stdlib=libc++",
                 "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++"
             }
         },
@@ -33,7 +33,7 @@
                 "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-stdlib=libc++ -fstack-usage",
+                "CMAKE_CXX_FLAGS": "-stdlib=libc++",
                 "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
                 "myproject_ENABLE_HARDENING": "OFF"
             }
@@ -67,7 +67,7 @@
                 "WITH_ST_TREE": "True",
                 "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_CXX_COMPILER": "g++ ",
                 "myproject_ENABLE_HARDENING": "OFF"
             }
         },
