@@ -1,0 +1,129 @@
+Filters: [!benchmark]
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+_test is a Catch v2.13.7 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+childrenByPath
+  few elements
+  childrenByPath 0 2 6 7
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:26
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100          7114    139.434 ms 
+                                          196.2 ns    195.606 ns    196.963 ns 
+                                        3.42525 ns    2.73018 ns     5.1902 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+childrenByPath
+  max children == 100
+  childrenByPath 0 1
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:40
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100          2071    139.378 ms 
+                                        664.376 ns    661.326 ns    667.502 ns 
+                                        15.6906 ns    14.0681 ns    17.7325 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+childrenByPath
+  max children == 100
+  childrenByPath 0 99
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:45
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100          1546    139.449 ms 
+                                        906.877 ns    904.909 ns    908.849 ns 
+                                        10.0211 ns    8.90156 ns    11.4835 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+childrenByPath
+  max children == 1000
+  childrenByPath 0 0
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:60
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100           280    139.552 ms 
+                                        4.99163 us    4.98463 us    4.99905 us 
+                                        36.5513 ns    31.6408 ns    45.5614 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+childrenByPath
+  max children == 1000
+  childrenByPath 0 999
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:64
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100            86    139.836 ms 
+                                        16.2283 us    16.2076 us    16.2493 us 
+                                         106.57 ns    93.8638 ns    122.852 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+childrenByPath
+  max children == 10000
+  childrenByPath 0 0
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:78
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100            29    143.045 ms 
+                                        49.1371 us      49.08 us    49.1929 us 
+                                        287.445 ns    254.566 ns    331.286 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+childrenByPath
+  max children == 10000
+  childrenByPath 0 9999
+-------------------------------------------------------------------------------
+/home/walde/workspace/cxx/small_memory_tree/test/benchmarkTest.cxx:82
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+SmallMemoryTree                                100             2    244.421 ms 
+                                        1.21928 ms    1.21695 ms    1.22147 ms 
+                                        11.5465 us    9.91471 us    13.7562 us 
+                                                                               
+
+===============================================================================
+test cases: 1 | 1 passed
+assertions: - none -
+

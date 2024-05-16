@@ -183,7 +183,6 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, 
     }
   else
     {
-      auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
       auto const &nodeOffsetBegin = boost::numeric_cast<int64_t> (levels.at (level - 1));
       auto const &nodeOffsetEnd = nodeOffsetBegin + maxChildren * boost::numeric_cast<int64_t> (node);
@@ -193,6 +192,8 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, 
         }
       auto processedChildren = int64_t{};
       auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel ().at (level - 1) + boost::numeric_cast<typename std::decay<decltype (smallMemoryTree.getTotalValuesUsedUntilLevel ().at (level - 1))>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
+      auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
+      result.reserve (boost::numeric_cast<uint64_t> (maxChildren));
       for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
         {
           if (*(hierarchy.begin () + i))
@@ -202,7 +203,7 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t const &level, 
             }
           else
             {
-              result.push_back ({});
+              result.push_back (std::nullopt);
             }
         }
       return result;
@@ -333,9 +334,9 @@ childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerL
           auto const &valueToLookFor = path.at (i);
           auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i, boost::numeric_cast<uint64_t> (positionOfChildren));
           auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-          if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [&valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
+          if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor] (auto value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
             {
-              auto childOffset = std::distance (childrenValuesAndHoles.begin (), itr);
+              auto const childOffset = std::distance (childrenValuesAndHoles.begin (), itr);
               auto const &hierarchy = smallMemoryTree.getHierarchy ();
               positionOfChildren = std::count_if (hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))), hierarchy.begin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (levels.at (i - 1))) + positionOfChildren * maxChildren + childOffset, [] (auto const &element) { return element; });
               auto const &childLevelValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
