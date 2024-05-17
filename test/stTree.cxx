@@ -11,6 +11,10 @@ Distributed under the Boost Software License, Version 1.0.
 #include <string>
 #include <vector>
 
+#ifndef SMALL_MEMORY_TREE_WITH_ST_TREE
+static_assert (false, "Build fails if SMALL_MEMORY_TREE_WITH_ST_TREE is not defined");
+#endif
+
 using namespace small_memory_tree;
 
 TEST_CASE ("st_tree treeData only root")
