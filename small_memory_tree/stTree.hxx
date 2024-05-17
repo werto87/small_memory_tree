@@ -35,6 +35,7 @@ template <typename ValueType, typename NodeType> struct StTreeNodeAdapter : publ
 template <typename ValueType, typename NodeType = st_tree::detail::node_raw<st_tree::tree<ValueType>, ValueType>, typename TreeType = st_tree::tree<ValueType> > struct StTreeAdapter : public BaseTreeAdapter<StTreeNodeAdapter, ValueType, NodeType, TreeType>
 {
   StTreeAdapter (st_tree::tree<ValueType> const &tree) : BaseTreeAdapter<StTreeNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
+
   std::vector<StTreeNodeAdapter<ValueType, NodeType> >
   generateNodeAdapters (TreeType const &tree) override
   {
