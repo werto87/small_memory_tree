@@ -1,19 +1,14 @@
 # small_memory_tree
 
 ```mermaid
-journey
-	title Me studying for exams
-	section Exam is announced
-		I start studying: 1: Me
-		Make notes: 2: Me
-		Ask friend for help: 3: Me, Friend
-		We study togther: 5: Me, Friend
-	section Exam Day
-		Syllabys is incomplete: 2: Me
-		Give exam: 1: Me, Friend
-	section Result Declared
-		I passed the exam with destinction!: 5: Me
-		Friend barely gets passing marks: 2: Friend
+xychart-beta
+    title "small_memory_tree (blue line) vs ntree (gereen line) from 2 to 128 max children"
+    x-axis [2,4,8,16,32,64,128]
+    y-axis "Heap memory consumption (in Byte)" 0 --> 11112
+line [21,23,43,83,219,683,2371]
+line [1032,1192,1512,2152,3432,5992,11112]
+
+
 ```
 
 small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer a 8 bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. small_memory_tree saves the whole tree in a vector. To preserve the hierarchy information small_memory_tree adds special marker to the vector (overhead). Also because small_memory_tree uses a vector to save the results it can be **saved to disk easily**.
