@@ -1,7 +1,8 @@
 # small_memory_tree
 
 
-![image](https://github.com/werto87/small_memory_tree/assets/46565959/5b91356f-2760-4478-bbb4-2bca57884be2)
+![image](https://github.com/werto87/small_memory_tree/assets/46565959/6d598a6d-d214-49ab-9948-96449698f866)
+
 
 
 small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer a 8 bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. small_memory_tree saves the whole tree in a vector. To preserve the hierarchy information small_memory_tree adds special marker to the vector (overhead). Also because small_memory_tree uses a vector to save the results it can be **saved to disk easily**.
