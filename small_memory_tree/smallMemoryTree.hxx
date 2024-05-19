@@ -214,11 +214,11 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t level, uint64_
 /**
  * @brief This struct is meant to hold all the information of the tree using as less memory as possible
  *
- * @tparam DataType type of the tree elements
+ * @tparam ValueType type of the tree elements
  * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
  */
 
-template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeData
+template <typename ValueType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeData
 {
 
   template <internals::HasIteratorToNode Tree> SmallMemoryTreeData (Tree const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::calculateMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
@@ -230,21 +230,21 @@ template <typename DataType, typename MaxChildrenType = uint64_t> struct SmallMe
 
   MaxChildrenType maxChildren{};
   std::vector<bool> hierarchy{};
-  std::vector<DataType> data{};
+  std::vector<ValueType> data{};
 };
 
 /**
  * @brief Extends small memory tree data by adding caching variables which are used for value lookup when using childrenByPath function and generate st tree function
  *
- * @tparam DataType type of the tree elements
+ * @tparam ValueType type of the tree elements
  * @tparam MaxChildrenType type of max children. For example if your biggest node has less than 255 children use uint8_t
  * @tparam LevelType lookup to find out which node has which value. saves indicies to denote where a level begins and ends. If you are sure that you know the max tree width you can change the type to a better fitting type and maybe save some memory. I do not think it will lead to savings in storage because databases are good in optimizing this and use only the needed amount of storage
  * @tparam ValuesPerLevelType lookup to find out which node has which value. saves values used until this level. If you are sure that you know the max tree width you can change the type to a better fitting type and maybe save some memory. I do not think it will lead to savings in storage because databases are good in optimizing this and use only the needed amount of storage
  */
-template <typename DataType, typename MaxChildrenType = uint64_t, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTree
+template <typename ValueType, typename MaxChildrenType = uint64_t, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTree
 {
 public:
-  explicit SmallMemoryTree (SmallMemoryTreeData<DataType, MaxChildrenType> smallMemoryTreeData) : _smallMemoryData{ std::move (smallMemoryTreeData) }, _levels{ internals::calculateLevelSmallMemoryTree<LevelType> (_smallMemoryData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryData.hierarchy, _levels) } {}
+  explicit SmallMemoryTree (SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryTreeData) : _smallMemoryData{ std::move (smallMemoryTreeData) }, _levels{ internals::calculateLevelSmallMemoryTree<LevelType> (_smallMemoryData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryData.hierarchy, _levels) } {}
 
   // clang-format off
   [[nodiscard]]
@@ -252,7 +252,7 @@ public:
   // clang-format on
 
   // TODO there should be an option to sort the children so we can use binary search
-  [[nodiscard]] SmallMemoryTreeData<DataType, MaxChildrenType>
+  [[nodiscard]] SmallMemoryTreeData<ValueType, MaxChildrenType>
   getSmallMemoryData () const &noexcept
   {
     return _smallMemoryData;
@@ -282,7 +282,7 @@ public:
     return _smallMemoryData.hierarchy;
   }
 
-  [[nodiscard]] std::vector<DataType> const &
+  [[nodiscard]] std::vector<ValueType> const &
   getData () const noexcept
   {
     return _smallMemoryData.data;
@@ -295,7 +295,7 @@ public:
   }
 
 private:
-  SmallMemoryTreeData<DataType, MaxChildrenType> _smallMemoryData{};
+  SmallMemoryTreeData<ValueType, MaxChildrenType> _smallMemoryData{};
   std::vector<LevelType> _levels{};
   std::vector<ValuesPerLevelType> _valuesPerLevel{};
 };
@@ -314,16 +314,16 @@ private:
  * @param path vector with the values of nodes
  * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
  */
-template <typename DataType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
-std::optional<std::vector<DataType> >
-childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<DataType> const &path)
+template <typename ValueType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
+std::optional<std::vector<ValueType> >
+childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path)
 {
   // TODO this has bad performance if maxChildren is high. Maybe sort the children by value and use binary search in small memory tree but this will increase the time it takes to create the small memory tree. An option would be nice
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
       // only one element in tree. Path is equal to the value of the element but element has no children so return empty vector
-      return std::vector<DataType>{};
+      return std::vector<ValueType>{};
     }
   else
     {
@@ -338,7 +338,7 @@ childrenByPath (SmallMemoryTree<DataType, MaxChildrenType, LevelType, ValuesPerL
               positionOfChildren = std::count_if (levelBegin, levelBegin + nodeOffset, [] (auto const &hasValue) { return hasValue; });
               if (i == path.size () - 1)
                 {
-                  auto result = std::vector<DataType>{};
+                  auto result = std::vector<ValueType>{};
                   auto const &resultNodes = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
                   std::ranges::for_each (resultNodes | std::views::filter ([] (auto const &optionalValue) { return optionalValue.has_value (); }), [&result] (auto const &childValueOrHole) { result.push_back (childValueOrHole.value ()); });
                   return result;
