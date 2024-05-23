@@ -66,7 +66,33 @@ Figure 2: Zoom on small values for max children Heap Memory Consumption
 
 ## Usage example with [st_tree](https://github.com/erikerlandson/st_tree)
 As always for examples look in the tests for example in test/stTree.cxx
-### Use Case save Data to Database
-
-
+### Use Case store tree and load it from database
+```cpp
+#include <cassert>
+#include <small_memory_tree/stTree.hxx>
+int
+main ()
+{
+  using namespace small_memory_tree;
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  auto dataToDatabase = SmallMemoryTreeData<int>{ StTreeAdapter{ tree } };
+  // save result.data; result.hierarchy; result.maxChildren into the database (you have to write this code by yourself. It is currently not in the scope of small memory tree.);
+  // a couple lines of code later...
+  // load data from database (you have to write this code by yourself. It is currently not in the scope of small memory tree.)
+  auto maxChildrenFromDatabase = uint64_t{ 2 };
+  auto treeDataFromDatabase = std::vector<int>{ 0, 1, 2 };
+  auto treeHierarchyFromDatabase = std::vector<bool>{ true, true, true, false, false, false, false };
+  // create SmallMemoryTreeData from the data from the database
+  auto dataFromDatabase = SmallMemoryTreeData<int>{ maxChildrenFromDatabase, std::move (treeHierarchyFromDatabase), std::move (treeDataFromDatabase) };
+  // create SmallMemoryTree from SmallMemoryTreeData
+  auto smallMemoryTreeFromDatabase = SmallMemoryTree<int>{ std::move (dataToDatabase) };
+  // create a st_tree from SmallMemoryTree
+  auto treeFromDatabase = generateStTree (smallMemoryTreeFromDatabase);
+  assert (treeFromDatabase == tree);
+  return 0;
+}
+```
 
