@@ -220,6 +220,7 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t level, uint64_
 
 template <typename ValueType, typename MaxChildrenType = uint64_t> struct SmallMemoryTreeData
 {
+  SmallMemoryTreeData (MaxChildrenType maxChildren_, std::vector<bool> hierarchy_, std::vector<ValueType> data_) : maxChildren{ maxChildren_ }, hierarchy{ std::move (hierarchy_) }, data{ std::move (data_) } {};
   SmallMemoryTreeData () = default;
   template <internals::HasIteratorToNode Tree> SmallMemoryTreeData (Tree const &tree) : maxChildren{ boost::numeric_cast<MaxChildrenType> (internals::calculateMaxChildren (tree)) }, hierarchy{ internals::treeHierarchy (tree, maxChildren) }, data{ internals::treeData (tree) } {}
 
