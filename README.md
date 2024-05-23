@@ -66,7 +66,7 @@ Figure 2: Zoom on small values for max children Heap Memory Consumption
 
 ## Usage example with [st_tree](https://github.com/erikerlandson/st_tree)
 As always for examples look in the tests for example in test/stTree.cxx
-### Use Case store tree and load it from database
+### Use Case store tree and load it from the database
 ```cpp
 #include <cassert>
 #include <small_memory_tree/stTree.hxx>
