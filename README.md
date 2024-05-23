@@ -1,10 +1,6 @@
 # small_memory_tree
 small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer with 8 Bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. small_memory_tree saves the whole data of a tree in a vector (vector<T> where T is the ValueType of tree), the hierarchy information in another vector (vector<bool>) and a number called max children (integral type). This also means that small_memory_tree can be **saved to disk relative easily**.
 
-## TLDR: overview how much heap memory small memory tree uses compared to a vecPlusPointerToParentNode tree (stlplus::ntree). Max children count means the maximum amount of children a tree node has 
-![image](https://github.com/werto87/small_memory_tree/assets/46565959/9ee8ca68-bee8-4803-8332-e246c6fdf640)
-
-
 ## How small_memory_tree saves a tree
 small_memory_tree saves a tree in the struct SmallMemoryTreeData. SmallMemoryTreeData contains 3 member variables:
 ```cpp
@@ -54,7 +50,10 @@ Iterate over the tree in breath first an save the values in data. data= [0,1,2,3
 - the node 4 has 0 children and maxChildren is two so hierarchy contains [true,true,true,true,false,false,false,true,false,false,false] after visiting the node 4
 
 
-
+## In which case does small memory tree actualy saves memory compared to vecPlusPointerToParentNode?
+If using small memory tree saves you memory or not depends heavily on the max children. Figure 1 shows an overview of how much heap memory small memory tree uses compared to a vecPlusPointerToParentNode tree (stlplus::ntree). The values are measured using the project in this [repository](https://github.com/werto87/small_memory_tree_memory_measurement). The structure of the tree is worst case for small memory tree. Just a root with children who are leafs.
+![image](https://github.com/werto87/small_memory_tree/assets/46565959/9ee8ca68-bee8-4803-8332-e246c6fdf640)
+Figure 1: Heap Memory Consumption 'stlplus tree' vs 'small memory tree'  
 
 
 
