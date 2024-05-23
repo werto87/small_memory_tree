@@ -96,3 +96,31 @@ main ()
 }
 ```
 
+### Traverse small memory tree (getChildrenByPath)
+```cpp
+#include <cassert>
+#include <small_memory_tree/stTree.hxx>
+int
+main ()
+{
+  using namespace small_memory_tree;
+  // create and fill a tree
+  auto tree = st_tree::tree<int>{};
+  tree.insert (0);
+  tree.root ().insert (1);
+  tree.root ().insert (2);
+  tree.root ()[0].insert (3);
+  // from the tree create a small memory tree
+  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
+  // use childrenByPath to get children of the root
+  auto myChildren = childrenByPath (smt, std::vector<int>{ 0 });
+  assert (myChildren.has_value ());
+  assert (myChildren.value ().at (0) == 1);
+  assert (myChildren.value ().at (1) == 2);
+  // use childrenByPath to get children of root's child with the value 1
+  auto myChildrenOfRootChildWithTheValue1 = childrenByPath (smt, std::vector<int>{ 0, 1 });
+  assert (myChildrenOfRootChildWithTheValue1.has_value ());
+  assert (myChildrenOfRootChildWithTheValue1.value ().at (0) == 3);
+  return 0;
+}
+```
