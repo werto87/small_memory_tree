@@ -21,7 +21,7 @@ ValueType is the type of the values from the tree (MyCoolTree<int> here int is t
 data contains the values from tree in breadth first order.
 ### std::vector<bool> hierarchy{};
 #### What is hierarchy and how it gets calculated
-hierarchy contains the hierarchical information of the tree. Together with data and maxChildren it is possible to tell how the nodes are related.
+hierarchy contains the hierarchical information of the tree. Together with maxChildren it is possible to tell how the nodes are related.
 To calculate hierarchy we add true to hierarchy for the root element (Todo this can be saved. If we always add true at the start we can assume it is there and do not have to add it) and than iterate breadth first over the tree and ask every node how many children it has. For everyChild we add true to the vector. If a node has less children than maxChildren we fill the missing values with false.
 
 ### Example how SmallMemoryTreeData gets created
