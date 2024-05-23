@@ -54,6 +54,7 @@ Iterate over the tree in breath first an save the values in data. data= [0,1,2,3
 If using small memory tree saves you memory or not depends heavily on the max children. Figure 1 shows an overview of how much heap memory small memory tree uses compared to a vecPlusPointerToParentNode tree (stlplus::ntree). The values are measured using the project in this [repository](https://github.com/werto87/small_memory_tree_memory_measurement). The structure of the tree is worst case for small memory tree. Just a root with children who are leafs.
 ![image](https://github.com/werto87/small_memory_tree/assets/46565959/9ee8ca68-bee8-4803-8332-e246c6fdf640)
 Figure 1: Heap Memory Consumption 'stlplus tree' vs 'small memory tree'  
+![image](https://github.com/werto87/small_memory_tree/assets/46565959/caea0eea-2ca0-4d55-b014-424d58789613)
 
 
 
