@@ -65,5 +65,8 @@ Figure 2: Zoom on small values for max children Heap Memory Consumption
 
 
 ## Usage example with [st_tree](https://github.com/erikerlandson/st_tree)
-As always to see examples look in the tests for example in test/stTree.cxx
-### Save data to database
+As always for examples look in the tests for example in test/stTree.cxx
+### Use Case save Data to Database
+
+
+
