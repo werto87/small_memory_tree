@@ -319,8 +319,13 @@ template <typename ValueType, typename MaxChildrenType, typename LevelType, type
 std::optional<std::vector<ValueType> >
 childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path)
 {
-  // TODO this has bad performance if maxChildren is high. Maybe sort the children by value and use binary search in small memory tree but this will increase the time it takes to create the small memory tree. An option would be nice
-  // TODO Another problem is to find out where the children of a parent begin. This algorithm has to iterate over almost all nodes of the next level
+  // TODO this has bad performance if maxChildren is high (see benchmark tests). Maybe sort the children by value and use binary search in small memory tree but this will increase the time it takes to create the small memory tree. An option would be nice
+  // TODO Another problem is to find out where the children of a parent begin. If the value we look for is on the righter most side this algorithm has to iterate over almost all nodes of the next level.
+  // TODO Possible improvements:
+  // TODO check the tree hierarchy if atleast one of the children has a value ( hierarchy.at(child_offset_begin) it is enough to check the first child because if it has no value all children have no value
+  // TODO problem with calculating which child has which data currently has two solution:
+  // TODO Solution1 COST memory and construct time increases for small memory tree YIELD together with sort children by value perfect lookup speed (LETS DO THIS with sort together make it optional THEN WE ALSO CAN OVERRIDE []operator because it will have constant time lookup) : if we can spare extra memory in  (not in small memory data) we can actually save which data belongs to which parents children
+  // TODO because we know how much values are used in the level of child we can count the used values from right to left instead from left to right if the parent node is more on the right side of the tree.
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
