@@ -7,7 +7,6 @@ namespace small_memory_tree
 template <typename ValueType, typename NodeType> class BaseNodeAdapter
 {
 public:
-  BaseNodeAdapter () = delete;
   BaseNodeAdapter (ValueType const &nodeData_, std::vector<ValueType> const &childrenData_) : nodeData{ nodeData_ }, childrenData{ childrenData_ } {}
 
   virtual ValueType generateNodeData (NodeType const &node) = 0;
@@ -43,8 +42,9 @@ private:
   std::vector<ValueType> childrenData{};
 };
 
-template <template <class, class> class NodeAdapterImpl, typename ValueType, typename NodeType, typename Tree> struct BaseTreeAdapter
+template <template <class, class> class NodeAdapterImpl, typename ValueType, typename NodeType, typename Tree> class BaseTreeAdapter
 {
+public:
   BaseTreeAdapter (std::vector<NodeAdapterImpl<ValueType, NodeType> > const &nodeAdapters_) : nodeAdapters{ nodeAdapters_ } {}
 
   std::vector<NodeAdapterImpl<ValueType, NodeType> > virtual generateNodeAdapters (Tree const &tree) = 0;
