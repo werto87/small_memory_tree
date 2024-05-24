@@ -245,7 +245,7 @@ template <typename ValueType, typename MaxChildrenType = uint64_t> struct SmallM
 template <typename ValueType, typename MaxChildrenType = uint64_t, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTree
 {
 public:
-  explicit SmallMemoryTree (SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryTreeData) : _smallMemoryData{ std::move (smallMemoryTreeData) }, _levels{ internals::calculateLevelSmallMemoryTree<LevelType> (_smallMemoryData) }, _valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (_smallMemoryData.hierarchy, _levels) } {}
+  explicit SmallMemoryTree (SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryTreeData_) : smallMemoryData{ std::move (smallMemoryTreeData_) }, levels{ internals::calculateLevelSmallMemoryTree<LevelType> (smallMemoryData) }, valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (smallMemoryData.hierarchy, levels) } {}
 
   // clang-format off
   [[nodiscard]]
@@ -256,13 +256,13 @@ public:
   [[nodiscard]] SmallMemoryTreeData<ValueType, MaxChildrenType>
   getSmallMemoryData () const &noexcept
   {
-    return _smallMemoryData;
+    return smallMemoryData;
   }
 
   [[nodiscard]] std::vector<LevelType> const &
   getLevels () const noexcept
   {
-    return _levels;
+    return levels;
   }
 
   [[nodiscard]] bool
@@ -274,31 +274,31 @@ public:
   [[nodiscard]] MaxChildrenType
   getMaxChildren () const noexcept
   {
-    return _smallMemoryData.maxChildren;
+    return smallMemoryData.maxChildren;
   }
 
   [[nodiscard]] std::vector<bool> const &
   getHierarchy () const noexcept
   {
-    return _smallMemoryData.hierarchy;
+    return smallMemoryData.hierarchy;
   }
 
   [[nodiscard]] std::vector<ValueType> const &
   getData () const noexcept
   {
-    return _smallMemoryData.data;
+    return smallMemoryData.data;
   }
 
   [[nodiscard]] std::vector<ValuesPerLevelType> const &
   getTotalValuesUsedUntilLevel () const noexcept
   {
-    return _valuesPerLevel;
+    return valuesPerLevel;
   }
 
 private:
-  SmallMemoryTreeData<ValueType, MaxChildrenType> _smallMemoryData{};
-  std::vector<LevelType> _levels{};
-  std::vector<ValuesPerLevelType> _valuesPerLevel{};
+  SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryData{};
+  std::vector<LevelType> levels{};
+  std::vector<ValuesPerLevelType> valuesPerLevel{};
 };
 
 /**
