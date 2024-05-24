@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-
+#include <vector>
 namespace small_memory_tree
 {
 template <typename ValueType, typename NodeType> class BaseNodeAdapter
