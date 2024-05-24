@@ -142,7 +142,7 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t level)
     {
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       auto const &nodeOffsetBegin = boost::numeric_cast<typename std::decay<decltype (levels.front ())>::type> (levels.at (level - 1));
-      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel ().at (level - 1);
+      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel (level - 1);
       for (auto i = nodeOffsetBegin; i != levels.at (level); ++i)
         {
           if (*(hierarchy.begin () + boost::numeric_cast<int64_t> (i)))
@@ -190,7 +190,7 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t level, uint64_
           throw std::logic_error{ "node value is to high" };
         }
       auto processedChildren = int64_t{};
-      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel ().at (level - 1) + boost::numeric_cast<typename std::decay<decltype (smallMemoryTree.getTotalValuesUsedUntilLevel ().at (level - 1))>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
+      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel (level - 1) + boost::numeric_cast<typename std::decay<decltype (smallMemoryTree.getTotalValuesUsedUntilLevel (level - 1))>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       result.reserve (boost::numeric_cast<uint64_t> (maxChildren));
       for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
@@ -289,10 +289,10 @@ public:
     return smallMemoryData.data;
   }
 
-  [[nodiscard]] std::vector<ValuesPerLevelType> const &
-  getTotalValuesUsedUntilLevel () const noexcept
+  [[nodiscard]] ValuesPerLevelType
+  getTotalValuesUsedUntilLevel (uint64_t level) const noexcept
   {
-    return valuesPerLevel;
+    return valuesPerLevel.at (level);
   }
 
 private:
