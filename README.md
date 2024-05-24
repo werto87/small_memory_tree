@@ -127,7 +127,7 @@ main ()
 
 ## Build
 ### Requirements
-- Compiler with support c++20 support (ranges and concepts)
+- Compiler with c++20 support (ranges and concepts)
 - CMake
 - The following c++ libraries are required:
   - [boost](https://github.com/boostorg/boost)/1.84.0 
@@ -156,3 +156,8 @@ main ()
 2. Add small_memory_tree/SomeVersion as a requirement to your conanfile.py
 3. If you want to use st_tree::tree or stlplus::ntree set the option with_st_tree or with_stlplus_tree to true
 4. Add small_memory_tree to your CMake
+
+## Use another tree library with small memory tree
+small memory tree currently supports st_tree::tree and stlplus::ntree. small memory tree can be used with other tree libraries by inheriting from BaseNodeAdapter and BaseNodeAdapter from smallMemoryTreeAdapter.hxx. 
+### 
+

@@ -320,6 +320,7 @@ std::optional<std::vector<ValueType> >
 childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path)
 {
   // TODO this has bad performance if maxChildren is high. Maybe sort the children by value and use binary search in small memory tree but this will increase the time it takes to create the small memory tree. An option would be nice
+  // TODO Another problem is to find out where the children of a parent begin. This algorithm has to iterate over almost all nodes of the next level
   auto const &levels = smallMemoryTree.getLevels ();
   if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
     {
@@ -335,7 +336,7 @@ childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPer
           if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor = path.at (i)] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
             {
               auto levelBegin = smallMemoryTree.getHierarchy ().cbegin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (smallMemoryTree.getLevels ().at (i - 1)));
-              auto nodeOffset = positionOfChildren * boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ()) + std::distance (childrenValuesAndHoles.cbegin (), itr);
+              auto const &nodeOffset = positionOfChildren * boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ()) + std::distance (childrenValuesAndHoles.cbegin (), itr);
               positionOfChildren = std::count_if (levelBegin, levelBegin + nodeOffset, [] (auto const &hasValue) { return hasValue; });
               if (i == path.size () - 1)
                 {
