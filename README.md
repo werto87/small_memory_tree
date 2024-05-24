@@ -124,3 +124,35 @@ main ()
   return 0;
 }
 ```
+
+## Build
+### Requirements
+- Compiler with support c++20 support (ranges and concepts)
+- CMake
+- The following c++ libraries are required:
+  - [boost](https://github.com/boostorg/boost)/1.84.0 
+  - [confu_algorithm](https://github.com/werto87/confu_algorithm)/1.0.1
+
+- The following c++ libraries are optional:
+  - [stlplus](https://github.com/werto87/stlplus3)/3.16.0  Pass WITH_STLPLUS_TREE to cmake  
+  - [st_tree](https://github.com/erikerlandson/st_tree)/1.2.2  Pass WITH_ST_TREE to cmake 
+  - [catch2](https://github.com/catchorg/Catch2)/2.13.7 Pass WITH_TESTS to cmake  
+
+### The Recommended Way to Build small memory tree is using the Conan Package Manager
+#### As someone who wants to contribute to small memory tree development
+1. Check out small memory tree
+2. Use conan remote to add https://modern-durak.com/artifactory/conan-local/
+3. Run conan install
+4. Configure CMake with:
+    - BUILD_TESTS true
+    - WITH_ST_TREE true
+    - WITH_STLPLUS_TREE true
+    - CMAKE_TOOLCHAIN_FILE conan_toolchain.cmake
+5. Build the project using CMake
+6. Run the tests target with build/test/_test
+
+#### As  someone who wants to use small memory tree as a library
+1. Use conan remote to add https://modern-durak.com/artifactory/conan-local/
+2. Add small_memory_tree/SomeVersion as a requirement to your conanfile.py
+3. If you want to use st_tree::tree or stlplus::ntree set the option with_st_tree or with_stlplus_tree to true
+4. Add small_memory_tree to your CMake
