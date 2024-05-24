@@ -85,8 +85,8 @@ treeHierarchy (HasIteratorToNode auto const &tree, uint64_t maxChildrenInTree)
   return result;
 }
 
-template <typename T = uint64_t>
-[[nodiscard]] std::vector<T>
+template <typename ValueType = uint64_t>
+[[nodiscard]] std::vector<ValueType>
 calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
 {
   if (hierarchy.empty ())
@@ -95,10 +95,10 @@ calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
     }
   else
     {
-      auto result = std::vector<T>{ hierarchy.front () };
+      auto result = std::vector<ValueType>{ hierarchy.front () };
       for (auto i = uint64_t{ 1 }; i != levels.size (); ++i)
         {
-          result.push_back (boost::numeric_cast<T> (std::count (hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1)), hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i)), true)));
+          result.push_back (boost::numeric_cast<ValueType> (std::count (hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1)), hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i)), true)));
         }
       std::inclusive_scan (result.begin (), result.end (), result.begin ());
       return result;
