@@ -161,18 +161,34 @@ TEST_CASE ("stlplus_tree childrenByPath multiple elements")
   }
 }
 
-TEST_CASE ("stlplus_tree calculateValuesPerLevel only root")
+TEST_CASE ("stlplus_tree calculateNodeIndexesPerLevel only root")
 {
   stlplus::ntree<int> tree{};
   auto root = tree.insert (0);
   auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
-  auto result = internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
-  REQUIRE (result.size () == 1);
-  REQUIRE (result.front () == 1);
+  auto result = internals::calculateNodeIndexesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
+  REQUIRE (result.front ().size () == 1);
+  REQUIRE (result.front ().front () == 0);
 }
 
-TEST_CASE ("stlplus_tree calculateValuesPerLevel multiple elements")
+TEST_CASE ("stlplus_tree calculateNodeIndexesPerLevel  root with 2 children")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
+  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
+  auto result = internals::calculateNodeIndexesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
+  REQUIRE (result.front ().size () == 1);
+  REQUIRE (result.front ().front () == 0);
+  REQUIRE (result.at (1).size () == 2);
+  REQUIRE (result.at (1).at (0) == 0);
+  REQUIRE (result.at (1).at (1) == 1);
+}
+
+TEST_CASE ("stlplus_tree calculateNodeIndexesPerLevel multiple elements")
 {
   stlplus::ntree<int> tree{};
   auto root = tree.insert (0);
@@ -183,11 +199,45 @@ TEST_CASE ("stlplus_tree calculateValuesPerLevel multiple elements")
   tree.append (rootChild1, 5);
   auto myChild = tree.append (rootChild1, 6);
   tree.append (myChild, 7);
-  auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
-  auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
-  auto result = internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
+  auto smallMemoryTreeData = SmallMemoryTreeData<int> (StlplusTreeAdapter{ tree });
+  auto smallMemoryTree = SmallMemoryTree<int>{ smallMemoryTreeData };
+  auto result = internals::calculateNodeIndexesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 5);
-  REQUIRE (result.back () == 8);
+  REQUIRE (result.at (0).size () == 1);
+  REQUIRE (result.at (0).at (0) == 0);
+  REQUIRE (result.at (1).size () == 2);
+  REQUIRE (result.at (1).at (0) == 0);
+  REQUIRE (result.at (1).at (1) == 1);
+  REQUIRE (result.at (2).size () == 4);
+  REQUIRE (result.at (2).at (0) == 0);
+  REQUIRE (result.at (2).at (1) == 1);
+  REQUIRE (result.at (2).at (2) == 2);
+  REQUIRE (result.at (2).at (3) == 3);
+  REQUIRE (result.at (3).size () == 1);
+  REQUIRE (result.at (3).at (0) == 6);
+  REQUIRE (result.at (4).size () == 0);
+}
+
+TEST_CASE ("stlplus_tree getTotalValuesUsedUntilLevel root with 2 children")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  auto result = SmallMemoryTree<int, uint8_t> (StlplusTreeAdapter{ tree });
+  REQUIRE (result.getTotalValuesUsedUntilLevel (0) == 0);
+  REQUIRE (result.getTotalValuesUsedUntilLevel (1) == 1);
+  REQUIRE (result.getTotalValuesUsedUntilLevel (2) == 3);
+}
+
+TEST_CASE ("stlplus_tree getTotalValuesUsedUntilLevel root with 2 children out of bound")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  auto result = SmallMemoryTree<int, uint8_t> (StlplusTreeAdapter{ tree });
+  REQUIRE_THROWS (result.getTotalValuesUsedUntilLevel (3));
 }
 
 TEST_CASE ("stlplus_tree childrenWithOptionalValues only root")

@@ -86,8 +86,8 @@ treeHierarchy (HasIteratorToNode auto const &tree, uint64_t maxChildrenInTree)
 }
 
 template <typename ValueType = uint64_t>
-[[nodiscard]] std::vector<ValueType>
-calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
+[[nodiscard]] std::vector<std::vector<ValueType> >
+calculateNodeIndexesPerLevel (auto const &hierarchy, auto const &levels)
 {
   if (hierarchy.empty ())
     {
@@ -95,12 +95,20 @@ calculateValuesPerLevel (auto const &hierarchy, auto const &levels)
     }
   else
     {
-      auto result = std::vector<ValueType>{ hierarchy.front () };
+      auto result = std::vector<std::vector<ValueType> > (levels.size ());
+      result.at (0).push_back (0); // Root element is always on position 1
       for (auto i = uint64_t{ 1 }; i != levels.size (); ++i)
         {
-          result.push_back (boost::numeric_cast<ValueType> (std::count (hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1)), hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i)), true)));
+          auto levelBegin = hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1));
+          auto levelEnd = hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i));
+          // TODO this is find all. refactor into function.  returns a vector with indexes of the found elements
+          for (auto hierarchyItr = std::find (levelBegin, levelEnd, true); hierarchyItr != levelEnd;)
+            {
+              result.at (i).push_back (boost::numeric_cast<ValueType> (std::distance (levelBegin, hierarchyItr)));
+              ++hierarchyItr;
+              hierarchyItr = std::find (hierarchyItr, levelEnd, true);
+            }
         }
-      std::inclusive_scan (result.begin (), result.end (), result.begin ());
       return result;
     }
 }
@@ -142,7 +150,7 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t level)
     {
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       auto const &nodeOffsetBegin = boost::numeric_cast<typename std::decay<decltype (levels.front ())>::type> (levels.at (level - 1));
-      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel (level - 1);
+      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel (level);
       for (auto i = nodeOffsetBegin; i != levels.at (level); ++i)
         {
           if (*(hierarchy.begin () + boost::numeric_cast<int64_t> (i)))
@@ -190,14 +198,16 @@ childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t level, uint64_
           throw std::logic_error{ "node value is to high" };
         }
       auto processedChildren = int64_t{};
-      auto valuesUsed = smallMemoryTree.getTotalValuesUsedUntilLevel (level - 1) + boost::numeric_cast<typename std::decay<decltype (smallMemoryTree.getTotalValuesUsedUntilLevel (level - 1))>::type> (std::count (hierarchy.begin () + nodeOffsetBegin, hierarchy.begin () + nodeOffsetEnd, true));
+      auto levelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
+      auto levelNodeItr = std::ranges::find (levelNodeIndexes, nodeOffsetEnd);
+      auto valuesUsed = std::distance (levelNodeIndexes.begin (), levelNodeItr);
       auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
       result.reserve (boost::numeric_cast<uint64_t> (maxChildren));
       for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
         {
           if (*(hierarchy.begin () + i))
             {
-              result.push_back (data.at (valuesUsed));
+              result.push_back (data.at (boost::numeric_cast<uint64_t> (valuesUsed)));
               valuesUsed++;
             }
           else
@@ -245,7 +255,7 @@ template <typename ValueType, typename MaxChildrenType = uint64_t> struct SmallM
 template <typename ValueType, typename MaxChildrenType = uint64_t, typename LevelType = uint64_t, typename ValuesPerLevelType = uint64_t> struct SmallMemoryTree
 {
 public:
-  explicit SmallMemoryTree (SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryTreeData_) : smallMemoryData{ std::move (smallMemoryTreeData_) }, levels{ internals::calculateLevelSmallMemoryTree<LevelType> (smallMemoryData) }, valuesPerLevel{ internals::calculateValuesPerLevel<ValuesPerLevelType> (smallMemoryData.hierarchy, levels) } {}
+  explicit SmallMemoryTree (SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryTreeData_) : smallMemoryData{ std::move (smallMemoryTreeData_) }, levels{ internals::calculateLevelSmallMemoryTree<LevelType> (smallMemoryData) }, nodeIndexesPerLevel{ internals::calculateNodeIndexesPerLevel<ValuesPerLevelType> (smallMemoryData.hierarchy, levels) } {}
 
   // clang-format off
   [[nodiscard]]
@@ -289,16 +299,25 @@ public:
     return smallMemoryData.data;
   }
 
-  [[nodiscard]] ValuesPerLevelType
-  getTotalValuesUsedUntilLevel (uint64_t level) const noexcept
+  [[nodiscard]] std::vector<ValuesPerLevelType> const &
+  getNodeIndexesForLevel (uint64_t level) const
   {
-    return valuesPerLevel.at (level);
+    // TODO write tests for this
+    if (level >= nodeIndexesPerLevel.size ()) throw std::logic_error{ "level >=nodeIndexesPerLevel.size()" };
+    return nodeIndexesPerLevel.at (level);
+  }
+
+  [[nodiscard]] ValuesPerLevelType
+  getTotalValuesUsedUntilLevel (uint64_t level) const
+  {
+    if (level >= nodeIndexesPerLevel.size ()) throw std::logic_error{ "level >=nodeIndexesPerLevel.size()" };
+    return boost::numeric_cast<ValuesPerLevelType> (std::accumulate (nodeIndexesPerLevel.begin (), nodeIndexesPerLevel.begin () + boost::numeric_cast<int64_t> (level), ValuesPerLevelType{}, [] (auto value, std::vector<ValuesPerLevelType> const &vec) { return boost::numeric_cast<ValuesPerLevelType> (vec.size ()) + value; }));
   }
 
 private:
   SmallMemoryTreeData<ValueType, MaxChildrenType> smallMemoryData{};
   std::vector<LevelType> levels{};
-  std::vector<ValuesPerLevelType> valuesPerLevel{};
+  std::vector<std::vector<ValuesPerLevelType> > nodeIndexesPerLevel{};
 };
 
 /**
@@ -335,18 +354,20 @@ childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPer
   else
     {
       auto positionOfChildren = int64_t{};
-      for (auto i = uint64_t{}; i < path.size (); ++i)
+      for (auto level = uint64_t{}; level < path.size (); ++level)
         {
-          auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i, boost::numeric_cast<uint64_t> (positionOfChildren));
-          if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor = path.at (i)] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
+          // TODO because of the way how the data gets stored we can skip searching after we checked the last value. values and none values are separated. first values than none values
+          auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, level, boost::numeric_cast<uint64_t> (positionOfChildren));
+          if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor = path.at (level)] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
             {
-              auto levelBegin = smallMemoryTree.getHierarchy ().cbegin () + ((i == 0) ? 0 : boost::numeric_cast<int64_t> (smallMemoryTree.getLevels ().at (i - 1)));
               auto const &nodeOffset = positionOfChildren * boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ()) + std::distance (childrenValuesAndHoles.cbegin (), itr);
-              positionOfChildren = std::count_if (levelBegin, levelBegin + nodeOffset, [] (auto const &hasValue) { return hasValue; });
-              if (i == path.size () - 1)
+              auto levelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
+              auto levelNodeItr = std::ranges::find (levelNodeIndexes, nodeOffset);
+              positionOfChildren = std::distance (levelNodeIndexes.begin (), levelNodeItr);
+              if (level == path.size () - 1)
                 {
                   auto result = std::vector<ValueType>{};
-                  auto const &resultNodes = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, i + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
+                  auto const &resultNodes = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, level + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
                   std::ranges::for_each (resultNodes | std::views::filter ([] (auto const &optionalValue) { return optionalValue.has_value (); }), [&result] (auto const &childValueOrHole) { result.push_back (childValueOrHole.value ()); });
                   return result;
                 }

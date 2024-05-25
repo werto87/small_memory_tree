@@ -159,17 +159,17 @@ TEST_CASE ("st_tree childrenByPath multiple elements")
   }
 }
 
-TEST_CASE ("st_tree calculateValuesPerLevel only root")
+TEST_CASE ("st_tree calculateNodeIndexesPerLevel only root")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
   auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
-  auto result = internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
+  auto result = internals::calculateNodeIndexesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 1);
-  REQUIRE (result.front () == 1);
+  REQUIRE (result.at (0).front () == 0);
 }
 
-TEST_CASE ("st_tree calculateValuesPerLevel multiple elements")
+TEST_CASE ("st_tree calculateNodeIndexesPerLevel multiple elements")
 {
   auto tree = st_tree::tree<int>{};
   tree.insert (0);
@@ -181,9 +181,21 @@ TEST_CASE ("st_tree calculateValuesPerLevel multiple elements")
   tree.root ()[1].insert (6);
   tree.root ()[1][1].insert (7);
   auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ { StTreeAdapter{ tree } } };
-  auto result = internals::calculateValuesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
+  auto result = internals::calculateNodeIndexesPerLevel (smallMemoryTree.getHierarchy (), smallMemoryTree.getLevels ());
   REQUIRE (result.size () == 5);
-  REQUIRE (result.back () == 8);
+  REQUIRE (result.at (0).size () == 1);
+  REQUIRE (result.at (0).at (0) == 0);
+  REQUIRE (result.at (1).size () == 2);
+  REQUIRE (result.at (1).at (0) == 0);
+  REQUIRE (result.at (1).at (1) == 1);
+  REQUIRE (result.at (2).size () == 4);
+  REQUIRE (result.at (2).at (0) == 0);
+  REQUIRE (result.at (2).at (1) == 1);
+  REQUIRE (result.at (2).at (2) == 2);
+  REQUIRE (result.at (2).at (3) == 3);
+  REQUIRE (result.at (3).size () == 1);
+  REQUIRE (result.at (3).at (0) == 6);
+  REQUIRE (result.at (4).size () == 0);
 }
 
 TEST_CASE ("st_tree childrenWithOptionalValues only root")
