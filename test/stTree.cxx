@@ -224,21 +224,21 @@ TEST_CASE ("st_tree childrenWithOptionalValues multiple elements")
   {
     auto result = internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
     REQUIRE (result.size () == 1);
-    REQUIRE (result.at (0) == 0);
+    REQUIRE (result.at (0).value () == 0);
   }
   SECTION ("1 0")
   {
     auto result = internals::childrenWithOptionalValues (smallMemoryTree, 1, 0);
     REQUIRE (result.size () == 2);
-    REQUIRE (result.at (0) == 1);
-    REQUIRE (result.at (1) == 2);
+    REQUIRE (result.at (0).value () == 1);
+    REQUIRE (result.at (1).value () == 2);
   }
   SECTION ("2 1")
   {
     auto result = internals::childrenWithOptionalValues (smallMemoryTree, 2, 1);
     REQUIRE (result.size () == 2);
-    REQUIRE (result.at (0) == 5);
-    REQUIRE (result.at (1) == 6);
+    REQUIRE (result.at (0).value () == 5);
+    REQUIRE (result.at (1).value () == 6);
   }
   SECTION ("3 0")
   {
@@ -251,7 +251,7 @@ TEST_CASE ("st_tree childrenWithOptionalValues multiple elements")
   {
     auto result = internals::childrenWithOptionalValues (smallMemoryTree, 3, 3);
     REQUIRE (result.size () == 2);
-    REQUIRE (result.at (0) == 7);
+    REQUIRE (result.at (0).value () == 7);
     REQUIRE_FALSE (result.at (1).has_value ());
   }
   SECTION ("4 0")
