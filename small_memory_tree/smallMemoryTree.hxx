@@ -102,7 +102,6 @@ calculateNodeIndexesPerLevel (auto const &hierarchy, auto const &levels)
         {
           auto levelBegin = hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i - 1));
           auto levelEnd = hierarchy.begin () + boost::numeric_cast<int64_t> (levels.at (i));
-          // TODO this is find all. refactor into function.  returns a vector with indexes of the found elements
           for (auto hierarchyItr = std::find (levelBegin, levelEnd, true); hierarchyItr != levelEnd;)
             {
               result.at (i).push_back (boost::numeric_cast<ValueType> (std::distance (levelBegin, hierarchyItr)));
@@ -167,7 +166,6 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t level)
       return result;
     }
 }
-// TODO this should not be optional
 // TODO try to move code into some functions this is to complicated
 [[nodiscard]] auto
 childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level, uint64_t node)
