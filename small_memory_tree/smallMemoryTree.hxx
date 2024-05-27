@@ -335,7 +335,7 @@ template <typename ValueType, typename MaxChildrenType, typename LevelType, type
 std::optional<std::vector<ValueType> >
 childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path, bool childrenAreSorted = false)
 {
-  // TODO use std::expected for error handling instead of exception throwing
+  // TODO use contracts to check preconditions
   if (path.empty ())
     {
       throw std::logic_error{ "path empty" };
