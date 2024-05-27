@@ -25,8 +25,7 @@ TEST_CASE ("childrenByPath empty path")
   tree.root ().insert (1);
   tree.root ().insert (2);
   auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  auto myChildren = childrenByPath (smt, std::vector<int>{});
-  REQUIRE_FALSE (myChildren.has_value ());
+  REQUIRE_THROWS (childrenByPath (smt, std::vector<int>{}));
 }
 
 TEST_CASE ("childrenByPath wrong path")
@@ -84,16 +83,16 @@ TEST_CASE ("childrenByPath max nodes 2 and sibling has same number")
 
 TEST_CASE ("childrenByPath path with 2 values")
 {
-  auto tree = st_tree::tree<uint8_t>{};
+  auto tree = st_tree::tree<uint64_t>{};
   tree.insert (10);
   auto node = tree.root ().insert (11);
-  for (uint8_t i = 0; i < 10; ++i)
+  for (uint64_t i = 0; i < 10; ++i)
     {
-      node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 2 }));
-      node = node->insert (boost::numeric_cast<uint8_t> (((i + 1) * 10) + uint8_t{ 3 }));
+      node->insert (boost::numeric_cast<uint64_t> (((i + 1) * 10) + uint64_t{ 2 }));
+      node = node->insert (boost::numeric_cast<uint64_t> (((i + 1) * 10) + uint64_t{ 3 }));
     }
-  auto smt = SmallMemoryTree<uint8_t>{ StTreeAdapter{ tree } };
-  auto myChildren = childrenByPath (smt, std::vector<uint8_t>{ 10, 11 });
+  auto smt = SmallMemoryTree<uint64_t>{ StTreeAdapter{ tree } };
+  auto myChildren = childrenByPath (smt, std::vector<uint64_t>{ 10, 11 });
   REQUIRE (uint64_t{ myChildren->at (0) } == 12);
   REQUIRE (uint64_t{ myChildren->at (1) } == 13);
 }

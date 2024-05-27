@@ -166,56 +166,55 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t level)
       return result;
     }
 }
-
+// TODO this should not be optional
+// TODO try to move code into some functions this is to complicated
 [[nodiscard]] auto
-childrenWithOptionalValues (auto const &smallMemoryTree, uint64_t level, uint64_t node)
+childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level, uint64_t node)
 {
   auto const &levels = smallMemoryTree.getLevels ();
-  if (levels.size () == level)
+  auto const &data = smallMemoryTree.getData ();
+  using ResultType = std::tuple<std::vector<std::decay_t<decltype (data.front ())> >, int64_t>;
+  if (levels.size () == 1 and level == 0 and node == 0)
+    {
+      return ResultType{}; // special case root with no children
+    }
+  if (levels.size () - 1 == level)
     {
       throw std::logic_error{ "level value is to high" };
     }
-  auto const &data = smallMemoryTree.getData ();
   auto const &hierarchy = smallMemoryTree.getHierarchy ();
-  if (level == 0)
+  auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
+  auto curentLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
+  if (auto curentLevelNodeItr = std::ranges::find (curentLevelNodeIndexes, boost::numeric_cast<int64_t> (node)); curentLevelNodeItr != curentLevelNodeIndexes.end ())
     {
-      if (node == 0)
+      auto currentLevelValuesBeforeNode = std::distance (curentLevelNodeIndexes.begin (), curentLevelNodeItr);
+      auto const &childrenOffsetBegin = currentLevelValuesBeforeNode * maxChildren;
+      auto childLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level + 1);
+      if (auto childItr = std::ranges::find (childLevelNodeIndexes, childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
         {
-          return std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{ data.front () };
+          auto const hierarchyBegin = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
+          auto const &hierarchyEnd = hierarchyBegin + maxChildren;
+          auto result = ResultType{};
+          std::get<1> (result) = std::distance (childLevelNodeIndexes.begin (), childItr);
+          auto valuesUsed = boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
+          for (auto i = hierarchyBegin; i != hierarchyEnd; ++i)
+            {
+              if (*(hierarchy.begin () + i))
+                {
+                  std::get<0> (result).push_back (data.at (boost::numeric_cast<uint64_t> (valuesUsed)));
+                  valuesUsed++;
+                }
+            }
+          return result;
         }
       else
         {
-          throw std::logic_error{ "node value should be 0 if level is 0. There should be only one root in the tree" };
+          return ResultType{};
         }
     }
   else
     {
-      auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
-      auto const &nodeOffsetBegin = boost::numeric_cast<int64_t> (levels.at (level - 1));
-      auto const &nodeOffsetEnd = nodeOffsetBegin + maxChildren * boost::numeric_cast<int64_t> (node);
-      if (nodeOffsetEnd >= boost::numeric_cast<int64_t> (levels.at (level)))
-        {
-          throw std::logic_error{ "node value is to high" };
-        }
-      auto processedChildren = int64_t{};
-      auto levelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
-      auto levelNodeItr = std::ranges::find (levelNodeIndexes, nodeOffsetEnd);
-      auto valuesUsed = std::distance (levelNodeIndexes.begin (), levelNodeItr);
-      auto result = std::vector<std::optional<typename std::decay<decltype (data.front ())>::type> >{};
-      result.reserve (boost::numeric_cast<uint64_t> (maxChildren));
-      for (auto i = nodeOffsetEnd; processedChildren != maxChildren; ++i, ++processedChildren)
-        {
-          if (*(hierarchy.begin () + i))
-            {
-              result.push_back (data.at (boost::numeric_cast<uint64_t> (valuesUsed)));
-              valuesUsed++;
-            }
-          else
-            {
-              result.push_back (std::nullopt);
-            }
-        }
-      return result;
+      throw std::logic_error{ "node has no value" };
     }
 }
 
@@ -302,7 +301,6 @@ public:
   [[nodiscard]] std::vector<ValuesPerLevelType> const &
   getNodeIndexesForLevel (uint64_t level) const
   {
-    // TODO write tests for this
     if (level >= nodeIndexesPerLevel.size ()) throw std::logic_error{ "level >=nodeIndexesPerLevel.size()" };
     return nodeIndexesPerLevel.at (level);
   }
@@ -338,46 +336,46 @@ template <typename ValueType, typename MaxChildrenType, typename LevelType, type
 std::optional<std::vector<ValueType> >
 childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path)
 {
-  // TODO this has bad performance if maxChildren is high (see benchmark tests). Maybe sort the children by value and use binary search in small memory tree but this will increase the time it takes to create the small memory tree. An option would be nice
-  // TODO Another problem is to find out where the children of a parent begin. If the value we look for is on the righter most side this algorithm has to iterate over almost all nodes of the next level.
-  // TODO Possible improvements:
-  // TODO check the tree hierarchy if atleast one of the children has a value ( hierarchy.at(child_offset_begin) it is enough to check the first child because if it has no value all children have no value
-  // TODO problem with calculating which child has which data currently has two solution:
-  // TODO Solution1 COST memory and construct time increases for small memory tree YIELD together with sort children by value perfect lookup speed (LETS DO THIS with sort together make it optional THEN WE ALSO CAN OVERRIDE []operator because it will have constant time lookup) : if we can spare extra memory in  (not in small memory data) we can actually save which data belongs to which parents children
-  // TODO because we know how much values are used in the level of child we can count the used values from right to left instead from left to right if the parent node is more on the right side of the tree.
-  auto const &levels = smallMemoryTree.getLevels ();
-  if (levels.size () == 1 and path.size () == 1 and path.front () == smallMemoryTree.getData ().at (levels.at (0)))
+  // TODO use std::expected for error handling instead of exception throwing
+  if (path.empty ())
     {
-      // only one element in tree. Path is equal to the value of the element but element has no children so return empty vector
-      return std::vector<ValueType>{};
+      throw std::logic_error{ "path empty" };
+    }
+  if (smallMemoryTree.getData ().empty ())
+    {
+      throw std::logic_error{ "no root node" };
+    }
+  if (smallMemoryTree.getData ().size () == 1 and path.size () and smallMemoryTree.getData ().front () == path.front ())
+    {
+      return std::get<0> (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 0, 0));
+    }
+  if (smallMemoryTree.getData ().size () != 1 and path.size () >= smallMemoryTree.getLevels ().size ())
+    {
+      throw std::logic_error{ "path is to long" };
+    }
+  if (smallMemoryTree.getData ().front () != path.front ())
+    {
+      return {};
     }
   else
     {
-      auto positionOfChildren = int64_t{};
-      for (auto level = uint64_t{}; level < path.size (); ++level)
+      auto node = uint64_t{};
+      for (auto i = uint64_t{ 1 }; i < path.size (); ++i)
         {
-          // TODO because of the way how the data gets stored we can skip searching after we checked the last value. values and none values are separated. first values than none values
-          auto const &childrenValuesAndHoles = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, level, boost::numeric_cast<uint64_t> (positionOfChildren));
-          if (auto itr = std::ranges::find_if (childrenValuesAndHoles, [valueToLookFor = path.at (level)] (auto const &value) { return (value) && value == valueToLookFor; }); itr != childrenValuesAndHoles.end ())
+          auto const &valueToLookFor = path.at (i);
+          auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, i - 1, node);
+          if (auto itr = std::ranges::find (std::get<0> (result), valueToLookFor); itr != std::get<0> (result).end ())
             {
-              auto const &nodeOffset = positionOfChildren * boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ()) + std::distance (childrenValuesAndHoles.cbegin (), itr);
-              auto levelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
-              auto levelNodeItr = std::ranges::find (levelNodeIndexes, nodeOffset);
-              positionOfChildren = std::distance (levelNodeIndexes.begin (), levelNodeItr);
-              if (level == path.size () - 1)
-                {
-                  auto result = std::vector<ValueType>{};
-                  auto const &resultNodes = small_memory_tree::internals::childrenWithOptionalValues (smallMemoryTree, level + 1, boost::numeric_cast<uint64_t> (positionOfChildren));
-                  std::ranges::for_each (resultNodes | std::views::filter ([] (auto const &optionalValue) { return optionalValue.has_value (); }), [&result] (auto const &childValueOrHole) { result.push_back (childValueOrHole.value ()); });
-                  return result;
-                }
+              auto const usedValuesOfLevelBeforeNode = std::get<1> (result);
+              auto const childOffset = std::distance (std::get<0> (result).begin (), itr);
+              node = smallMemoryTree.getNodeIndexesForLevel (i).at (boost::numeric_cast<uint64_t> (usedValuesOfLevelBeforeNode + childOffset));
             }
           else
             {
               return {};
             }
         }
+      return std::get<0> (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, path.size () - 1, node));
     }
-  return {};
 }
 }

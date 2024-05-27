@@ -127,7 +127,8 @@ TEST_CASE ("stlplus_tree childrenByPath multiple elements")
   tree.append (rootChild0, 4);
   tree.append (rootChild1, 5);
   auto myChild = tree.append (rootChild1, 6);
-  tree.append (myChild, 7);
+  auto newChild = tree.append (myChild, 7);
+  tree.append (newChild, 8);
   auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
   SECTION ("0")
@@ -156,6 +157,12 @@ TEST_CASE ("stlplus_tree childrenByPath multiple elements")
   SECTION ("0 2 6 7")
   {
     auto result = childrenByPath (smallMemoryTree, std::vector<int>{ 0, 2, 6, 7 });
+    REQUIRE (result->size () == 1);
+    REQUIRE (result->at (0) == 8);
+  }
+  SECTION ("0 2 6 7 8")
+  {
+    auto result = childrenByPath (smallMemoryTree, std::vector<int>{ 0, 2, 6, 7, 8 });
     REQUIRE (result.has_value ());
     REQUIRE (result->empty ());
   }
@@ -240,18 +247,17 @@ TEST_CASE ("stlplus_tree getTotalValuesUsedUntilLevel root with 2 children out o
   REQUIRE_THROWS (result.getTotalValuesUsedUntilLevel (3));
 }
 
-TEST_CASE ("stlplus_tree childrenWithOptionalValues only root")
+TEST_CASE ("stlplus_tree childrenAndUsedValuesUntilChildren only root")
 {
   stlplus::ntree<int> tree{};
   auto root = tree.insert (0);
   auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = SmallMemoryTree<int, uint8_t, uint8_t>{ smallMemoryTreeData };
-  auto result = internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
-  REQUIRE (result.size () == 1);
-  REQUIRE (result.front () == 0);
+  auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 0, 0);
+  REQUIRE (std::get<0> (result).empty ());
 }
 
-TEST_CASE ("stlplus_tree childrenWithOptionalValues multiple elements")
+TEST_CASE ("stlplus_tree childrenAndUsedValuesUntilChildren multiple elements")
 {
   stlplus::ntree<int> tree{};
   auto root = tree.insert (0);
@@ -261,52 +267,77 @@ TEST_CASE ("stlplus_tree childrenWithOptionalValues multiple elements")
   tree.append (rootChild0, 4);
   tree.append (rootChild1, 5);
   auto myChild = tree.append (rootChild1, 6);
-  tree.append (myChild, 7);
+  auto myNewChild = tree.append (myChild, 7);
+  tree.append (myNewChild, 8);
   auto smallMemoryTreeData = SmallMemoryTreeData<int, uint8_t> (StlplusTreeAdapter{ tree });
   auto smallMemoryTree = SmallMemoryTree<int, uint8_t>{ smallMemoryTreeData };
   SECTION ("0 0")
   {
-    auto result = internals::childrenWithOptionalValues (smallMemoryTree, 0, 0);
-    REQUIRE (result.size () == 1);
-    REQUIRE (result.at (0).value () == 0);
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 0, 0);
+    REQUIRE (std::get<0> (result).size () == 2);
+    REQUIRE (std::get<0> (result).at (0) == 1);
+    REQUIRE (std::get<0> (result).at (1) == 2);
   }
+  SECTION ("0 1") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 0, 1)); }
   SECTION ("1 0")
   {
-    auto result = internals::childrenWithOptionalValues (smallMemoryTree, 1, 0);
-    REQUIRE (result.size () == 2);
-    REQUIRE (result.at (0).value () == 1);
-    REQUIRE (result.at (1).value () == 2);
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 1, 0);
+    REQUIRE (std::get<0> (result).size () == 2);
+    REQUIRE (std::get<0> (result).at (0) == 3);
+    REQUIRE (std::get<0> (result).at (1) == 4);
   }
+  SECTION ("1 1")
+  {
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 1, 1);
+    REQUIRE (std::get<0> (result).size () == 2);
+    REQUIRE (std::get<0> (result).at (0) == 5);
+    REQUIRE (std::get<0> (result).at (1) == 6);
+  }
+  SECTION ("1 2") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 1, 2)); }
+  SECTION ("2 0")
+  {
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 2, 0);
+    REQUIRE (std::get<0> (result).empty ());
+  }
+
   SECTION ("2 1")
   {
-    auto result = internals::childrenWithOptionalValues (smallMemoryTree, 2, 1);
-    REQUIRE (result.size () == 2);
-    REQUIRE (result.at (0).value () == 5);
-    REQUIRE (result.at (1).value () == 6);
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 2, 1);
+    REQUIRE (std::get<0> (result).empty ());
   }
-  SECTION ("3 0")
+  SECTION ("2 2")
   {
-    auto result = internals::childrenWithOptionalValues (smallMemoryTree, 3, 0);
-    REQUIRE (result.size () == 2);
-    REQUIRE_FALSE (result.at (0).has_value ());
-    REQUIRE_FALSE (result.at (1).has_value ());
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 2, 2);
+    REQUIRE (std::get<0> (result).empty ());
   }
-  SECTION ("3 1")
+  SECTION ("2 3")
   {
-    auto result = internals::childrenWithOptionalValues (smallMemoryTree, 3, 3);
-    REQUIRE (result.size () == 2);
-    REQUIRE (result.at (0).value () == 7);
-    REQUIRE_FALSE (result.at (1).has_value ());
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 2, 3);
+    REQUIRE (std::get<0> (result).size () == 1);
+    REQUIRE (std::get<0> (result).at (0) == 7);
   }
+  SECTION ("2 4") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 2, 4)); }
+
+  SECTION ("3 0") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 0)); }
+  SECTION ("3 1") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 1)); }
+  SECTION ("3 2") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 2)); }
+  SECTION ("3 3") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 3)); }
+  SECTION ("3 4") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 4)); }
+  SECTION ("3 5") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 5)); }
+  SECTION ("3 6")
+  {
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 6);
+    REQUIRE (std::get<0> (result).size () == 1);
+  }
+  SECTION ("3 7") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 7)); }
+  SECTION ("3 8") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 3, 8)); }
+
   SECTION ("4 0")
   {
-    auto result = internals::childrenWithOptionalValues (smallMemoryTree, 4, 0);
-    REQUIRE (result.size () == 2);
-    REQUIRE_FALSE (result.at (0).has_value ());
-    REQUIRE_FALSE (result.at (1).has_value ());
+    auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 4, 0);
+    REQUIRE (std::get<0> (result).empty ());
   }
-  SECTION ("4 1 node value to high") { REQUIRE_THROWS (internals::childrenWithOptionalValues (smallMemoryTree, 4, 1)); }
-  SECTION ("5 0") { REQUIRE_THROWS (internals::childrenWithOptionalValues (smallMemoryTree, 5, 0)); }
+  SECTION ("4 1") { REQUIRE_THROWS (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, 4, 1)); }
 }
 
 TEST_CASE ("stlplus_tree levelWithOptionalValues")
