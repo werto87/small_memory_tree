@@ -9,10 +9,6 @@ template <typename ValueType, typename NodeType> class BaseNodeAdapter
 public:
   BaseNodeAdapter (ValueType const &nodeData_, std::vector<ValueType> const &childrenData_) : nodeData{ nodeData_ }, childrenData{ childrenData_ } {}
 
-  virtual ValueType generateNodeData (NodeType const &node) = 0;
-
-  virtual std::vector<ValueType> generateChildrenData (NodeType const &node) = 0;
-
   virtual ~BaseNodeAdapter () = default;
 
   auto
@@ -47,7 +43,6 @@ template <template <class, class> class NodeAdapterImpl, typename ValueType, typ
 public:
   BaseTreeAdapter (std::vector<NodeAdapterImpl<ValueType, NodeType> > const &nodeAdapters_) : nodeAdapters{ nodeAdapters_ } {}
 
-  std::vector<NodeAdapterImpl<ValueType, NodeType> > virtual generateNodeAdapters (Tree const &tree) = 0;
   virtual ~BaseTreeAdapter () = default;
   auto
   root () const

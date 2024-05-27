@@ -18,13 +18,13 @@ template <typename ValueType, typename NodeType> struct StTreeNodeAdapter : publ
   StTreeNodeAdapter (NodeType const &node) : BaseNodeAdapter<ValueType, NodeType>{ generateNodeData (node), generateChildrenData (node) } {}
 
   ValueType
-  generateNodeData (NodeType const &node) override
+  generateNodeData (NodeType const &node)
   {
     return node.data ();
   };
 
   std::vector<ValueType>
-  generateChildrenData (NodeType const &node) override
+  generateChildrenData (NodeType const &node)
   {
     auto results = std::vector<ValueType>{};
     std::ranges::transform (node, std::back_inserter (results), [] (auto const &node_) { return node_.data (); });
@@ -37,7 +37,7 @@ template <typename ValueType, typename NodeType = st_tree::detail::node_raw<st_t
   StTreeAdapter (st_tree::tree<ValueType> const &tree) : BaseTreeAdapter<StTreeNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
 
   std::vector<StTreeNodeAdapter<ValueType, NodeType> >
-  generateNodeAdapters (TreeType const &tree) override
+  generateNodeAdapters (TreeType const &tree)
   {
     auto results = std::vector<StTreeNodeAdapter<ValueType, NodeType> >{};
     for (auto const &node : tree)

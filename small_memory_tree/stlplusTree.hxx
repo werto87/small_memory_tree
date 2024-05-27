@@ -20,13 +20,13 @@ template <typename ValueType, typename NodeType> struct StlplusNodeAdapter : pub
   StlplusNodeAdapter (NodeType const &node) : BaseNodeAdapter<ValueType, NodeType>{ generateNodeData (node), generateChildrenData (node) } {}
 
   ValueType
-  generateNodeData (NodeType const &node) override
+  generateNodeData (NodeType const &node)
   {
     return node.m_data;
   };
 
   std::vector<ValueType>
-  generateChildrenData (NodeType const &node) override
+  generateChildrenData (NodeType const &node)
   {
     auto results = std::vector<ValueType>{};
     std::ranges::transform (node.m_children, std::back_inserter (results), [] (auto const &childNode) { return childNode->m_data; });
@@ -38,7 +38,7 @@ template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>
 {
   StlplusTreeAdapter (stlplus::ntree<ValueType> const &tree) : BaseTreeAdapter<StlplusNodeAdapter, ValueType, NodeType, TreeType>{ generateNodeAdapters (tree) } {}
   std::vector<StlplusNodeAdapter<ValueType, NodeType> >
-  generateNodeAdapters (TreeType const &tree) override
+  generateNodeAdapters (TreeType const &tree)
   {
     auto results = std::vector<StlplusNodeAdapter<ValueType, NodeType> >{};
     std::ranges::transform (tree.breadth_first_traversal (), std::back_inserter (results), [] (auto const &nodeWrapper) { return StlplusNodeAdapter<ValueType, NodeType>{ *nodeWrapper.node () }; });
