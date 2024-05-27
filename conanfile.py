@@ -20,6 +20,6 @@ class Project(ConanFile):
         self.requires("boost/1.84.0", force=True)
         self.requires("st_tree/1.2.2")
         self.requires("catch2/2.13.7")
-        self.requires("confu_algorithm/1.0.1")
+        self.requires("confu_algorithm/1.1.0")
         self.requires("stlplus/3.16.0")
         

@@ -6,6 +6,7 @@ Distributed under the Boost Software License, Version 1.0.
  */
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
+#include <confu_algorithm/binaryFind.hxx>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <iterator>
@@ -185,12 +186,12 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
   auto const &hierarchy = smallMemoryTree.getHierarchy ();
   auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
   auto curentLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
-  if (auto curentLevelNodeItr = std::ranges::find (curentLevelNodeIndexes, boost::numeric_cast<int64_t> (node)); curentLevelNodeItr != curentLevelNodeIndexes.end ())
+  if (auto curentLevelNodeItr = confu_algorithm::binaryFind (curentLevelNodeIndexes.begin (), curentLevelNodeIndexes.end (), boost::numeric_cast<int64_t> (node)); curentLevelNodeItr != curentLevelNodeIndexes.end ())
     {
       auto currentLevelValuesBeforeNode = std::distance (curentLevelNodeIndexes.begin (), curentLevelNodeItr);
       auto const &childrenOffsetBegin = currentLevelValuesBeforeNode * maxChildren;
       auto childLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level + 1);
-      if (auto childItr = std::ranges::find (childLevelNodeIndexes, childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
+      if (auto childItr = confu_algorithm::binaryFind (childLevelNodeIndexes.begin (), childLevelNodeIndexes.end (), childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
         {
           auto const hierarchyBegin = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
           auto const &hierarchyEnd = hierarchyBegin + maxChildren;
