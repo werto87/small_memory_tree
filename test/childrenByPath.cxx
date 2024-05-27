@@ -76,7 +76,7 @@ TEST_CASE ("childrenByPath max nodes 2 and sibling has same number")
   tree.root ()[1].insert (4);
   tree.root ()[1][1].insert (69);
   auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  auto myChildren = childrenByPath (smt, std::vector<int>{ 0, 2, 4 });
+  auto myChildren = childrenByPath (smt, std::vector<int>{ 0, 2, 4 }, true);
   REQUIRE (myChildren->size () == 1);
   REQUIRE (myChildren->at (0) == 69);
 }

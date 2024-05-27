@@ -333,7 +333,7 @@ private:
  */
 template <typename ValueType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
 std::optional<std::vector<ValueType> >
-childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path)
+childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPerLevelType> const &smallMemoryTree, std::vector<ValueType> const &path, bool childrenAreSorted = false)
 {
   // TODO use std::expected for error handling instead of exception throwing
   if (path.empty ())
@@ -363,7 +363,16 @@ childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPer
         {
           auto const &valueToLookFor = path.at (i);
           auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, i - 1, node);
-          if (auto itr = std::ranges::find (std::get<0> (result), valueToLookFor); itr != std::get<0> (result).end ())
+          auto itr = std::get<0> (result).begin ();
+          if (childrenAreSorted)
+            {
+              itr = confu_algorithm::binaryFind (std::get<0> (result).begin (), std::get<0> (result).end (), valueToLookFor);
+            }
+          else
+            {
+              itr = std::ranges::find (std::get<0> (result), valueToLookFor);
+            }
+          if (itr != std::get<0> (result).end ())
             {
               auto const usedValuesOfLevelBeforeNode = std::get<1> (result);
               auto const childOffset = std::distance (std::get<0> (result).begin (), itr);

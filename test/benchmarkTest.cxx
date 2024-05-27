@@ -83,5 +83,9 @@ TEST_CASE ("childrenByPath", "[!benchmark]")
     {
       BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 9999 }); };
     }
+    SECTION ("childrenByPath 0 9999 with binary find")
+    {
+      BENCHMARK ("SmallMemoryTree") { return childrenByPath (smallMemoryTree, std::vector<uint64_t>{ 0, 9999 }, true); };
+    }
   }
 }
