@@ -83,8 +83,8 @@ main ()
   // a couple lines of code later...
   // load data from database (you have to write this code by yourself. It is currently not in the scope of small memory tree.)
   auto maxChildrenFromDatabase = uint64_t{ 2 };
-  auto treeDataFromDatabase = std::vector<int>{ 0, 1, 2 };
   auto treeHierarchyFromDatabase = std::vector<bool>{ true, true, true, false, false, false, false };
+  auto treeDataFromDatabase = std::vector<int>{ 0, 1, 2 };
   // create SmallMemoryTreeData from the data from the database
   auto dataFromDatabase = SmallMemoryTreeData<int>{ maxChildrenFromDatabase, std::move (treeHierarchyFromDatabase), std::move (treeDataFromDatabase) };
   // create SmallMemoryTree from SmallMemoryTreeData
