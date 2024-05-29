@@ -332,9 +332,9 @@ private:
 -----3
 ----/-\
 ---4---5
- * @param smallMemoryTree vector in tree form
+ * @param smallMemoryTree
  * @param path vector with the values of nodes
- * @return value of the children of the node at the cend of the path. Empty vector result means no children. Empty optional means wrong path
+ * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
  */
 template <typename ValueType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
 std::optional<std::vector<ValueType> >
