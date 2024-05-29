@@ -364,24 +364,23 @@ childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPer
   else
     {
       auto node = uint64_t{};
-      for (auto i = uint64_t{ 1 }; i < path.size (); ++i)
+      for (auto level = uint64_t{ 1 }; level < path.size (); ++level)
         {
-          auto const &valueToLookFor = path.at (i);
-          auto result = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, i - 1, node);
-          auto itr = std::get<0> (result).begin ();
+          auto const &valueToLookFor = path.at (level);
+          auto [childrenData, usedValuesOfLevelBeforeNode] = internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, level - 1, node);
+          auto itr = childrenData.begin ();
           if (childrenAreSorted)
             {
-              itr = confu_algorithm::binaryFind (std::get<0> (result).begin (), std::get<0> (result).end (), valueToLookFor);
+              itr = confu_algorithm::binaryFind (childrenData.begin (), childrenData.end (), valueToLookFor);
             }
           else
             {
-              itr = std::ranges::find (std::get<0> (result), valueToLookFor);
+              itr = std::ranges::find (childrenData, valueToLookFor);
             }
-          if (itr != std::get<0> (result).end ())
+          if (itr != childrenData.end ())
             {
-              auto const usedValuesOfLevelBeforeNode = std::get<1> (result);
-              auto const childOffset = std::distance (std::get<0> (result).begin (), itr);
-              node = smallMemoryTree.getNodeIndexesForLevel (i).at (boost::numeric_cast<uint64_t> (usedValuesOfLevelBeforeNode + childOffset));
+              auto const childOffset = std::distance (childrenData.begin (), itr);
+              node = smallMemoryTree.getNodeIndexesForLevel (level).at (boost::numeric_cast<uint64_t> (usedValuesOfLevelBeforeNode + childOffset));
             }
           else
             {
