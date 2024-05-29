@@ -184,33 +184,32 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
 {
   auto const &levels = smallMemoryTree.getLevels ();
   auto const &data = smallMemoryTree.getData ();
-  using ResultType = std::tuple<std::vector<std::decay_t<decltype (data.front ())> >, int64_t>;
+  using ChildrenData = std::vector<std::decay_t<decltype (data.front ())> >;
+  using ResultType = std::tuple<ChildrenData, int64_t>;
   if (levels.size () == 1 and level == 0 and node == 0)
     {
       return ResultType{}; // special case root with no children
     }
   if (levels.size () - 1 == level)
     {
-      throw std::logic_error{ "level value is to high" };
+      throw std::logic_error{ "level value is to high  " };
     }
   auto const &hierarchy = smallMemoryTree.getHierarchy ();
   auto const &maxChildren = boost::numeric_cast<int64_t> (smallMemoryTree.getMaxChildren ());
   auto curentLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level);
-  if (auto curentLevelNodeItr = confu_algorithm::binaryFind (curentLevelNodeIndexes.begin (), curentLevelNodeIndexes.end (), boost::numeric_cast<int64_t> (node)); curentLevelNodeItr != curentLevelNodeIndexes.end ())
+  if (auto curentLevelNodeItr = confu_algorithm::binaryFind (curentLevelNodeIndexes.cbegin (), curentLevelNodeIndexes.cend (), boost::numeric_cast<int64_t> (node)); curentLevelNodeItr != curentLevelNodeIndexes.cend ())
     {
-      auto currentLevelValuesBeforeNode = std::distance (curentLevelNodeIndexes.begin (), curentLevelNodeItr);
+      auto const &currentLevelValuesBeforeNode = std::distance (curentLevelNodeIndexes.cbegin (), curentLevelNodeItr);
       auto const &childrenOffsetBegin = currentLevelValuesBeforeNode * maxChildren;
       auto childLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level + 1);
-      if (auto childItr = confu_algorithm::binaryFind (childLevelNodeIndexes.begin (), childLevelNodeIndexes.end (), childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
+      if (auto childItr = confu_algorithm::binaryFind (childLevelNodeIndexes.cbegin (), childLevelNodeIndexes.cend (), childrenOffsetBegin); childItr != childLevelNodeIndexes.cend ())
         {
-          auto hierarchyOffset = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
-          auto const &hierarchyOffsetEnd = hierarchyOffset + maxChildren;
-          auto dataOffset = data.begin () + boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
-          auto dataOffsetEnd = dataOffset + std::distance (hierarchy.begin () + hierarchyOffset, internals::dataEndForChildren (hierarchy.begin () + hierarchyOffset, hierarchy.begin () + hierarchyOffsetEnd));
-          auto [childrenData, usedValuesUntilChildren] = ResultType{};
-          childrenData.insert (childrenData.begin (), dataOffset, dataOffsetEnd);
-          usedValuesUntilChildren = std::distance (childLevelNodeIndexes.begin (), childItr);
-          return std::make_tuple (std::move (childrenData), usedValuesUntilChildren);
+          auto childrenHierarchyBegin = hierarchy.cbegin () + boost::numeric_cast<int64_t> (levels.at (level) + *childItr);
+          auto childrenHierarchyEnd = childrenHierarchyBegin + maxChildren;
+          auto const &valuesUsedChildrenLevel = std::distance (childLevelNodeIndexes.cbegin (), childItr);
+          auto childrenDataBegin = data.cbegin () + boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + valuesUsedChildrenLevel;
+          auto childrenDataEnd = childrenDataBegin + std::distance (childrenHierarchyBegin, internals::dataEndForChildren (childrenHierarchyBegin, childrenHierarchyEnd));
+          return std::make_tuple (ChildrenData{ childrenDataBegin, childrenDataEnd }, valuesUsedChildrenLevel);
         }
       else
         {
@@ -335,7 +334,7 @@ private:
 ---4---5
  * @param smallMemoryTree vector in tree form
  * @param path vector with the values of nodes
- * @return value of the children of the node at the end of the path. Empty vector result means no children. Empty optional means wrong path
+ * @return value of the children of the node at the cend of the path. Empty vector result means no children. Empty optional means wrong path
  */
 template <typename ValueType, typename MaxChildrenType, typename LevelType, typename ValuesPerLevelType>
 std::optional<std::vector<ValueType> >
