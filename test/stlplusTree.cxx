@@ -504,21 +504,21 @@ TEST_CASE ("partitionPoint")
   SECTION ("true, false")
   {
     auto data = std::vector{ true, false };
-    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 1);
+    REQUIRE (std::distance (data.cbegin (), internals::dataEndForChildren (data.cbegin (), data.cend ())) == 1);
   }
   SECTION ("true, true, false")
   {
     auto data = std::vector{ true, true, false };
-    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 2);
+    REQUIRE (std::distance (data.cbegin (), internals::dataEndForChildren (data.cbegin (), data.cend ())) == 2);
   }
   SECTION ("false, false")
   {
     auto data = std::vector{ false, false };
-    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 0);
+    REQUIRE (std::distance (data.cbegin (), internals::dataEndForChildren (data.cbegin (), data.cend ())) == 0);
   }
   SECTION ("true, true")
   {
     auto data = std::vector{ true, true };
-    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 2);
+    REQUIRE (std::distance (data.cbegin (), internals::dataEndForChildren (data.cbegin (), data.cend ())) == 2);
   }
 }

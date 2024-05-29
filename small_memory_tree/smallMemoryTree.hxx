@@ -14,6 +14,7 @@ Distributed under the Boost Software License, Version 1.0.
 #include <optional>
 #include <ranges>
 #include <stdexcept>
+#include <tuple>
 #include <type_traits>
 #include <vector>
 namespace small_memory_tree
@@ -166,6 +167,17 @@ levelWithOptionalValues (auto const &smallMemoryTree, uint64_t level)
       return result;
     }
 }
+
+template <typename Itr>
+auto
+dataEndForChildren (Itr begin, Itr end)
+{
+  // requires a sequence of bool which is partitioned with !(a < b)
+  // returns an iterator to the first element which has the value false
+  // if there is no true value in the sequence returns begin
+  return std::upper_bound (begin, end, false, [] (auto const &a, auto const &b) { return !(a < b); });
+}
+
 // TODO try to move code into some functions this is to complicated
 [[nodiscard]] auto
 childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level, uint64_t node)
@@ -192,21 +204,13 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
       if (auto childItr = confu_algorithm::binaryFind (childLevelNodeIndexes.begin (), childLevelNodeIndexes.end (), childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
         {
           auto hierarchyOffset = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
-          auto result = ResultType{};
-          std::get<1> (result) = std::distance (childLevelNodeIndexes.begin (), childItr);
-          auto dataOffset = boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
-          auto const &hierarchyEnd = hierarchyOffset + maxChildren;
-          // TODO data and no data are partitioned: thus we can count run over hierarch until we hit a false count this and than do a copy data.begin()+offset until data.begin()+offset+true count
-
-          for (; hierarchyOffset != hierarchyEnd; ++hierarchyOffset)
-            {
-              if (*(hierarchy.begin () + hierarchyOffset))
-                {
-                  std::get<0> (result).push_back (data.at (boost::numeric_cast<uint64_t> (dataOffset)));
-                  dataOffset++;
-                }
-            }
-          return result;
+          auto [childrenData, usedValuesUntilChildren] = ResultType{};
+          usedValuesUntilChildren = std::distance (childLevelNodeIndexes.begin (), childItr);
+          auto const &hierarchyOffsetEnd = hierarchyOffset + maxChildren;
+          auto dataOffset = data.begin () + boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
+          auto dataOffsetEnd = dataOffset + std::distance (hierarchy.begin () + hierarchyOffset, internals::dataEndForChildren (hierarchy.begin () + hierarchyOffset, hierarchy.begin () + hierarchyOffsetEnd));
+          childrenData.insert (childrenData.begin (), dataOffset, dataOffsetEnd);
+          return std::make_tuple (std::move (childrenData), usedValuesUntilChildren);
         }
       else
         {
@@ -217,16 +221,6 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
     {
       throw std::logic_error{ "node has no value" };
     }
-}
-
-template <typename Itr>
-auto
-dataEndForChildren (Itr begin, Itr end)
-{
-  // requires a sequence of bool which is partitioned with !(a < b)
-  // returns an iterator to the first element which has the value false
-  // if there is no true value in the sequence returns begin
-  return std::upper_bound (begin, end, false, [] (auto const &a, auto const &b) { return !(a < b); });
 }
 
 }
