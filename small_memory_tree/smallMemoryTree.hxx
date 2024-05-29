@@ -204,10 +204,10 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
       if (auto childItr = confu_algorithm::binaryFind (childLevelNodeIndexes.begin (), childLevelNodeIndexes.end (), childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
         {
           auto hierarchyOffset = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
-          auto [childrenData, usedValuesUntilChildren] = ResultType{};
           auto const &hierarchyOffsetEnd = hierarchyOffset + maxChildren;
           auto dataOffset = data.begin () + boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
           auto dataOffsetEnd = dataOffset + std::distance (hierarchy.begin () + hierarchyOffset, internals::dataEndForChildren (hierarchy.begin () + hierarchyOffset, hierarchy.begin () + hierarchyOffsetEnd));
+          auto [childrenData, usedValuesUntilChildren] = ResultType{};
           childrenData.insert (childrenData.begin (), dataOffset, dataOffsetEnd);
           usedValuesUntilChildren = std::distance (childLevelNodeIndexes.begin (), childItr);
           return std::make_tuple (std::move (childrenData), usedValuesUntilChildren);
