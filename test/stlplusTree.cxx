@@ -9,6 +9,8 @@ Distributed under the Boost Software License, Version 1.0.
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
+#include <iterator>
+#include <vector>
 
 using namespace small_memory_tree;
 
@@ -495,4 +497,28 @@ TEST_CASE ("stlplus generateTree 3 children and tuple")
   tree.append (child0child, { 42, 42 });
   auto smt = SmallMemoryTree<std::tuple<int, int> >{ StlplusTreeAdapter{ tree } };
   REQUIRE (tree == generateStlplusTree (smt));
+}
+
+TEST_CASE ("partitionPoint")
+{
+  SECTION ("true, false")
+  {
+    auto data = std::vector{ true, false };
+    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 1);
+  }
+  SECTION ("true, true, false")
+  {
+    auto data = std::vector{ true, true, false };
+    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 2);
+  }
+  SECTION ("false, false")
+  {
+    auto data = std::vector{ false, false };
+    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 0);
+  }
+  SECTION ("true, true")
+  {
+    auto data = std::vector{ true, true };
+    REQUIRE (std::distance (data.cbegin (), dataEndForChildren (data.cbegin (), data.cend ())) == 2);
+  }
 }

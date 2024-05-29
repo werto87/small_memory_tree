@@ -191,17 +191,19 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
       auto childLevelNodeIndexes = smallMemoryTree.getNodeIndexesForLevel (level + 1);
       if (auto childItr = confu_algorithm::binaryFind (childLevelNodeIndexes.begin (), childLevelNodeIndexes.end (), childrenOffsetBegin); childItr != childLevelNodeIndexes.end ())
         {
-          auto const hierarchyBegin = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
-          auto const &hierarchyEnd = hierarchyBegin + maxChildren;
+          auto hierarchyOffset = boost::numeric_cast<int64_t> ((level == 0) ? 0 : levels.at (level) + *childItr);
           auto result = ResultType{};
           std::get<1> (result) = std::distance (childLevelNodeIndexes.begin (), childItr);
-          auto valuesUsed = boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
-          for (auto i = hierarchyBegin; i != hierarchyEnd; ++i)
+          auto dataOffset = boost::numeric_cast<int64_t> (smallMemoryTree.getTotalValuesUsedUntilLevel (level + 1)) + std::distance (childLevelNodeIndexes.begin (), childItr);
+          auto const &hierarchyEnd = hierarchyOffset + maxChildren;
+          // TODO data and no data are partitioned: thus we can count run over hierarch until we hit a false count this and than do a copy data.begin()+offset until data.begin()+offset+true count
+
+          for (; hierarchyOffset != hierarchyEnd; ++hierarchyOffset)
             {
-              if (*(hierarchy.begin () + i))
+              if (*(hierarchy.begin () + hierarchyOffset))
                 {
-                  std::get<0> (result).push_back (data.at (boost::numeric_cast<uint64_t> (valuesUsed)));
-                  valuesUsed++;
+                  std::get<0> (result).push_back (data.at (boost::numeric_cast<uint64_t> (dataOffset)));
+                  dataOffset++;
                 }
             }
           return result;
@@ -215,6 +217,16 @@ childrenAndUsedValuesUntilChildren (auto const &smallMemoryTree, uint64_t level,
     {
       throw std::logic_error{ "node has no value" };
     }
+}
+
+template <typename Itr>
+auto
+dataEndForChildren (Itr begin, Itr end)
+{
+  // requires a sequence of bool which is partitioned with !(a < b)
+  // returns an iterator to the first element which has the value false
+  // if there is no true value in the sequence returns begin
+  return std::upper_bound (begin, end, false, [] (auto const &a, auto const &b) { return !(a < b); });
 }
 
 }
