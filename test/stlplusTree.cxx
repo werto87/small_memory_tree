@@ -14,6 +14,115 @@ Distributed under the Boost Software License, Version 1.0.
 
 using namespace small_memory_tree;
 
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Node
+{
+  // clang-format off
+    [[nodiscard]]
+  auto operator<=> (const Node &) const = default;
+  // clang-format on
+
+  ValueType value{};
+  ChildrenOffsetEnd childrenOffsetEnd{};
+};
+
+namespace small_memory_tree::internals
+{
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t, HasIteratorToNode TreeAdapter>
+std::vector<Node<ValueType, ChildrenOffsetEnd> >
+generateNodes (TreeAdapter const &treeAdapter)
+{
+  std::vector<Node<ValueType, ChildrenOffsetEnd> > results{};
+  auto childrenOffsetEnd = uint64_t{};
+  std::transform (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), std::back_inserter (results), [&childrenOffsetEnd] (auto const &node) mutable {
+    childrenOffsetEnd = childrenOffsetEnd + boost::numeric_cast<uint64_t> (std::distance (node.begin (), node.end ()));
+    return Node<ValueType, ChildrenOffsetEnd>{ node.data (), boost::numeric_cast<uint64_t> (childrenOffsetEnd) };
+  });
+  return results;
+}
+}
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct SmallMemoryTreeNew
+{
+  SmallMemoryTreeNew () = default;
+  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTreeNew (TreeAdapter const &treeAdapter) : nodes{ small_memory_tree::internals::generateNodes<ValueType> (treeAdapter) } {}
+  auto
+  getChildrenValue (uint64_t index)
+  {
+    auto const &node = nodes.at (index);
+    // TODO return node children
+    return nodes.at (index);
+  }
+  auto
+  getNodes () const &
+  {
+    return nodes;
+  }
+
+private:
+  std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes{};
+};
+
+TEST_CASE ("generateNodes only root")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto result = internals::generateNodes<int> (StlplusTreeAdapter{ tree });
+  SECTION ("some test")
+  {
+    REQUIRE (result.size () == 1);
+    REQUIRE (result.at (0) == Node<int>{ 0, 0 });
+  }
+}
+// TODO we do not need to run all the tests for both adapters it is enough if we run it for one and than just compare the SmallMemoryTreeNew created from both adapter
+TEST_CASE ("generateNodes multiple elements")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto result = internals::generateNodes<int> (StlplusTreeAdapter{ tree });
+  SECTION ("some test")
+  {
+    REQUIRE (result.size () == 8);
+    REQUIRE (result.at (0) == Node<int>{ 0, 2 });
+    REQUIRE (result.at (1) == Node<int>{ 1, 4 });
+    REQUIRE (result.at (2) == Node<int>{ 2, 6 });
+    REQUIRE (result.at (3) == Node<int>{ 3, 6 });
+    REQUIRE (result.at (4) == Node<int>{ 4, 6 });
+    REQUIRE (result.at (5) == Node<int>{ 5, 6 });
+    REQUIRE (result.at (6) == Node<int>{ 6, 7 });
+    REQUIRE (result.at (7) == Node<int>{ 7, 7 });
+  }
+}
+
+TEST_CASE ("smallSmallMemoryTreeNew only root")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto smallMemoryTree = SmallMemoryTreeNew<int>{ StlplusTreeAdapter{ tree } };
+
+  SECTION ("construct SmallMemoryTreeNew correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
+}
+// TODO we do not need to run all the tests for both adapters it is enough if we run it for one and than just compare the SmallMemoryTreeNew created from both adapter
+TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto smallMemoryTree = SmallMemoryTreeNew<int>{ StlplusTreeAdapter{ tree } };
+  SECTION ("construct SmallMemoryTreeNew correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
+}
+
 TEST_CASE ("stlplus_tree treeData only root")
 {
   stlplus::ntree<int> tree{};
