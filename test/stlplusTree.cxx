@@ -90,6 +90,72 @@ template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Smal
     return nodes;
   }
 
+  std::expected<std::vector<ValueType>, std::string>
+  calculateChildrenValueForPath (std::vector<ValueType> const &path)
+  {
+    if (not path.empty ())
+      {
+        auto childrenWithIndexOfFirstChild = std::pair (std::vector<Node<ValueType, ChildrenOffsetEnd> >{ nodes.front () }, ChildrenOffsetEnd{});
+        for (auto i = uint64_t{}; i < path.size (); ++i)
+          {
+            auto const &valueToLookFor = path.at (i);
+            if (not childrenWithIndexOfFirstChild.first.empty ())
+              {
+                if (auto childItr = std::ranges::find (childrenWithIndexOfFirstChild.first, valueToLookFor, &Node<ValueType, ChildrenOffsetEnd>::value); childItr != childrenWithIndexOfFirstChild.first.end ())
+                  {
+                    auto const &nodesBeginIndex = childrenWithIndexOfFirstChild.second;
+                    if (i == path.size () - 1)
+                      {
+                        if (auto resultExpected = getChildrenValue (nodesBeginIndex + boost::numeric_cast<ChildrenOffsetEnd> (std::distance (childrenWithIndexOfFirstChild.first.begin (), childItr))))
+                          {
+                            return resultExpected.value ();
+                          }
+                        else
+                          {
+                            return std::unexpected (resultExpected.error ());
+                          }
+                      }
+                    else
+                      {
+                        auto children = getChildren (nodesBeginIndex + boost::numeric_cast<ChildrenOffsetEnd> (std::distance (childrenWithIndexOfFirstChild.first.begin (), childItr)));
+                        if (children)
+                          {
+                            if (not children.value ().empty ())
+                              {
+                                auto const &childrenCount = children.value ().size ();
+                                // TODO consider adding one to all childrenOffsetEnd to point one element after the last this is not the first time we have to use magic numbers
+                                childrenWithIndexOfFirstChild.second = 1 /*childrenOffsetEnd is the index of the last child if we remove the number of children we will be one element before*/ + childItr->childrenOffsetEnd - childrenCount;
+                              }
+                            else if (i != path.size () - 1)
+                              {
+                                return std::unexpected (std::format ("Path too long. Last matching index '{}'.", i));
+                              }
+                            childrenWithIndexOfFirstChild.first = std::move (children.value ());
+                          }
+                        else
+                          {
+                            return std::unexpected (children.error ());
+                          }
+                      }
+                  }
+                else
+                  {
+                    return std::unexpected (std::format ("invalid path. could not find a match for value with index '{}'.", i));
+                  }
+              }
+            else
+              {
+                return std::unexpected ("no root node please check tree.");
+              }
+          }
+      }
+    else
+      {
+        return std::unexpected ("empty path is not allowed");
+      }
+    return std::vector<ValueType>{};
+  }
+
 private:
   std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes{};
 };
@@ -118,7 +184,7 @@ TEST_CASE ("generateNodes multiple elements")
   auto myChild = tree.append (rootChild1, 6);
   tree.append (myChild, 7);
   auto result = internals::generateNodes<int> (StlplusTreeAdapter{ tree });
-  SECTION ("some test")
+  SECTION ("generateNodes")
   {
     REQUIRE (result.size () == 8);
     REQUIRE (result.at (0) == Node<int>{ 0, 2 });
@@ -158,6 +224,13 @@ TEST_CASE ("smallSmallMemoryTreeNew only root")
     REQUIRE (result->empty ());
   }
   SECTION ("getChildrenValue 1 out of bounds") { REQUIRE (smallMemoryTree.getChildrenValue (1).error () == "Index out of bounds nodes.size(): '1' index '1'"); }
+  SECTION ("calculateChildrenValueForPath {0}")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0 });
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("calculateChildrenValueForPath {1} wrong value") { REQUIRE (smallMemoryTree.calculateChildrenValueForPath ({ 1 }).error () == "invalid path. could not find a match for value with index '0'."); }
 }
 // TODO we do not need to run all the tests for both adapters it is enough if we run it for one and than just compare the SmallMemoryTreeNew created from both adapter
 TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
@@ -276,6 +349,105 @@ TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
     auto result = smallMemoryTree.getChildrenValue (7);
     REQUIRE (result);
     REQUIRE (result.value ().empty ());
+  }
+  SECTION ("calculateChildrenValueForPath 0")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0 });
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 1, 2 });
+  }
+  SECTION ("calculateChildrenValueForPath 0 1")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1 });
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 3, 4 });
+  }
+  SECTION ("calculateChildrenValueForPath 0 1 3")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 3 });
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("calculateChildrenValueForPath 0 1 4")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 4 });
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("calculateChildrenValueForPath 0 2 5")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 5 });
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("calculateChildrenValueForPath 0 2 6")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6 });
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 7 });
+  }
+  SECTION ("calculateChildrenValueForPath 0 2 6 7")
+  {
+    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6, 7 });
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("wrong path")
+  {
+    SECTION ("calculateChildrenValueForPath empty path")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({});
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "empty path is not allowed");
+    }
+    SECTION ("calculateChildrenValueForPath 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '0'.");
+    }
+    SECTION ("calculateChildrenValueForPath 0 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '1'.");
+    }
+    SECTION ("calculateChildrenValueForPath 0 1 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+    }
+    SECTION ("calculateChildrenValueForPath 0 1 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+    }
+    SECTION ("calculateChildrenValueForPath 0 2 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+    }
+    SECTION ("calculateChildrenValueForPath 0 2 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+    }
+    SECTION ("calculateChildrenValueForPath 0 2 6 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "invalid path. could not find a match for value with index '3'.");
+    }
+    SECTION ("calculateChildrenValueForPath path to long 0 2 6 7 42")
+    {
+      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6, 7, 42 });
+      REQUIRE_FALSE (result);
+      REQUIRE (result.error () == "Path too long. Last matching index '3'.");
+    }
   }
 }
 
