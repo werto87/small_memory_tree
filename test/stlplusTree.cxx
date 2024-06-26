@@ -9,6 +9,7 @@ Distributed under the Boost Software License, Version 1.0.
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <catch2/catch.hpp>
+#include <expected>
 #include <iterator>
 #include <vector>
 
@@ -44,12 +45,29 @@ template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Smal
 {
   SmallMemoryTreeNew () = default;
   template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTreeNew (TreeAdapter const &treeAdapter) : nodes{ small_memory_tree::internals::generateNodes<ValueType> (treeAdapter) } {}
-  auto
+
+  SmallMemoryTreeNew (std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes_) : nodes{ std::move (nodes_) } {}
+
+  std::expected<std::vector<Node<ValueType, ChildrenOffsetEnd> >, std::string>
   getChildrenValue (uint64_t index)
   {
-    auto const &node = nodes.at (index);
-    // TODO return node children
-    return nodes.at (index);
+    if (auto const &childrenCount = getChildrenCount (index))
+      {
+        auto const &childrenBegin = nodes.begin () + nodes.at (index).childrenOffsetEnd - childrenCount;
+        auto const &childrenOffsetEnd = childrenBegin + childrenCount;
+        return { childrenBegin, childrenOffsetEnd };
+      }
+    else
+      {
+        return std::unexpected (childrenCount.error ());
+      }
+  }
+
+  std::expected<ChildrenOffsetEnd, std::string>
+  getChildrenCount (uint64_t index)
+  {
+    if (index >= nodes.size ()) return std::unexpected (std::format ("Index out of bounds nodes.size(): '{}' index '{}'", nodes.size (), index));
+    return (index == 0) ? nodes.at (index).childrenOffsetEnd : nodes.at (index).childrenOffsetEnd - nodes.at (index - 1).childrenOffsetEnd;
   }
   auto
   getNodes () const &
@@ -106,6 +124,11 @@ TEST_CASE ("smallSmallMemoryTreeNew only root")
   auto smallMemoryTree = SmallMemoryTreeNew<int>{ StlplusTreeAdapter{ tree } };
 
   SECTION ("construct SmallMemoryTreeNew correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
+  SECTION ("getChildrenCount")
+  {
+    REQUIRE (smallMemoryTree.getChildrenCount (0) == 0);
+    REQUIRE (smallMemoryTree.getChildrenCount (1).error () == "Index out of bounds nodes.size(): '1' index '1'");
+  }
 }
 // TODO we do not need to run all the tests for both adapters it is enough if we run it for one and than just compare the SmallMemoryTreeNew created from both adapter
 TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
@@ -121,6 +144,17 @@ TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
   tree.append (myChild, 7);
   auto smallMemoryTree = SmallMemoryTreeNew<int>{ StlplusTreeAdapter{ tree } };
   SECTION ("construct SmallMemoryTreeNew correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
+  SECTION ("getChildrenCount")
+  {
+    REQUIRE (smallMemoryTree.getChildrenCount (0) == 2);
+    REQUIRE (smallMemoryTree.getChildrenCount (1) == 2);
+    REQUIRE (smallMemoryTree.getChildrenCount (2) == 2);
+    REQUIRE (smallMemoryTree.getChildrenCount (3) == 0);
+    REQUIRE (smallMemoryTree.getChildrenCount (4) == 0);
+    REQUIRE (smallMemoryTree.getChildrenCount (5) == 0);
+    REQUIRE (smallMemoryTree.getChildrenCount (6) == 1);
+    REQUIRE (smallMemoryTree.getChildrenCount (7) == 0);
+  }
 }
 
 TEST_CASE ("stlplus_tree treeData only root")
