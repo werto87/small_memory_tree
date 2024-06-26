@@ -49,17 +49,32 @@ template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Smal
   SmallMemoryTreeNew (std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes_) : nodes{ std::move (nodes_) } {}
 
   std::expected<std::vector<Node<ValueType, ChildrenOffsetEnd> >, std::string>
-  getChildrenValue (uint64_t index)
+  getChildren (uint64_t index)
   {
-    if (auto const &childrenCount = getChildrenCount (index))
+    if (auto const &childrenCountExpected = getChildrenCount (index))
       {
-        auto const &childrenBegin = nodes.begin () + nodes.at (index).childrenOffsetEnd - childrenCount;
-        auto const &childrenOffsetEnd = childrenBegin + childrenCount;
-        return { childrenBegin, childrenOffsetEnd };
+        auto const &childrenCount = boost::numeric_cast<int64_t> (childrenCountExpected.value ());
+        auto const &childrenOffsetEnd = nodes.begin () + boost::numeric_cast<int64_t> (nodes.at (index).childrenOffsetEnd) + 1 /*end has to be one element after the last element*/;
+        auto const &childrenBegin = childrenOffsetEnd - childrenCount;
+        return std::vector<Node<ValueType, ChildrenOffsetEnd> > (childrenBegin, childrenOffsetEnd);
       }
     else
       {
-        return std::unexpected (childrenCount.error ());
+        return std::unexpected (childrenCountExpected.error ());
+      }
+  }
+  std::expected<std::vector<ValueType>, std::string>
+  getChildrenValue (uint64_t index)
+  {
+    if (auto const &childrenExpected = getChildren (index))
+      {
+        auto result = std::vector<ValueType>{};
+        std::ranges::transform (childrenExpected.value (), std::back_inserter (result), [] (Node<ValueType, ChildrenOffsetEnd> const &childNode) { return childNode.value; });
+        return result;
+      }
+    else
+      {
+        return std::unexpected (childrenExpected.error ());
       }
   }
 
@@ -129,6 +144,20 @@ TEST_CASE ("smallSmallMemoryTreeNew only root")
     REQUIRE (smallMemoryTree.getChildrenCount (0) == 0);
     REQUIRE (smallMemoryTree.getChildrenCount (1).error () == "Index out of bounds nodes.size(): '1' index '1'");
   }
+  SECTION ("getChildren 0")
+  {
+    auto result = smallMemoryTree.getChildren (0);
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("getChildren 1 out of bounds") { REQUIRE (smallMemoryTree.getChildren (1).error () == "Index out of bounds nodes.size(): '1' index '1'"); }
+  SECTION ("getChildrenValue 0")
+  {
+    auto result = smallMemoryTree.getChildrenValue (0);
+    REQUIRE (result);
+    REQUIRE (result->empty ());
+  }
+  SECTION ("getChildrenValue 1 out of bounds") { REQUIRE (smallMemoryTree.getChildrenValue (1).error () == "Index out of bounds nodes.size(): '1' index '1'"); }
 }
 // TODO we do not need to run all the tests for both adapters it is enough if we run it for one and than just compare the SmallMemoryTreeNew created from both adapter
 TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
@@ -144,16 +173,109 @@ TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
   tree.append (myChild, 7);
   auto smallMemoryTree = SmallMemoryTreeNew<int>{ StlplusTreeAdapter{ tree } };
   SECTION ("construct SmallMemoryTreeNew correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
-  SECTION ("getChildrenCount")
+  SECTION ("getChildrenCount 0") { REQUIRE (smallMemoryTree.getChildrenCount (0) == 2); }
+  SECTION ("getChildrenCount 1") { REQUIRE (smallMemoryTree.getChildrenCount (1) == 2); }
+  SECTION ("getChildrenCount 2") { REQUIRE (smallMemoryTree.getChildrenCount (2) == 2); }
+  SECTION ("getChildrenCount 3") { REQUIRE (smallMemoryTree.getChildrenCount (3) == 0); }
+  SECTION ("getChildrenCount 4") { REQUIRE (smallMemoryTree.getChildrenCount (4) == 0); }
+  SECTION ("getChildrenCount 5") { REQUIRE (smallMemoryTree.getChildrenCount (5) == 0); }
+  SECTION ("getChildrenCount 6") { REQUIRE (smallMemoryTree.getChildrenCount (6) == 1); }
+  SECTION ("getChildrenCount 7") { REQUIRE (smallMemoryTree.getChildrenCount (7) == 0); }
+  SECTION ("getChildren 0")
   {
-    REQUIRE (smallMemoryTree.getChildrenCount (0) == 2);
-    REQUIRE (smallMemoryTree.getChildrenCount (1) == 2);
-    REQUIRE (smallMemoryTree.getChildrenCount (2) == 2);
-    REQUIRE (smallMemoryTree.getChildrenCount (3) == 0);
-    REQUIRE (smallMemoryTree.getChildrenCount (4) == 0);
-    REQUIRE (smallMemoryTree.getChildrenCount (5) == 0);
-    REQUIRE (smallMemoryTree.getChildrenCount (6) == 1);
-    REQUIRE (smallMemoryTree.getChildrenCount (7) == 0);
+    auto result = smallMemoryTree.getChildren (0);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<Node<int> >{ { 1, 4 }, { 2, 6 } });
+  }
+  SECTION ("getChildren 1")
+  {
+    auto result = smallMemoryTree.getChildren (1);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<Node<int> >{ { 3, 6 }, { 4, 6 } });
+  }
+  SECTION ("getChildren 2")
+  {
+    auto result = smallMemoryTree.getChildren (2);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<Node<int> >{ { 5, 6 }, { 6, 7 } });
+  }
+  SECTION ("getChildren 3")
+  {
+    auto result = smallMemoryTree.getChildren (3);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildren 4")
+  {
+    auto result = smallMemoryTree.getChildren (4);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildren 5")
+  {
+    auto result = smallMemoryTree.getChildren (5);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildren 6")
+  {
+    auto result = smallMemoryTree.getChildren (6);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<Node<int> >{ { 7, 7 } });
+  }
+  SECTION ("getChildren 7")
+  {
+    auto result = smallMemoryTree.getChildren (7);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildrenValue 0")
+  {
+    auto result = smallMemoryTree.getChildrenValue (0);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 1, 2 });
+  }
+  SECTION ("getChildrenValue 1")
+  {
+    auto result = smallMemoryTree.getChildrenValue (1);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 3, 4 });
+  }
+  SECTION ("getChildrenValue 2")
+  {
+    auto result = smallMemoryTree.getChildrenValue (2);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 5, 6 });
+  }
+  SECTION ("getChildrenValue 3")
+  {
+    auto result = smallMemoryTree.getChildrenValue (3);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildrenValue 4")
+  {
+    auto result = smallMemoryTree.getChildrenValue (4);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildrenValue 5")
+  {
+    auto result = smallMemoryTree.getChildrenValue (5);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
+  }
+  SECTION ("getChildrenValue 6")
+  {
+    auto result = smallMemoryTree.getChildrenValue (6);
+    REQUIRE (result);
+    REQUIRE (result.value () == std::vector<int>{ 7 });
+  }
+  SECTION ("getChildrenValue 7")
+  {
+    auto result = smallMemoryTree.getChildrenValue (7);
+    REQUIRE (result);
+    REQUIRE (result.value ().empty ());
   }
 }
 
