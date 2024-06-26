@@ -98,6 +98,7 @@ public:
             auto const &valueToLookFor = path.at (i);
             if (not nodesToCheck.empty ())
               {
+                // TODO binary search if sorted
                 if (auto nodeItr = std::ranges::find (nodesToCheck, valueToLookFor, &Node<ValueType, ChildrenOffsetEnd>::value); nodeItr != nodesToCheck.end ())
                   {
                     auto children = data.getChildrenWithFirstChildIndex (indexOfFirstChild + boost::numeric_cast<ChildrenOffsetEnd> (std::distance (nodesToCheck.begin (), nodeItr)));
