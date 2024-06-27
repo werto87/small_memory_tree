@@ -3,7 +3,7 @@
 # (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
  
 
-add_executable(_test benchmarkTest.cxx childrenByPath.cxx stlplusTree.cxx
+add_executable(_test benchmarkTest.cxx stlplusTree.cxx
 stTree.cxx)
 find_package(Catch2)
 target_link_libraries(_test myproject_options myproject_warnings
