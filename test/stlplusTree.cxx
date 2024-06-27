@@ -29,7 +29,7 @@ template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Node
 namespace small_memory_tree::internals
 {
 template <typename ValueType, typename ChildrenOffsetEnd = uint64_t, HasIteratorToNode TreeAdapter>
-std::vector<Node<ValueType, ChildrenOffsetEnd> >
+[[nodiscard]] std::vector<Node<ValueType, ChildrenOffsetEnd> >
 generateNodes (TreeAdapter const &treeAdapter)
 {
   std::vector<Node<ValueType, ChildrenOffsetEnd> > results{};
@@ -49,7 +49,7 @@ public:
 
   SmallMemoryTreeNewData (std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes_) : nodes{ std::move (nodes_) } {}
 
-  std::expected<std::tuple<std::vector<Node<ValueType, ChildrenOffsetEnd> >, ChildrenOffsetEnd>, std::string>
+  [[nodiscard]] std::expected<std::tuple<std::vector<Node<ValueType, ChildrenOffsetEnd> >, ChildrenOffsetEnd>, std::string>
   getChildrenWithFirstChildIndex (uint64_t index) const
   {
     if (auto const &childrenCountExpected = getChildrenCount (index))
@@ -65,13 +65,13 @@ public:
       }
   }
 
-  std::expected<ChildrenOffsetEnd, std::string>
+  [[nodiscard]] std::expected<ChildrenOffsetEnd, std::string>
   getChildrenCount (uint64_t index) const
   {
     if (index >= nodes.size ()) return std::unexpected (std::format ("Index out of bounds nodes.size(): '{}' index '{}'", nodes.size (), index));
     return (index == 0) ? nodes.at (index).childrenOffsetEnd : nodes.at (index).childrenOffsetEnd - nodes.at (index - 1).childrenOffsetEnd;
   }
-  auto const &
+  [[nodiscard]] std::vector<Node<ValueType, ChildrenOffsetEnd> > const &
   getNodes () const
   {
     return nodes;
@@ -86,7 +86,7 @@ template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Smal
 public:
   SmallMemoryTreeNew (SmallMemoryTreeNewData<ValueType, ChildrenOffsetEnd> data_) : data{ data_ } {}
 
-  std::expected<std::vector<ValueType>, std::string>
+  [[nodiscard]] std::expected<std::vector<ValueType>, std::string>
   calculateChildrenForPath (std::vector<ValueType> const &path, bool sortedNodes = false) const
   {
     if (not path.empty ())
@@ -141,7 +141,7 @@ public:
     return std::vector<ValueType>{};
   }
 
-  auto const &
+  [[nodiscard]] SmallMemoryTreeNewData<ValueType, ChildrenOffsetEnd> const &
   getData () const
   {
     return data;
