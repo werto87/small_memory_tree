@@ -87,7 +87,7 @@ public:
   SmallMemoryTreeNew (SmallMemoryTreeNewData<ValueType, ChildrenOffsetEnd> data_) : data{ data_ } {}
 
   std::expected<std::vector<ValueType>, std::string>
-  calculateChildrenValueForPath (std::vector<ValueType> const &path) const
+  calculateChildrenForPath (std::vector<ValueType> const &path, bool sortedNodes = false) const
   {
     if (not path.empty ())
       {
@@ -98,8 +98,16 @@ public:
             auto const &valueToLookFor = path.at (i);
             if (not nodesToCheck.empty ())
               {
-                // TODO binary search if sorted
-                if (auto nodeItr = std::ranges::find (nodesToCheck, valueToLookFor, &Node<ValueType, ChildrenOffsetEnd>::value); nodeItr != nodesToCheck.end ())
+                auto nodeItr = nodesToCheck.begin ();
+                if (sortedNodes)
+                  {
+                    nodeItr = confu_algorithm::binaryFind (nodesToCheck.begin (), nodesToCheck.end (), valueToLookFor, {}, &Node<ValueType, ChildrenOffsetEnd>::value);
+                  }
+                else
+                  {
+                    nodeItr = std::ranges::find (nodesToCheck, valueToLookFor, &Node<ValueType, ChildrenOffsetEnd>::value);
+                  }
+                if (nodeItr != nodesToCheck.end ())
                   {
                     auto children = data.getChildrenWithFirstChildIndex (indexOfFirstChild + boost::numeric_cast<ChildrenOffsetEnd> (std::distance (nodesToCheck.begin (), nodeItr)));
                     if (children)
@@ -201,13 +209,13 @@ TEST_CASE ("smallSmallMemoryTreeNew only root")
   }
   SECTION ("getChildrenWithFirstChildIndex 1 out of bounds") { REQUIRE (smallMemoryTree.getData ().getChildrenWithFirstChildIndex (1).error () == "Index out of bounds nodes.size(): '1' index '1'"); }
 
-  SECTION ("calculateChildrenValueForPath {0}")
+  SECTION ("calculateChildrenForPath {0}")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0 });
     REQUIRE (result);
     REQUIRE (result->empty ());
   }
-  SECTION ("calculateChildrenValueForPath {1} wrong value") { REQUIRE (smallMemoryTree.calculateChildrenValueForPath ({ 1 }).error () == "invalid path. could not find a match for value with index '0'."); }
+  SECTION ("calculateChildrenForPath {1} wrong value") { REQUIRE (smallMemoryTree.calculateChildrenForPath ({ 1 }).error () == "invalid path. could not find a match for value with index '0'."); }
 }
 // TODO we do not need to run all the tests for both adapters it is enough if we run it for one and than just compare the SmallMemoryTreeNewData created from both adapter
 TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
@@ -279,101 +287,101 @@ TEST_CASE ("smallSmallMemoryTreeNew multiple elements")
     REQUIRE (result);
     REQUIRE (std::get<0> (result.value ()).empty ());
   }
-  SECTION ("calculateChildrenValueForPath 0")
+  SECTION ("calculateChildrenForPath 0")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0 });
     REQUIRE (result);
     REQUIRE (result.value () == std::vector<int>{ 1, 2 });
   }
-  SECTION ("calculateChildrenValueForPath 0 1")
+  SECTION ("calculateChildrenForPath 0 1")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 1 });
     REQUIRE (result);
     REQUIRE (result.value () == std::vector<int>{ 3, 4 });
   }
-  SECTION ("calculateChildrenValueForPath 0 1 3")
+  SECTION ("calculateChildrenForPath 0 1 3")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 3 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 1, 3 });
     REQUIRE (result);
     REQUIRE (result->empty ());
   }
-  SECTION ("calculateChildrenValueForPath 0 1 4")
+  SECTION ("calculateChildrenForPath 0 1 4")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 4 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 1, 4 });
     REQUIRE (result);
     REQUIRE (result->empty ());
   }
-  SECTION ("calculateChildrenValueForPath 0 2 5")
+  SECTION ("calculateChildrenForPath 0 2 5")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 5 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 5 });
     REQUIRE (result);
     REQUIRE (result->empty ());
   }
-  SECTION ("calculateChildrenValueForPath 0 2 6")
+  SECTION ("calculateChildrenForPath 0 2 6")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 6 });
     REQUIRE (result);
     REQUIRE (result.value () == std::vector<int>{ 7 });
   }
-  SECTION ("calculateChildrenValueForPath 0 2 6 7")
+  SECTION ("calculateChildrenForPath 0 2 6 7")
   {
-    auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6, 7 });
+    auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 6, 7 });
     REQUIRE (result);
     REQUIRE (result->empty ());
   }
   SECTION ("wrong path")
   {
-    SECTION ("calculateChildrenValueForPath empty path")
+    SECTION ("calculateChildrenForPath empty path")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({});
+      auto result = smallMemoryTree.calculateChildrenForPath ({});
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "empty path is not allowed");
     }
-    SECTION ("calculateChildrenValueForPath 42")
+    SECTION ("calculateChildrenForPath 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 42 });
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '0'.");
     }
-    SECTION ("calculateChildrenValueForPath 0 42")
+    SECTION ("calculateChildrenForPath 0 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 42 });
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '1'.");
     }
-    SECTION ("calculateChildrenValueForPath 0 1 42")
+    SECTION ("calculateChildrenForPath 0 1 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 1, 42 });
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
     }
-    SECTION ("calculateChildrenValueForPath 0 1 42")
+    SECTION ("calculateChildrenForPath 0 1 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 1, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 1, 42 });
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
     }
-    SECTION ("calculateChildrenValueForPath 0 2 42")
+    SECTION ("calculateChildrenForPath 0 2 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 42 });
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
     }
-    SECTION ("calculateChildrenValueForPath 0 2 42")
+    SECTION ("calculateChildrenForPath 0 2 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 42 }, true);
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
     }
-    SECTION ("calculateChildrenValueForPath 0 2 6 42")
+    SECTION ("calculateChildrenForPath 0 2 6 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 6, 42 }, true);
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "invalid path. could not find a match for value with index '3'.");
     }
-    SECTION ("calculateChildrenValueForPath path to long 0 2 6 7 42")
+    SECTION ("calculateChildrenForPath path to long 0 2 6 7 42")
     {
-      auto result = smallMemoryTree.calculateChildrenValueForPath ({ 0, 2, 6, 7, 42 });
+      auto result = smallMemoryTree.calculateChildrenForPath ({ 0, 2, 6, 7, 42 }, true);
       REQUIRE_FALSE (result);
       REQUIRE (result.error () == "Path too long. Last matching index '3'.");
     }
