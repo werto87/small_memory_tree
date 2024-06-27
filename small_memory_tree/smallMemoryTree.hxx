@@ -9,6 +9,7 @@ Distributed under the Boost Software License, Version 1.0.
 #include <confu_algorithm/binaryFind.hxx>
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
+#include <expected>
 #include <iterator>
 #include <numeric>
 #include <optional>
@@ -388,6 +389,139 @@ childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPer
             }
         }
       return std::get<0> (internals::childrenAndUsedValuesUntilChildren (smallMemoryTree, path.size () - 1, node));
+    }
+}
+}
+
+namespace small_memory_tree
+{
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Node
+{
+  // clang-format off
+    [[nodiscard]]
+  auto operator<=> (const Node &) const = default;
+  // clang-format on
+
+  ValueType value{};
+  ChildrenOffsetEnd childrenOffsetEnd{};
+};
+
+namespace internals
+{
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t, HasIteratorToNode TreeAdapter>
+[[nodiscard]] std::vector<Node<ValueType, ChildrenOffsetEnd> >
+generateNodes (TreeAdapter const &treeAdapter)
+{
+  std::vector<Node<ValueType, ChildrenOffsetEnd> > results{};
+  auto childrenOffsetEnd = uint64_t{};
+  std::transform (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), std::back_inserter (results), [&childrenOffsetEnd] (auto const &node) mutable {
+    childrenOffsetEnd = childrenOffsetEnd + boost::numeric_cast<uint64_t> (std::distance (node.begin (), node.end ()));
+    return Node<ValueType, ChildrenOffsetEnd>{ node.data (), boost::numeric_cast<uint64_t> (childrenOffsetEnd) };
+  });
+  return results;
+}
+
+}
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> class SmallMemoryTreeNew
+{
+public:
+  SmallMemoryTreeNew () = default;
+  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTreeNew (TreeAdapter const &treeAdapter) : nodes{ small_memory_tree::internals::generateNodes<ValueType> (treeAdapter) } {}
+
+  SmallMemoryTreeNew (std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes_) : nodes{ std::move (nodes_) } {}
+
+  [[nodiscard]] std::vector<Node<ValueType, ChildrenOffsetEnd> > const &
+  getNodes () const
+  {
+    return nodes;
+  }
+
+private:
+  std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes{};
+};
+
+namespace internals
+{
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t>
+[[nodiscard]] std::expected<ChildrenOffsetEnd, std::string>
+calcChildrenCount (SmallMemoryTreeNew<ValueType, ChildrenOffsetEnd> const &smallMemoryTreeNew, uint64_t index)
+{
+  auto const &nodes = smallMemoryTreeNew.getNodes ();
+  if (index >= nodes.size ()) return std::unexpected (std::format ("Index out of bounds nodes.size(): '{}' index '{}'", nodes.size (), index));
+  return (index == 0) ? nodes.at (index).childrenOffsetEnd : nodes.at (index).childrenOffsetEnd - nodes.at (index - 1).childrenOffsetEnd;
+}
+
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t>
+[[nodiscard]] std::expected<std::tuple<std::vector<Node<ValueType, ChildrenOffsetEnd> >, ChildrenOffsetEnd>, std::string>
+calcChildrenWithFirstChildIndex (SmallMemoryTreeNew<ValueType, ChildrenOffsetEnd> const &smallMemoryTreeNew, uint64_t index)
+{
+  if (auto const &childrenCountExpected = calcChildrenCount (smallMemoryTreeNew, index))
+    {
+      auto const &nodes = smallMemoryTreeNew.getNodes ();
+      auto const &childrenCount = boost::numeric_cast<int64_t> (childrenCountExpected.value ());
+      auto const &childrenOffsetEnd = nodes.begin () + boost::numeric_cast<int64_t> (nodes.at (index).childrenOffsetEnd) + 1 /*end has to be one element after the last element*/;
+      auto const &childrenBegin = childrenOffsetEnd - childrenCount;
+      return std::make_tuple (std::vector<Node<ValueType, ChildrenOffsetEnd> > (childrenBegin, childrenOffsetEnd), std::distance (nodes.begin (), childrenBegin));
+    }
+  else
+    {
+      return std::unexpected (childrenCountExpected.error ());
+    }
+}
+}
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t>
+[[nodiscard]] std::expected<std::vector<ValueType>, std::string>
+calcChildrenForPath (SmallMemoryTreeNew<ValueType, ChildrenOffsetEnd> const &smallMemoryTreeNew, std::vector<ValueType> const &path, bool sortedNodes = false)
+{
+  if (not path.empty ())
+    {
+      auto const &nodes = smallMemoryTreeNew.getNodes ();
+      auto childrenWithIndexOfFirstChild = std::tuple (std::vector<Node<ValueType, ChildrenOffsetEnd> >{ nodes.front () }, ChildrenOffsetEnd{});
+      for (auto i = uint64_t{}; i < path.size (); ++i)
+        {
+          auto &[nodesToCheck, indexOfFirstChild] = childrenWithIndexOfFirstChild;
+          auto const &valueToLookFor = path.at (i);
+          if (not nodesToCheck.empty ())
+            {
+              auto nodeItr = nodesToCheck.begin ();
+              if (sortedNodes)
+                {
+                  nodeItr = confu_algorithm::binaryFind (nodesToCheck.begin (), nodesToCheck.end (), valueToLookFor, {}, &Node<ValueType, ChildrenOffsetEnd>::value);
+                }
+              else
+                {
+                  nodeItr = std::ranges::find (nodesToCheck, valueToLookFor, &Node<ValueType, ChildrenOffsetEnd>::value);
+                }
+              if (nodeItr != nodesToCheck.end ())
+                {
+                  auto children = internals::calcChildrenWithFirstChildIndex (smallMemoryTreeNew, indexOfFirstChild + boost::numeric_cast<ChildrenOffsetEnd> (std::distance (nodesToCheck.begin (), nodeItr)));
+                  if (children)
+                    {
+                      childrenWithIndexOfFirstChild = std::move (children.value ());
+                    }
+                  else
+                    {
+                      return std::unexpected (children.error ());
+                    }
+                }
+              else
+                {
+                  return std::unexpected (std::format ("invalid path. could not find a match for value with index '{}'.", i));
+                }
+            }
+          else
+            {
+              return std::unexpected (std::format ("Path too long. Last matching index '{}'.", i - 1));
+            }
+        }
+      auto const &children = std::get<0> (childrenWithIndexOfFirstChild);
+      auto result = std::vector<ValueType>{};
+      std::ranges::transform (children, std::back_inserter (result), [] (Node<ValueType, ChildrenOffsetEnd> const &node) { return node.value; });
+      return result;
+    }
+  else
+    {
+      return std::unexpected ("empty path is not allowed");
     }
 }
 }
