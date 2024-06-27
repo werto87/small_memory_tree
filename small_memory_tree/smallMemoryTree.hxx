@@ -10,6 +10,7 @@ Distributed under the Boost Software License, Version 1.0.
 #include <confu_algorithm/createChainViews.hxx>
 #include <cstdint>
 #include <expected>
+#include <format>
 #include <iterator>
 #include <numeric>
 #include <optional>
@@ -20,6 +21,17 @@ Distributed under the Boost Software License, Version 1.0.
 #include <vector>
 namespace small_memory_tree
 {
+
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Node
+{
+  // clang-format off
+    [[nodiscard]]
+  auto operator<=> (const Node &) const = default;
+  // clang-format on
+
+  ValueType value{};
+  ChildrenOffsetEnd childrenOffsetEnd{};
+};
 
 namespace internals
 {
@@ -50,6 +62,19 @@ template <typename T> concept HasIteratorToNode = requires (T a)
     *a.constant_breadth_first_traversal_end ()
   } -> IsNode;
 };
+
+template <typename ValueType, typename ChildrenOffsetEnd = uint64_t, HasIteratorToNode TreeAdapter>
+[[nodiscard]] std::vector<Node<ValueType, ChildrenOffsetEnd> >
+generateNodes (TreeAdapter const &treeAdapter)
+{
+  std::vector<Node<ValueType, ChildrenOffsetEnd> > results{};
+  auto childrenOffsetEnd = uint64_t{};
+  std::transform (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), std::back_inserter (results), [&childrenOffsetEnd] (auto const &node) mutable {
+    childrenOffsetEnd = childrenOffsetEnd + boost::numeric_cast<uint64_t> (std::distance (node.begin (), node.end ()));
+    return Node<ValueType, ChildrenOffsetEnd>{ node.data (), boost::numeric_cast<ChildrenOffsetEnd> (childrenOffsetEnd) };
+  });
+  return results;
+}
 
 [[nodiscard]] uint64_t
 calculateMaxChildren (HasIteratorToNode auto const &tree)
@@ -395,38 +420,12 @@ childrenByPath (SmallMemoryTree<ValueType, MaxChildrenType, LevelType, ValuesPer
 
 namespace small_memory_tree
 {
-template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> struct Node
-{
-  // clang-format off
-    [[nodiscard]]
-  auto operator<=> (const Node &) const = default;
-  // clang-format on
 
-  ValueType value{};
-  ChildrenOffsetEnd childrenOffsetEnd{};
-};
-
-namespace internals
-{
-template <typename ValueType, typename ChildrenOffsetEnd = uint64_t, HasIteratorToNode TreeAdapter>
-[[nodiscard]] std::vector<Node<ValueType, ChildrenOffsetEnd> >
-generateNodes (TreeAdapter const &treeAdapter)
-{
-  std::vector<Node<ValueType, ChildrenOffsetEnd> > results{};
-  auto childrenOffsetEnd = uint64_t{};
-  std::transform (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), std::back_inserter (results), [&childrenOffsetEnd] (auto const &node) mutable {
-    childrenOffsetEnd = childrenOffsetEnd + boost::numeric_cast<uint64_t> (std::distance (node.begin (), node.end ()));
-    return Node<ValueType, ChildrenOffsetEnd>{ node.data (), boost::numeric_cast<uint64_t> (childrenOffsetEnd) };
-  });
-  return results;
-}
-
-}
 template <typename ValueType, typename ChildrenOffsetEnd = uint64_t> class SmallMemoryTreeNew
 {
 public:
   SmallMemoryTreeNew () = default;
-  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTreeNew (TreeAdapter const &treeAdapter) : nodes{ small_memory_tree::internals::generateNodes<ValueType> (treeAdapter) } {}
+  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTreeNew (TreeAdapter const &treeAdapter) : nodes{ internals::generateNodes<ValueType, ChildrenOffsetEnd> (treeAdapter) } {}
 
   SmallMemoryTreeNew (std::vector<Node<ValueType, ChildrenOffsetEnd> > nodes_) : nodes{ std::move (nodes_) } {}
 
