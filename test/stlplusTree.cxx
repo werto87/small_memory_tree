@@ -43,14 +43,30 @@ TEST_CASE ("generateNodes multiple elements")
   {
     REQUIRE (result.size () == 8);
     REQUIRE (result.at (0) == Node<int>{ 0, 2 });
-    REQUIRE (result.at (1) == Node<int>{ 1, 4 });
-    REQUIRE (result.at (2) == Node<int>{ 2, 6 });
-    REQUIRE (result.at (3) == Node<int>{ 3, 6 });
-    REQUIRE (result.at (4) == Node<int>{ 4, 6 });
-    REQUIRE (result.at (5) == Node<int>{ 5, 6 });
-    REQUIRE (result.at (6) == Node<int>{ 6, 7 });
-    REQUIRE (result.at (7) == Node<int>{ 7, 7 });
+    REQUIRE (result.at (1) == Node<int>{ 1, 2 });
+    REQUIRE (result.at (2) == Node<int>{ 2, 2 });
+    REQUIRE (result.at (3) == Node<int>{ 3, 0 });
+    REQUIRE (result.at (4) == Node<int>{ 4, 0 });
+    REQUIRE (result.at (5) == Node<int>{ 5, 0 });
+    REQUIRE (result.at (6) == Node<int>{ 6, 1 });
+    REQUIRE (result.at (7) == Node<int>{ 7, 0 });
   }
+}
+
+TEST_CASE ("calcChildrenOffsetEnds multiple elements")
+{
+  stlplus::ntree<int> tree{};
+  auto root = tree.insert (0);
+  auto rootChild0 = tree.append (root, 1);
+  auto rootChild1 = tree.append (root, 2);
+  tree.append (rootChild0, 3);
+  tree.append (rootChild0, 4);
+  tree.append (rootChild1, 5);
+  auto myChild = tree.append (rootChild1, 6);
+  tree.append (myChild, 7);
+  auto nodes = internals::generateNodes<int> (StlplusTreeAdapter{ tree });
+  auto result = internals::calcChildrenOffsetEnds (nodes);
+  SECTION ("calcChildrenOffsetEnds") { REQUIRE (result == std::vector<uint64_t>{ 2, 4, 6, 6, 6, 6, 7, 7 }); }
 }
 
 TEST_CASE ("smallSmallMemoryTree only root")
@@ -60,10 +76,10 @@ TEST_CASE ("smallSmallMemoryTree only root")
   auto smallMemoryTree = SmallMemoryTree<int>{ StlplusTreeAdapter{ tree } };
 
   SECTION ("construct SmallMemoryTree correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
-  SECTION ("calcChildrenCount")
+  SECTION ("getChildrenCount")
   {
-    REQUIRE (calcChildrenCount (smallMemoryTree, 0) == 0);
-    REQUIRE (calcChildrenCount (smallMemoryTree, 1).error () == "Index out of bounds nodes.size(): '1' index '1'");
+    REQUIRE (getChildrenCount (smallMemoryTree, 0) == 0);
+    REQUIRE (getChildrenCount (smallMemoryTree, 1).error () == "Index out of bounds nodes.size(): '1' index '1'");
   }
   SECTION ("calcChildrenWithFirstChildIndex 0")
   {
@@ -95,31 +111,31 @@ TEST_CASE ("smallSmallMemoryTree multiple elements")
   tree.append (myChild, 7);
   auto smallMemoryTree = SmallMemoryTree<int>{ StlplusTreeAdapter{ tree } };
   SECTION ("construct SmallMemoryTree correctly") { REQUIRE (internals::generateNodes<int> (StlplusTreeAdapter{ tree }) == smallMemoryTree.getNodes ()); }
-  SECTION ("calcChildrenCount 0") { REQUIRE (calcChildrenCount (smallMemoryTree, 0) == 2); }
-  SECTION ("calcChildrenCount 1") { REQUIRE (calcChildrenCount (smallMemoryTree, 1) == 2); }
-  SECTION ("calcChildrenCount 2") { REQUIRE (calcChildrenCount (smallMemoryTree, 2) == 2); }
-  SECTION ("calcChildrenCount 3") { REQUIRE (calcChildrenCount (smallMemoryTree, 3) == 0); }
-  SECTION ("calcChildrenCount 4") { REQUIRE (calcChildrenCount (smallMemoryTree, 4) == 0); }
-  SECTION ("calcChildrenCount 5") { REQUIRE (calcChildrenCount (smallMemoryTree, 5) == 0); }
-  SECTION ("calcChildrenCount 6") { REQUIRE (calcChildrenCount (smallMemoryTree, 6) == 1); }
-  SECTION ("calcChildrenCount 7") { REQUIRE (calcChildrenCount (smallMemoryTree, 7) == 0); }
+  SECTION ("getChildrenCount 0") { REQUIRE (getChildrenCount (smallMemoryTree, 0) == 2); }
+  SECTION ("getChildrenCount 1") { REQUIRE (getChildrenCount (smallMemoryTree, 1) == 2); }
+  SECTION ("getChildrenCount 2") { REQUIRE (getChildrenCount (smallMemoryTree, 2) == 2); }
+  SECTION ("getChildrenCount 3") { REQUIRE (getChildrenCount (smallMemoryTree, 3) == 0); }
+  SECTION ("getChildrenCount 4") { REQUIRE (getChildrenCount (smallMemoryTree, 4) == 0); }
+  SECTION ("getChildrenCount 5") { REQUIRE (getChildrenCount (smallMemoryTree, 5) == 0); }
+  SECTION ("getChildrenCount 6") { REQUIRE (getChildrenCount (smallMemoryTree, 6) == 1); }
+  SECTION ("getChildrenCount 7") { REQUIRE (getChildrenCount (smallMemoryTree, 7) == 0); }
   SECTION ("calcChildrenWithFirstChildIndex 0")
   {
     auto result = calcChildrenWithFirstChildIndex (smallMemoryTree, 0);
     REQUIRE (result);
-    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 1, 4 }, { 2, 6 } });
+    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 1, 2 }, { 2, 2 } });
   }
   SECTION ("calcChildrenWithFirstChildIndex 1")
   {
     auto result = calcChildrenWithFirstChildIndex (smallMemoryTree, 1);
     REQUIRE (result);
-    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 3, 6 }, { 4, 6 } });
+    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 3, 0 }, { 4, 0 } });
   }
   SECTION ("calcChildrenWithFirstChildIndex 2")
   {
     auto result = calcChildrenWithFirstChildIndex (smallMemoryTree, 2);
     REQUIRE (result);
-    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 5, 6 }, { 6, 7 } });
+    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 5, 0 }, { 6, 1 } });
   }
   SECTION ("calcChildrenWithFirstChildIndex 3")
   {
@@ -143,7 +159,7 @@ TEST_CASE ("smallSmallMemoryTree multiple elements")
   {
     auto result = calcChildrenWithFirstChildIndex (smallMemoryTree, 6);
     REQUIRE (result);
-    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 7, 7 } });
+    REQUIRE (std::get<0> (result.value ()) == std::vector<Node<int> >{ { 7, 0 } });
   }
   SECTION ("calcChildrenWithFirstChildIndex 7")
   {

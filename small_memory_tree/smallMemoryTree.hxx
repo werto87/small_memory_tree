@@ -62,27 +62,32 @@ template <typename T> concept HasIteratorToNode = requires (T a)
     *a.constant_breadth_first_traversal_end ()
   } -> IsNode;
 };
+template <typename ValueType, typename ChildrenCountType = uint64_t, typename ChildrenOffsetEndType = uint64_t>
+std::vector<ChildrenOffsetEndType>
+calcChildrenOffsetEnds (std::vector<Node<ValueType, ChildrenCountType> > const &nodes)
+{
+  auto result = std::vector<ChildrenOffsetEndType>{};
+  std::transform (nodes.begin (), nodes.end (), std::back_inserter (result), [] (Node<ValueType, ChildrenCountType> const &node) { return node.childrenCount; });
+  std::partial_sum (result.begin (), result.end (), result.begin ());
+  return result;
+}
 
 template <typename ValueType, typename ChildrenCountType = uint64_t, HasIteratorToNode TreeAdapter>
 [[nodiscard]] std::vector<Node<ValueType, ChildrenCountType> >
 generateNodes (TreeAdapter const &treeAdapter)
 {
   std::vector<Node<ValueType, ChildrenCountType> > results{};
-  auto childrenCount = uint64_t{};
-  std::transform (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), std::back_inserter (results), [&childrenCount] (auto const &node) mutable {
-    childrenCount = childrenCount + boost::numeric_cast<uint64_t> (std::distance (node.begin (), node.end ()));
-    return Node<ValueType, ChildrenCountType>{ node.data (), boost::numeric_cast<ChildrenCountType> (childrenCount) };
-  });
+  std::transform (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), std::back_inserter (results), [] (auto const &node) mutable { return Node<ValueType, ChildrenCountType>{ node.data (), boost::numeric_cast<ChildrenCountType> (std::distance (node.begin (), node.end ())) }; });
   return results;
 }
 
 }
 
-template <typename ValueType, typename ChildrenCountType = uint64_t> class SmallMemoryTree
+template <typename ValueType, typename ChildrenCountType = uint64_t, typename ChildrenOffsetEndType = uint64_t> class SmallMemoryTree
 {
 public:
   SmallMemoryTree () = default;
-  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTree (TreeAdapter const &treeAdapter) : nodes{ internals::generateNodes<ValueType, ChildrenCountType> (treeAdapter) } {}
+  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTree (TreeAdapter const &treeAdapter) : nodes{ internals::generateNodes<ValueType, ChildrenCountType> (treeAdapter) }, childrenOffsetEnds{ internals::calcChildrenOffsetEnds (nodes) } {}
 
   SmallMemoryTree (std::vector<Node<ValueType, ChildrenCountType> > nodes_) : nodes{ std::move (nodes_) } {}
 
@@ -91,31 +96,38 @@ public:
   {
     return nodes;
   }
+  [[nodiscard]] std::vector<ChildrenOffsetEndType> const &
+  getChildrenOffsetEnds () const
+  {
+    return childrenOffsetEnds;
+  }
 
 private:
   std::vector<Node<ValueType, ChildrenCountType> > nodes{};
+  std::vector<ChildrenOffsetEndType> childrenOffsetEnds{};
 };
 
 namespace internals
 {
 template <typename ValueType, typename ChildrenCountType = uint64_t>
 [[nodiscard]] std::expected<ChildrenCountType, std::string>
-calcChildrenCount (SmallMemoryTree<ValueType, ChildrenCountType> const &SmallMemoryTree, uint64_t index)
+getChildrenCount (SmallMemoryTree<ValueType, ChildrenCountType> const &SmallMemoryTree, uint64_t index)
 {
   auto const &nodes = SmallMemoryTree.getNodes ();
   if (index >= nodes.size ()) return std::unexpected (std::format ("Index out of bounds nodes.size(): '{}' index '{}'", nodes.size (), index));
-  return (index == 0) ? nodes.at (index).childrenCount : nodes.at (index).childrenCount - nodes.at (index - 1).childrenCount;
+  return nodes.at (index).childrenCount;
 }
 
 template <typename ValueType, typename ChildrenCountType = uint64_t>
 [[nodiscard]] std::expected<std::tuple<std::vector<Node<ValueType, ChildrenCountType> >, ChildrenCountType>, std::string>
 calcChildrenWithFirstChildIndex (SmallMemoryTree<ValueType, ChildrenCountType> const &SmallMemoryTree, uint64_t index)
 {
-  if (auto const &childrenCountExpected = calcChildrenCount (SmallMemoryTree, index))
+  if (auto const &childrenCountExpected = getChildrenCount (SmallMemoryTree, index))
     {
       auto const &nodes = SmallMemoryTree.getNodes ();
+      auto const &childrenOffsetEnds = SmallMemoryTree.getChildrenOffsetEnds ();
       auto const &childrenCount = boost::numeric_cast<int64_t> (childrenCountExpected.value ());
-      auto const &childrenOffsetEnd = nodes.begin () + boost::numeric_cast<int64_t> (nodes.at (index).childrenCount) + 1 /*end has to be one element after the last element*/;
+      auto const &childrenOffsetEnd = nodes.begin () + boost::numeric_cast<int64_t> (childrenOffsetEnds.at (index)) + 1 /*end has to be one element after the last element*/;
       auto const &childrenBegin = childrenOffsetEnd - childrenCount;
       return std::make_tuple (std::vector<Node<ValueType, ChildrenCountType> > (childrenBegin, childrenOffsetEnd), std::distance (nodes.begin (), childrenBegin));
     }
@@ -125,14 +137,14 @@ calcChildrenWithFirstChildIndex (SmallMemoryTree<ValueType, ChildrenCountType> c
     }
 }
 }
-template <typename ValueType, typename ChildrenCountType = uint64_t>
+template <typename ValueType, typename ChildrenCountType = uint64_t, typename ChildrenOffsetEndType = uint64_t>
 [[nodiscard]] std::expected<std::vector<ValueType>, std::string>
 calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenCountType> const &SmallMemoryTree, std::vector<ValueType> const &path, bool sortedNodes = false)
 {
   if (not path.empty ())
     {
       auto const &nodes = SmallMemoryTree.getNodes ();
-      auto childrenWithIndexOfFirstChild = std::tuple (std::vector<Node<ValueType, ChildrenCountType> >{ nodes.front () }, ChildrenCountType{});
+      auto childrenWithIndexOfFirstChild = std::tuple (std::vector<Node<ValueType, ChildrenCountType> >{ nodes.front () }, ChildrenOffsetEndType{});
       for (auto i = uint64_t{}; i < path.size (); ++i)
         {
           auto &[nodesToCheck, indexOfFirstChild] = childrenWithIndexOfFirstChild;
