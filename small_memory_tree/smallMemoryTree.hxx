@@ -87,7 +87,7 @@ template <typename ValueType, typename ChildrenCountType = uint64_t, typename Ch
 {
 public:
   SmallMemoryTree () = default;
-  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTree (TreeAdapter const &treeAdapter) : nodes{ internals::generateNodes<ValueType, ChildrenCountType> (treeAdapter) }, childrenOffsetEnds{ internals::calcChildrenOffsetEnds (nodes) } {}
+  template <internals::HasIteratorToNode TreeAdapter> SmallMemoryTree (TreeAdapter const &treeAdapter) : nodes{ internals::generateNodes<ValueType, ChildrenCountType> (treeAdapter) } {}
 
   SmallMemoryTree (std::vector<Node<ValueType, ChildrenCountType> > nodes_) : nodes{ std::move (nodes_) } {}
 
@@ -104,7 +104,7 @@ public:
 
 private:
   std::vector<Node<ValueType, ChildrenCountType> > nodes{};
-  std::vector<ChildrenOffsetEndType> childrenOffsetEnds{};
+  std::vector<ChildrenOffsetEndType> childrenOffsetEnds{ internals::calcChildrenOffsetEnds (nodes) };
 };
 
 namespace internals
