@@ -7,18 +7,9 @@ Distributed under the Boost Software License, Version 1.0.
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/binaryFind.hxx>
-#include <confu_algorithm/createChainViews.hxx>
-#include <cstdint>
 #include <expected>
 #include <format>
-#include <iterator>
 #include <numeric>
-#include <optional>
-#include <ranges>
-#include <stdexcept>
-#include <tuple>
-#include <type_traits>
-#include <vector>
 namespace small_memory_tree
 {
 
