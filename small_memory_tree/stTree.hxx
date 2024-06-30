@@ -8,7 +8,6 @@ Distributed under the Boost Software License, Version 1.0.
 #include "smallMemoryTree.hxx"
 #include "smallMemoryTreeAdapter.hxx"
 #include <st_tree.h>
-#include <type_traits>
 namespace small_memory_tree
 {
 

@@ -7,10 +7,8 @@ Distributed under the Boost Software License, Version 1.0.
 
 #include "smallMemoryTree.hxx"
 #include "smallMemoryTreeAdapter.hxx"
-#include <cstdint>
 #include <deque>
 #include <stlplus/containers/ntree.hpp>
-#include <type_traits>
 namespace small_memory_tree
 {
 
@@ -45,7 +43,6 @@ template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>
     return results;
   }
 };
-
 
 template <typename ValueType, typename ChildrenCountType = uint64_t>
 inline std::expected<stlplus::ntree<ValueType>, std::string>
