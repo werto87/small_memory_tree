@@ -46,7 +46,7 @@ template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>
   }
 };
 
-// TODO do after checking how big the lookup tree is with this change
+
 template <typename ValueType, typename ChildrenCountType = uint64_t>
 inline std::expected<stlplus::ntree<ValueType>, std::string>
 generateStlplusTree (SmallMemoryTree<ValueType, ChildrenCountType> const &smallMemoryTree)
