@@ -3,8 +3,8 @@
 # (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
  
 
-add_executable(_test benchmarkTest.cxx stlplusTree.cxx
-stTree.cxx)
+add_executable(_test benchmarkTest.cxx smallMemoryTree.cxx
+smallMemoryTreeAdapter.cxx stlplusTree.cxx stTree.cxx)
 find_package(Catch2)
 target_link_libraries(_test myproject_options myproject_warnings
                       small_memory_tree Catch2::Catch2WithMain)

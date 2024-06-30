@@ -91,6 +91,11 @@ public:
 
   SmallMemoryTree (std::vector<Node<ValueType, ChildrenCountType> > nodes_) : nodes{ std::move (nodes_) } {}
 
+  // clang-format off
+    [[nodiscard]]
+  auto operator<=> (const SmallMemoryTree &) const = default;
+  // clang-format on
+
   [[nodiscard]] std::vector<Node<ValueType, ChildrenCountType> > const &
   getNodes () const
   {
