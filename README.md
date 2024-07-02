@@ -42,75 +42,85 @@ The memory consumption can be calculated with this formula:
 automatic_storage_in_byte = size_of(ValueType) + size_of(ChildrenOffsetEndType) * tree.size()
 dynamic_storage_in_byte = size_of(values) + size_of(childrenOffsetEnds)
 
-### safe more memory
+### save more memory
 childrenOffsetEnds is the result of childrenCounts partial_sum. So you can reverse partial_sum to get childrenCounts from childrenOffsetEnds. childrenCounts ValueType depends on the childrenCount of your nodes. If no node of your tree has more than 255 children you can use uint_8t to store the childrenCount information.
 
 
 ## Usage Example with [st_tree](https://github.com/erikerlandson/st_tree)
 As always for more examples look in the tests for example in test/smallMemoryTree.cxx
 
-### Use Case store tree and load it from the database
+### create small_memory_tree and retrieve children of node using a path
 ```cpp
-#include <cassert>
+#include <iostream>
 #include <small_memory_tree/stTree.hxx>
 int
 main ()
 {
-  using namespace small_memory_tree;
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  auto dataToDatabase = SmallMemoryTreeData<int>{ StTreeAdapter{ tree } };
-  // save result.data; result.hierarchy; result.maxChildren into the database (you have to write this code by yourself. It is currently not in the scope of small memory tree.);
-  // a couple lines of code later...
-  // load data from database (you have to write this code by yourself. It is currently not in the scope of small memory tree.)
-  auto maxChildrenFromDatabase = uint64_t{ 2 };
-  auto treeHierarchyFromDatabase = std::vector<bool>{ true, true, true, false, false, false, false };
-  auto treeDataFromDatabase = std::vector<int>{ 0, 1, 2 };
-  // create SmallMemoryTreeData from the data from the database
-  auto dataFromDatabase = SmallMemoryTreeData<int>{ maxChildrenFromDatabase, std::move (treeHierarchyFromDatabase), std::move (treeDataFromDatabase) };
-  // create SmallMemoryTree from SmallMemoryTreeData
-  auto smallMemoryTreeFromDatabase = SmallMemoryTree<int>{ std::move (dataToDatabase) };
-  // create a st_tree from SmallMemoryTree
-  auto treeFromDatabase = generateStTree (smallMemoryTreeFromDatabase);
-  assert (treeFromDatabase == tree);
+  auto stTree = st_tree::tree<int>{};
+  stTree.insert (0);
+  stTree.root ().insert (1);
+  stTree.root ().insert (2);
+  stTree.root ()[0].insert (3);
+  stTree.root ()[0].insert (4);
+  // create a tree using st_tree
+  auto smallMemoryTree = small_memory_tree::SmallMemoryTree<int>{ small_memory_tree::StTreeAdapter{ stTree } };
+  // create a smallMemoryTree from a stTree using StTreeAdapter
+  
+  if (auto rootChildrenExpected = calcChildrenForPath (smallMemoryTree, { 0 }))
+  // returns the children of the root node
+    {
+      auto const &rootChildren = rootChildrenExpected.value ();
+      std::cout << std::format ("root has {} children\n", rootChildren.size ());
+      std::ranges::for_each (rootChildren, [] (int childValue) { std::cout << std::format ("root child value {}\n", childValue); });
+      if (auto child1ChildrenExpected = calcChildrenForPath (smallMemoryTree, { 0, 1 }))
+        {
+          std::cout << std::format ("child1 has {} children\n", rootChildren.size ());
+          auto const &child1Children = child1ChildrenExpected.value ();
+          std::ranges::for_each (child1Children, [] (int childValue) { std::cout << std::format ("child1 child value {}\n", childValue); });
+        }
+      else
+        {
+          std::cout << child1ChildrenExpected.error () + '\n';
+        }
+    }
+  else
+    {
+      std::cout << rootChildrenExpected.error () + '\n';
+    }
   return 0;
 }
 ```
 
-### Traverse small memory tree (getChildrenByPath)
+### save small_memory_tree to database and restore small_memory_tree
 ```cpp
-#include <cassert>
 #include <small_memory_tree/stTree.hxx>
 int
 main ()
 {
-  using namespace small_memory_tree;
-  // create and fill a tree
-  auto tree = st_tree::tree<int>{};
-  tree.insert (0);
-  tree.root ().insert (1);
-  tree.root ().insert (2);
-  tree.root ()[0].insert (3);
-  // from the tree create a small memory tree
-  auto smt = SmallMemoryTree<int>{ StTreeAdapter{ tree } };
-  // use childrenByPath to get children of the root
-  auto myChildren = childrenByPath (smt, std::vector<int>{ 0 });
-  assert (myChildren.has_value ());
-  assert (myChildren.value ().at (0) == 1);
-  assert (myChildren.value ().at (1) == 2);
-  // use childrenByPath to get children of root's child with the value 1
-  auto myChildrenOfRootChildWithTheValue1 = childrenByPath (smt, std::vector<int>{ 0, 1 });
-  assert (myChildrenOfRootChildWithTheValue1.has_value ());
-  assert (myChildrenOfRootChildWithTheValue1.value ().at (0) == 3);
+  // create a tree using st_tree
+  auto stTree = st_tree::tree<uint8_t>{};
+  stTree.insert (0);
+  stTree.root ().insert (1);
+  stTree.root ().insert (2);
+  stTree.root ()[0].insert (3);
+  stTree.root ()[0].insert (4);
+  // create a smallMemoryTree from a stTree using StTreeAdapter
+  auto smallMemoryTree = small_memory_tree::SmallMemoryTree<uint8_t>{ small_memory_tree::StTreeAdapter{ stTree } };
+  // store values and childrenOffsetEnds in your database
+  auto const &values = smallMemoryTree.getValues ();
+  auto const &childrenOffsetEnds = smallMemoryTree.getChildrenOffsetEnds ();
+  //  later in your code retrieve values and childrenOffsetEnds from your database
+  auto const &valuesFromDatabase = std::vector<uint8_t>{ 0, 1, 2, 3, 4 };
+  auto const &childrenOffsetEndsFromDatabase = std::vector<uint8_t>{ 2, 4, 4, 4, 4 };
+  //  create smallMemoryTree with data from database
+  auto smallMemoryTreeFromDatabase = small_memory_tree::SmallMemoryTree<uint8_t, uint8_t>{ valuesFromDatabase, childrenOffsetEndsFromDatabase };
   return 0;
 }
 ```
 
 ## Build
 ### Requirements
-- Compiler with c++20 support (ranges and concepts)
+- Compiler with c++23 support (std::expected)
 - CMake
 - The following c++ libraries are required:
   - [boost](https://github.com/boostorg/boost)/1.84.0 
