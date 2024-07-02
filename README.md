@@ -42,13 +42,12 @@ The memory consumption can be calculated with this formula:
 automatic_storage_in_byte = size_of(ValueType) + size_of(ChildrenOffsetEndType) * tree.size()
 dynamic_storage_in_byte = size_of(values) + size_of(childrenOffsetEnds)
 
-
-
-
+### safe more memory
+childrenOffsetEnds is the result of childrenCounts partial_sum. So you can reverse partial_sum to get childrenCounts from childrenOffsetEnds. childrenCounts ValueType depends on the childrenCount of your nodes. If no node of your tree has more than 255 children you can use uint_8t to store the childrenCount information.
 
 
 ## Usage Example with [st_tree](https://github.com/erikerlandson/st_tree)
-As always for examples look in the tests for example in test/smallMemoryTree.cxx
+As always for more examples look in the tests for example in test/smallMemoryTree.cxx
 
 ### Use Case store tree and load it from the database
 ```cpp
