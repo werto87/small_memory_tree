@@ -51,29 +51,30 @@ template <typename ValueType, typename ChildrenCountType = uint64_t>
 inline std::expected<st_tree::tree<ValueType>, std::string>
 generateStTree (SmallMemoryTree<ValueType, ChildrenCountType> const &smallMemoryTree)
 {
-  auto const &nodes = smallMemoryTree.getNodes ();
+  auto const &values = smallMemoryTree.getValues ();
   auto result = st_tree::tree<ValueType>{};
-  result.insert (nodes.front ().value);
-  if (nodes.size () == 1) // only one element which means tree with only a root node
+  result.insert (values.front ());
+  if (values.size () == 1) // only one element which means tree with only a root node
     {
       return result;
     }
   else
     {
       auto itr = result.bf_begin ();
-      for (auto i = uint64_t{}; i < nodes.size (); ++i)
+      for (auto i = uint64_t{}; i < values.size (); ++i)
         {
-          if (auto const &expectedChildrenWithFirstChildIndex = internals::calcChildrenWithFirstChildIndex (smallMemoryTree, i))
+          if (auto const &expectedChildrenBeginAndEndIndex = internals::childrenBeginAndEndIndex (smallMemoryTree, i))
             {
-              auto const &[children, index] = expectedChildrenWithFirstChildIndex.value ();
+              auto const &[childBegin, childEnd] = expectedChildrenBeginAndEndIndex.value ();
+              auto const &children = std::span{ values.begin () + boost::numeric_cast<int64_t> (childBegin), values.begin () + boost::numeric_cast<int64_t> (childEnd) };
               for (auto const &child : children)
                 {
-                  itr->insert (child.value);
+                  itr->insert (child);
                 }
             }
           else
             {
-              return std::unexpected (expectedChildrenWithFirstChildIndex.error ());
+              return std::unexpected (expectedChildrenBeginAndEndIndex.error ());
             }
           itr++;
         }

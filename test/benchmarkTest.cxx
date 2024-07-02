@@ -74,18 +74,46 @@ TEST_CASE ("SmallMemoryTree calcChildrenForPath", "[!benchmark]")
       {
         tree.root ().insert (i);
       }
-    auto smallMemoryTree = SmallMemoryTree<uint64_t, uint64_t>{ StTreeAdapter{ tree } };
+    auto smallMemoryTree = SmallMemoryTree<uint64_t>{ StTreeAdapter{ tree } };
     SECTION ("calcChildrenForPath 0 0")
     {
       BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint64_t>{ 0, 0 }); };
     }
-    SECTION ("calcChildrenForPath 0 9999")
+    SECTION ("calcChildrenForPath last element 0 9999")
     {
       BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint64_t>{ 0, 9999 }); };
     }
-    SECTION ("calcChildrenForPath 0 9999 with binary find")
+    SECTION ("calcChildrenForPath last element with binary find 0 9999 ")
     {
       BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint64_t>{ 0, 9999 }, true); };
     }
+  }
+}
+
+TEST_CASE ("st_tree find node", "[!benchmark]")
+{
+  SECTION ("find in 10000 elements")
+  {
+    auto tree = st_tree::tree<uint8_t>{};
+    tree.insert (0);
+    for (auto i = uint64_t{}; i < 10000; ++i)
+      {
+        tree.root ().insert (i != 9999 ? 1 : 2);
+      }
+    SECTION ("calcChildrenForPath 0 0")
+    {
+      BENCHMARK ("SmallMemoryTree"){
+        // return  tree.root ().begin;
+        // return ;
+      };
+    }
+    // SECTION ("calcChildrenForPath 0 9999")
+    // {
+    //   BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint8_t>{ 0, 2 }); };
+    // }
+    // SECTION ("calcChildrenForPath 0 9999 with binary find")
+    // {
+    //   BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint8_t>{ 0, 2 }, true); };
+    // }
   }
 }

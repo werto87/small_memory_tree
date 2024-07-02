@@ -48,30 +48,31 @@ template <typename ValueType, typename ChildrenCountType = uint64_t>
 inline std::expected<stlplus::ntree<ValueType>, std::string>
 generateStlplusTree (SmallMemoryTree<ValueType, ChildrenCountType> const &smallMemoryTree)
 {
-  auto const &nodes = smallMemoryTree.getNodes ();
+  auto const &values = smallMemoryTree.getValues ();
   auto result = stlplus::ntree<ValueType>{};
-  auto parentNodes = std::deque{ result.insert (nodes.front ().value) };
+  auto parentNodes = std::deque{ result.insert (values.front ()) };
   auto currentLevelNodes = std::decay_t<decltype (parentNodes)>{};
-  if (nodes.size () == 1) // only one element which means tree with only a root node
+  if (values.size () == 1) // only one element which means tree with only a root node
     {
       return result;
     }
   else
     {
-      for (auto i = uint64_t{}; i < nodes.size (); ++i)
+      for (auto i = uint64_t{}; i < values.size (); ++i)
         {
-          if (auto const &expectedChildrenWithFirstChildIndex = internals::calcChildrenWithFirstChildIndex (smallMemoryTree, i))
+          if (auto const &expectedChildrenBeginAndEndIndex = internals::childrenBeginAndEndIndex (smallMemoryTree, i))
             {
-              auto const &[children, index] = expectedChildrenWithFirstChildIndex.value ();
+              auto const &[childBegin, childEnd] = expectedChildrenBeginAndEndIndex.value ();
+              auto const &children = std::span{ values.begin () + boost::numeric_cast<int64_t> (childBegin), values.begin () + boost::numeric_cast<int64_t> (childEnd) };
               for (auto const &child : children)
                 {
-                  currentLevelNodes.push_back (result.append (parentNodes.front (), child.value));
+                  currentLevelNodes.push_back (result.append (parentNodes.front (), child));
                 }
               parentNodes.pop_front ();
             }
           else
             {
-              return std::unexpected (expectedChildrenWithFirstChildIndex.error ());
+              return std::unexpected (expectedChildrenBeginAndEndIndex.error ());
             }
           if (parentNodes.empty ())
             {

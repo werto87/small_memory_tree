@@ -30,8 +30,9 @@ In this example:
 [2,3,3,3,3]
 ```
 
-## Memory Consumption
-check measurements in small_memory_tree_measure project i did the measurements do not redo them
+## Memory/RAM Consumption
+
+
 
 
 ## Usage Example with [st_tree](https://github.com/erikerlandson/st_tree)
