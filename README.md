@@ -1,18 +1,18 @@
 # small_memory_tree
 ## Motivation and Goals
-small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer with 8 Bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. 
-small_memory_tree saves the payload and the childOffset in a vector. This also means that small_memory_tree can be **saved to disk relative easily**.
+small_memory_tree saves data plus the hierarchy information of a tree. It tries to **save memory,** compared to other libraries that use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointers with 8 Bytes on a 64-bit CPU) plus the pointer to the parent node, which is again 8 bytes. This results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes, this means that out of 33 bytes, only one byte is actually useful. 
+small_memory_tree saves the payload and the childOffset in a vector. This also means that small_memory_tree can be **saved to disk relatively easily**.
 
 ## Limitations
-small_memory_tree is not designed to insert or change any data. Please regenerate your tree from small_memory_tree perform the changes and generate another small_memory_tree. To generate a st_tree or stlplus_ntree from a small_memory_tree use generateStTree or generateStlplusTree.
+small_memory_tree is not designed to insert or change any data. Please regenerate your tree from small_memory_tree to perform the changes and generate another small_memory_tree. To generate a st_tree or stlplus_ntree from a small_memory_tree, use generateStTree or generateStlplusTree.
 
 ## How small_memory_tree saves a Tree in Memory
 ### small_memory_tree class member variables
-values is the result of saving the data of the tree into a vector iterating breadth-first.    
-childrenOffsetEnds is the result of saving the child count of all nodes iterating breadth-first.   And than running partial_sum on that result.
+values are the result of saving the data of the tree into a vector, iterating breadth-first.    
+childrenOffsetEnds is the result of saving the child count of all nodes, iterating breadth-first. And then running partial_sum on that result.
 
-### Example how SmallMemoryTree gets created
-Lets say we want to save a tree with 5 nodes who's values fit in unsigned char for example like this:
+### Example of how SmallMemoryTree gets created
+Let's say we want to save a tree with 5 nodes whose values fit in an unsigned char, for example, like this:
 ```
         0
        / \
@@ -35,9 +35,9 @@ In this example:
 ## small_memory_tree template parameter
 small_memory_tree is a class templated on ValueType and ChildrenOffsetEndType.
 ### ValueType
-ValueType is the Type of the data of your nodes.
+ValueType is the Type of data in your nodes.
 ### ChildrenOffsetEndType
-Should be an Integer which can hold the size of your tree. If your tree has 200 nodes you can use uint_8t. If your tree has 400 nodes you can use uint_16t.
+It should be an Integer that can hold the size of your tree. If your tree has 200 nodes, you can use uint_8t. If your tree has 400 nodes, you can use uint_16t.
 
 
 ## Memory/RAM Consumption
@@ -45,11 +45,11 @@ The memory consumption can be calculated with this formula:
 automatic_storage_in_byte = size_of(ValueType) + size_of(ChildrenOffsetEndType) * tree.size()
 dynamic_storage_in_byte = size_of(values) + size_of(childrenOffsetEnds)
 
-### save more memory
-childrenOffsetEnds is the result of childrenCounts partial_sum. So you can reverse partial_sum to get childrenCounts from childrenOffsetEnds. childrenCounts ValueType depends on the childrenCount of your nodes. If no node of your tree has more than 255 children you can use uint_8t to store the childrenCount information.
+### Save more memory
+childrenOffsetEnds is the result of childrenCounts partial_sum. So you can reverse partial_sum to get childrenCounts from childrenOffsetEnds. childrenCounts ValueType depends on the childrenCount of your nodes. If no node in your tree has more than 255 children, you can use uint_8t to store the childrenCount information.
 
 ## small_memory_tree vs stlplus_ntree memory consumption
-results taken from [small_memory_tree_memory_measurement](https://github.com/werto87/small_memory_tree_memory_measurement).
+results are taken from [small_memory_tree_memory_measurement](https://github.com/werto87/small_memory_tree_memory_measurement).
 |root with n children uint8_t  | messured max heap in Byte stlplus tree | messured max heap in Byte small_memory_tree | memory needed small memory tree compared to stlplus_ntree |
 | --- | --- | --- | --- |
 |2	|240	|6|	2.50%  |
@@ -80,9 +80,9 @@ find on 10000 children last value is the value we look for. ValueType is uint_64
 
 
 ## Usage Example with [st_tree](https://github.com/erikerlandson/st_tree)
-As always for more examples look in the tests for example in test/smallMemoryTree.cxx
+As always, for more examples, look in the tests, for example, in test/smallMemoryTree.cxx
 
-### create small_memory_tree and retrieve children of node using a path
+### create small_memory_tree and retrieve children from the node using a path
 ```cpp
 #include <iostream>
 #include <small_memory_tree/stTree.hxx>
@@ -124,7 +124,7 @@ main ()
 }
 ```
 
-### save small_memory_tree to database and restore small_memory_tree
+### Save small_memory_tree to the database and restore small_memory_tree
 ```cpp
 #include <small_memory_tree/stTree.hxx>
 int
@@ -164,7 +164,7 @@ main ()
   - [st_tree](https://github.com/erikerlandson/st_tree)/1.2.2  Pass WITH_ST_TREE to cmake 
   - [catch2](https://github.com/catchorg/Catch2)/2.13.7 Pass WITH_TESTS to cmake  
 
-### The recommended way to build small memory tree is using the conan package manager
+### The recommended way to build small_memory_tree is using the conan package manager
 #### As someone who wants to contribute to small memory tree development
 1. Check out small memory tree
 2. Use conan remote to add https://modern-durak.com/artifactory/conan-local/
@@ -185,7 +185,7 @@ main ()
 4. If you want to use st_tree::tree or stlplus::ntree set the option with_st_tree or with_stlplus_tree to true
 5. Add small_memory_tree to your CMake
 
-## Use another tree library with small memory tree
-small memory tree currently supports st_tree::tree and stlplus::ntree. small memory tree can be used with other tree libraries by inheriting from BaseNodeAdapter and BaseNodeAdapter from smallMemoryTreeAdapter.hxx. See stTree.hxx for an example implementation
+## Use another tree library with small_memory_tree
+small memory tree currently supports st_tree::tree and stlplus::ntree. small_memory_tree can be used with other tree libraries by inheriting from BaseNodeAdapter and BaseNodeAdapter from smallMemoryTreeAdapter.hxx. See stTree.hxx for an example implementation
 ### 
 
