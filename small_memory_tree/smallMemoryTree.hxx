@@ -102,9 +102,9 @@ namespace internals
 {
 template <typename ValueType, typename ChildrenCountType = uint64_t>
 [[nodiscard]] std::expected<ChildrenCountType, std::string>
-getChildrenCount (SmallMemoryTree<ValueType, ChildrenCountType> const &SmallMemoryTree, uint64_t index)
+getChildrenCount (SmallMemoryTree<ValueType, ChildrenCountType> const &smallMemoryTree, uint64_t index)
 {
-  auto const &childrenCounts = SmallMemoryTree.getChildrenCounts ();
+  auto const &childrenCounts = smallMemoryTree.getChildrenCounts ();
   if (index >= childrenCounts.size ()) return std::unexpected (std::format ("Index out of bounds childrenCounts.size(): '{}' index '{}'", childrenCounts.size (), index));
   return childrenCounts.at (index);
 }
@@ -156,7 +156,7 @@ calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenCountType, ChildrenOffse
                 {
                   if (auto const &childrenBeginAndEndIndexExpected = internals::childrenBeginAndEndIndex (smallMemoryTree, boost::numeric_cast<uint64_t> (std::get<0> (nodesToCheckBeginAndEndIndex.value ()) + std::distance (childrenBegin, nodeItr))))
                     {
-                      auto const &childrenCount = boost::numeric_cast<int64_t> (std::get<1> (childrenBeginAndEndIndexExpected.value ()) - std::get<0> (childrenBeginAndEndIndexExpected.value ()));
+                      auto const &childrenCount = std::get<1> (childrenBeginAndEndIndexExpected.value ()) - std::get<0> (childrenBeginAndEndIndexExpected.value ());
                       if (childrenCount != 0)
                         {
                           nodesToCheckBeginAndEndIndex = childrenBeginAndEndIndexExpected.value ();
