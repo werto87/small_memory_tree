@@ -131,18 +131,18 @@ calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &sm
               auto const &childrenBegin = values.begin () + std::get<0> (nodesToCheckBeginAndEndIndex.value ());
               auto const &childrenEnd = values.begin () + std::get<1> (nodesToCheckBeginAndEndIndex.value ());
               auto const &children = std::span{ childrenBegin, childrenEnd };
-              auto nodeItr = values.begin ();
+              auto nodeItr = children.begin ();
               if (sortedNodes)
                 {
-                  nodeItr = confu_algorithm::binaryFind (childrenBegin, childrenEnd, valueToLookFor);
+                  nodeItr = confu_algorithm::binaryFind (children.begin (), children.end (), valueToLookFor);
                 }
               else
                 {
                   nodeItr = std::ranges::find (children, valueToLookFor);
                 }
-              if (nodeItr != childrenEnd)
+              if (nodeItr != children.end ())
                 {
-                  if (auto const &childrenBeginAndEndIndexExpected = internals::childrenBeginAndEndIndex (smallMemoryTree, boost::numeric_cast<uint64_t> (std::get<0> (nodesToCheckBeginAndEndIndex.value ()) + std::distance (childrenBegin, nodeItr))))
+                  if (auto const &childrenBeginAndEndIndexExpected = internals::childrenBeginAndEndIndex (smallMemoryTree, boost::numeric_cast<uint64_t> (std::get<0> (nodesToCheckBeginAndEndIndex.value ()) + std::distance (children.begin (), nodeItr))))
                     {
                       auto const &childrenCount = std::get<1> (childrenBeginAndEndIndexExpected.value ()) - std::get<0> (childrenBeginAndEndIndexExpected.value ());
                       if (childrenCount != 0)
