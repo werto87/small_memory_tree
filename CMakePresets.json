@@ -10,13 +10,15 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "conan_toolchain.cmake",
-                                "BUILD_TESTS": "True",
+                "BUILD_TESTS": "True",
                 "WITH_ST_TREE": "True",
                 "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_CXX_FLAGS": "-stdlib=libc++",
-                "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++"
+                "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
+                "myproject_ENABLE_HARDENING": "ON",
+                "myproject_WARNINGS_AS_ERRORS": "ON"
             }
         },
         {
@@ -34,8 +36,7 @@
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_CXX_FLAGS": "-stdlib=libc++",
-                "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
-                "myproject_ENABLE_HARDENING": "OFF"
+                "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++"
             }
         },
         {
@@ -51,7 +52,9 @@
                 "WITH_ST_TREE": "True",
                 "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++"
+                "CMAKE_CXX_COMPILER": "g++",
+                "myproject_ENABLE_HARDENING": "ON",
+                "myproject_WARNINGS_AS_ERRORS": "ON"
             }
         },
         {
@@ -67,8 +70,7 @@
                 "WITH_ST_TREE": "True",
                 "WITH_STLPLUS_TREE": "True",
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++ ",
-                "myproject_ENABLE_HARDENING": "OFF"
+                "CMAKE_CXX_COMPILER": "g++ "
             }
         },
         {

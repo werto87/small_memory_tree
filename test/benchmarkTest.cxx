@@ -94,26 +94,22 @@ TEST_CASE ("st_tree find node", "[!benchmark]")
 {
   SECTION ("find in 10000 elements")
   {
-    auto tree = st_tree::tree<uint8_t>{};
+    auto tree = st_tree::tree<uint64_t>{};
     tree.insert (0);
     for (auto i = uint64_t{}; i < 10000; ++i)
       {
-        tree.root ().insert (i != 9999 ? 1 : 2);
+        tree.root ().insert (i);
       }
-    SECTION ("calcChildrenForPath 0 0")
+    SECTION ("calcChildrenForPath 0 9999")
     {
-      BENCHMARK ("SmallMemoryTree"){
-        // return  tree.root ().begin;
-        // return ;
+      BENCHMARK ("st_tree find")
+      {
+        return std::ranges::find (tree.root (), 9999, [] (auto node) { return node.data (); });
+      };
+      BENCHMARK ("st_tree binary find")
+      {
+        return confu_algorithm::binaryFind (tree.root ().begin (), tree.root ().end (), 9999, {}, [] (auto node) { return node.data (); });
       };
     }
-    // SECTION ("calcChildrenForPath 0 9999")
-    // {
-    //   BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint8_t>{ 0, 2 }); };
-    // }
-    // SECTION ("calcChildrenForPath 0 9999 with binary find")
-    // {
-    //   BENCHMARK ("SmallMemoryTree") { return calcChildrenForPath (smallMemoryTree, std::vector<uint8_t>{ 0, 2 }, true); };
-    // }
   }
 }
