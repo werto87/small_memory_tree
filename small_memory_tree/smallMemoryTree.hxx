@@ -58,6 +58,8 @@ public:
       childrenSum += boost::numeric_cast<ChildrenOffsetEndType> (std::distance (node.begin (), node.end ()));
       childrenOffsetEnds.push_back (childrenSum);
     });
+    values.shrink_to_fit ();
+    childrenOffsetEnds.shrink_to_fit ();
   }
 
   SmallMemoryTree (std::vector<ValueType> values_, std::vector<ChildrenOffsetEndType> childrenOffsetEnds_) : values{ std::move (values_) }, childrenOffsetEnds{ std::move (childrenOffsetEnds_) } {}

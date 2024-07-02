@@ -1,10 +1,12 @@
 # small_memory_tree
 ## Motivation and Goals
 small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer with 8 Bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. 
-small_memory_tree saves the payload plus the childrenCount of a node in a vector. This also means that small_memory_tree can be **saved to disk relative easily**.
+small_memory_tree saves the payload and the childOffset in a vector. This also means that small_memory_tree can be **saved to disk relative easily**.
 
 ## How small_memory_tree saves a Tree in Memory
-small_memory_tree takes the payload and the childrenCount of every node and creates a small_memory_tree::Node from it. For fast lookups small_memory_tree creates childrenOffsetEnds by running std::partial_sum over the children count of every node - NOTE: to save memory please only save the nodes.
+### small_memory_tree class member variables
+values is the result of saving the data of the tree into a vector iterating breadth-first.  
+childrenOffsetEnds is the result of saving the child count of all nodes iterating breadth-first. And than running partial_sum on that result.
 
 ### Example how SmallMemoryTree gets created
 Lets say we want to save a tree with 5 nodes who's values fit in unsigned char for example like this:
@@ -17,20 +19,30 @@ Lets say we want to save a tree with 5 nodes who's values fit in unsigned char f
    /
   4
 ```
-#### nodes
-small_memory_tree will generate a vector called nodes. A node contains the payload and the children count of every node. In this example:  
-```cpp
-[{0,2},{1,1},{2,0},{3,0},{4,0}]
-```
-This is all small_memory_tree needs to lossless store your tree.
-#### childrenOffsetEnds
-small_memory_tree will run std::partial_sum over the children count of every node.
+small_memory_tree will generate a vector called values by iterating breadth first over the tree and saving the node data into values. 
 In this example:  
 ```cpp
-[2,3,3,3,3]
+[0,1,2,3,4]
 ```
+small_memory_tree will generate a vector called childrenCounts by iterating breadth first over the tree and saving  the node childrenCount into childrenCounts. From childrenCount it will create childrenOffsetEnds using partial_sum on childrenCount. 
+In this example:  
+```cpp
+[2,3,3,4,4]
+```
+## small_memory_tree template parameter
+small_memory_tree is a class templated on ValueType and ChildrenOffsetEndType.
+### ValueType
+ValueType is the Type of the data of your nodes.
+### ChildrenOffsetEndType
+Should be an Integer which can hold the size of your tree. If your tree has 200 nodes you can use uint_8t. If your tree has 400 nodes you can use uint_16t.
+
 
 ## Memory/RAM Consumption
+The memory consumption can be calculated with this formula:  
+automatic_storage_in_byte = size_of(ValueType) + size_of(ChildrenOffsetEndType) * tree.size()
+dynamic_storage_in_byte = size_of(values) + size_of(childrenOffsetEnds)
+
+
 
 
 
