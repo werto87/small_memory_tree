@@ -43,14 +43,6 @@ template <typename T> concept HasIteratorToNode = requires (T a)
     *a.constant_breadth_first_traversal_end ()
   } -> IsNode;
 };
-template <typename ChildrenCountType = uint64_t, typename ChildrenOffsetEndType = uint64_t>
-std::vector<ChildrenOffsetEndType>
-calcChildrenOffsetEnds (std::vector<ChildrenCountType> const &childrenCounts)
-{
-  auto result = std::vector<ChildrenOffsetEndType>{};
-  std::partial_sum (childrenCounts.begin (), childrenCounts.end (), std::back_inserter (result));
-  return result;
-}
 
 }
 
@@ -62,12 +54,16 @@ public:
   {
     std::for_each (treeAdapter.constant_breadth_first_traversal_begin (), treeAdapter.constant_breadth_first_traversal_end (), [&] (auto const &node) mutable {
       values.push_back (node.data ());
-      childrenCounts.push_back (boost::numeric_cast<ChildrenCountType> (std::distance (node.begin (), node.end ())));
+      childrenOffsetEnds.push_back (boost::numeric_cast<ChildrenCountType> (std::distance (node.begin (), node.end ())));
     });
-    childrenOffsetEnds = internals::calcChildrenOffsetEnds<ChildrenCountType, ChildrenOffsetEndType> (childrenCounts);
+    std::partial_sum (childrenOffsetEnds.begin (), childrenOffsetEnds.end (), childrenOffsetEnds.begin ());
   }
 
-  SmallMemoryTree (std::vector<ValueType> values_, std::vector<ChildrenCountType> childrenCounts_) : values{ std::move (values_) }, childrenCounts{ std::move (childrenCounts_) }, childrenOffsetEnds{ internals::calcChildrenOffsetEnds<ChildrenCountType, ChildrenOffsetEndType> (childrenCounts) } {}
+  SmallMemoryTree (std::vector<ValueType> values_, std::vector<ChildrenCountType> childrenCounts_) : values{ std::move (values_) }
+  {
+    childrenOffsetEnds = std::move (childrenCounts_);
+    std::partial_sum (childrenOffsetEnds.begin (), childrenOffsetEnds.end (), childrenOffsetEnds.begin ());
+  }
 
   // clang-format off
     [[nodiscard]]
@@ -80,12 +76,6 @@ public:
     return values;
   }
 
-  [[nodiscard]] std::vector<ChildrenCountType> const &
-  getChildrenCounts () const
-  {
-    return childrenCounts;
-  }
-
   [[nodiscard]] std::vector<ChildrenOffsetEndType> const &
   getChildrenOffsetEnds () const
   {
@@ -94,7 +84,6 @@ public:
 
 private:
   std::vector<ValueType> values{};
-  std::vector<ChildrenCountType> childrenCounts{};
   std::vector<ChildrenOffsetEndType> childrenOffsetEnds{};
 };
 

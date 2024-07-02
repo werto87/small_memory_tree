@@ -1,7 +1,7 @@
 # small_memory_tree
 ## Motivation and Goals
 small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer with 8 Bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. 
-small_memory_tree saves the payload and the childrenCount of a node in a vector. This also means that small_memory_tree can be **saved to disk relative easily**.
+small_memory_tree saves the payload plus the childrenCount of a node in a vector. This also means that small_memory_tree can be **saved to disk relative easily**.
 
 ## How small_memory_tree saves a Tree in Memory
 small_memory_tree takes the payload and the childrenCount of every node and creates a small_memory_tree::Node from it. For fast lookups small_memory_tree creates childrenOffsetEnds by running std::partial_sum over the children count of every node - NOTE: to save memory please only save the nodes.
