@@ -47,9 +47,9 @@ template <typename ValueType, typename NodeType = st_tree::detail::node_raw<st_t
   }
 };
 
-template <typename ValueType, typename ChildrenCountType = uint64_t>
+template <typename ValueType, typename ChildrenOffsetEndType = uint64_t>
 inline std::expected<st_tree::tree<ValueType>, std::string>
-generateStTree (SmallMemoryTree<ValueType, ChildrenCountType> const &smallMemoryTree)
+generateStTree (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &smallMemoryTree)
 {
   auto const &values = smallMemoryTree.getValues ();
   auto result = st_tree::tree<ValueType>{};

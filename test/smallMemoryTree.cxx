@@ -25,7 +25,7 @@ TEST_CASE ("smallSmallMemoryTree only root")
   SECTION ("getChildrenCount")
   {
     REQUIRE (getChildrenCount (smallMemoryTree, 0) == 0);
-    REQUIRE (getChildrenCount (smallMemoryTree, 1).error () == "Index out of bounds childrenCounts.size(): '1' index '1'");
+    REQUIRE (getChildrenCount (smallMemoryTree, 1).error () == "Index out of bounds childrenOffsetEnds.size(): '1' index '1'");
   }
   SECTION ("childrenBeginAndEndIndex 0")
   {
@@ -33,7 +33,7 @@ TEST_CASE ("smallSmallMemoryTree only root")
     REQUIRE (result);
     REQUIRE (std::get<0> (result.value ()) - std::get<1> (result.value ()) == 0);
   }
-  SECTION ("childrenBeginAndEndIndex 1 out of bounds") { REQUIRE (childrenBeginAndEndIndex (smallMemoryTree, 1).error () == "Index out of bounds childrenCounts.size(): '1' index '1'"); }
+  SECTION ("childrenBeginAndEndIndex 1 out of bounds") { REQUIRE (childrenBeginAndEndIndex (smallMemoryTree, 1).error () == "Index out of bounds childrenOffsetEnds.size(): '1' index '1'"); }
 
   SECTION ("calcChildrenForPath {0}")
   {
