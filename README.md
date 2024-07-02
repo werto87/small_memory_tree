@@ -27,7 +27,7 @@ In this example:
 ```cpp
 [0,1,2,3,4]
 ```
-small_memory_tree will generate a vector called childrenCounts by iterating breadth first over the tree and saving  the node childrenCount into childrenCounts. From childrenCount it will create childrenOffsetEnds using partial_sum on childrenCount. 
+small_memory_tree will generate a vector called childrenCounts by iterating breadth first over the tree and saving the node childrenCount into childrenCounts. From childrenCounts it will create childrenOffsetEnds using partial_sum on childrenCounts. 
 In this example:  
 ```cpp
 [2,3,3,4,4]
@@ -168,20 +168,22 @@ main ()
 #### As someone who wants to contribute to small memory tree development
 1. Check out small memory tree
 2. Use conan remote to add https://modern-durak.com/artifactory/conan-local/
-3. Run conan install
-4. Configure CMake with:
+3. conan remote login modern_durak read -p 'B2"bi%y@SQhqP~X'
+4. Run conan install
+5. Configure CMake with:
     - BUILD_TESTS true
     - WITH_ST_TREE true
     - WITH_STLPLUS_TREE true
     - CMAKE_TOOLCHAIN_FILE conan_toolchain.cmake
-5. Build the project using CMake
-6. Run the tests target with build/test/_test
+6. Build the project using CMake
+7. Run the tests target with build/test/_test
 
 #### As  someone who wants to use small memory tree as a library
 1. Use conan remote to add https://modern-durak.com/artifactory/conan-local/
-2. Add small_memory_tree/SomeVersion as a requirement to your conanfile.py
-3. If you want to use st_tree::tree or stlplus::ntree set the option with_st_tree or with_stlplus_tree to true
-4. Add small_memory_tree to your CMake
+2. conan remote login modern_durak read -p 'B2"bi%y@SQhqP~X'
+3. Add small_memory_tree/SomeVersion as a requirement to your conanfile.py
+4. If you want to use st_tree::tree or stlplus::ntree set the option with_st_tree or with_stlplus_tree to true
+5. Add small_memory_tree to your CMake
 
 ## Use another tree library with small memory tree
 small memory tree currently supports st_tree::tree and stlplus::ntree. small memory tree can be used with other tree libraries by inheriting from BaseNodeAdapter and BaseNodeAdapter from smallMemoryTreeAdapter.hxx. See stTree.hxx for an example implementation
