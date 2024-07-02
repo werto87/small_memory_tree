@@ -3,6 +3,7 @@
 small_memory_tree saves data plus hierarchy information of a tree. It tries to **save memory** compared to other libraries who use a vector plus a pointer to the parent as a node(vecPlusPointerToParentNode). Even an empty vector needs 24 Bytes of memory (3 pointer with 8 Bytes on a 64 bit cpu) plus the pointer to the parent node which is again 8 bytes this results in 32 bytes of memory (overhead) + memory needed for the value we want to save (payload). If the payload is one byte and the overhead is 32 bytes this means from 33 bytes only one byte is actual useful. 
 small_memory_tree saves the payload and the childOffset in a vector. This also means that small_memory_tree can be **saved to disk relative easily**.
 
+
 ## How small_memory_tree saves a Tree in Memory
 ### small_memory_tree class member variables
 values is the result of saving the data of the tree into a vector iterating breadth-first.  
@@ -44,6 +45,40 @@ dynamic_storage_in_byte = size_of(values) + size_of(childrenOffsetEnds)
 
 ### save more memory
 childrenOffsetEnds is the result of childrenCounts partial_sum. So you can reverse partial_sum to get childrenCounts from childrenOffsetEnds. childrenCounts ValueType depends on the childrenCount of your nodes. If no node of your tree has more than 255 children you can use uint_8t to store the childrenCount information.
+
+## small_memory_tree vs stlplus_ntree memory consumption
+results taken from [small_memory_tree_memory_measurement](https://github.com/werto87/small_memory_tree_memory_measurement)
+using a node with n children
+<!-- TODO tabele -->
+root with n children uint8_t  
+messured max heap in Byte stlplus tree  
+messured max heap in Byte small_memory_tree	memory needed small memory tree compared to stlplus_ntree  
+2	240	6	2.50%  
+4	392	10	2.55%  
+8	712	18	2.53%  
+16	1,352	34	2.51%  
+32	2,632	66	2.51%  
+64	5,192	130	2.50%  
+128	10,312	258	2.50%  
+256	20,552	771	3.75%  
+512	41,032	1,500	3.66%  
+1,024	81,992	3,000	3.66%  
+2,048	163,912	6,000	3.66%  
+4,096	327,752	12,000	3.66%  
+8,192	655,432	24,000	3.66%  
+16,384	1,310,792	48,000	3.66%  
+32,768	2,621,512	96,000	3.66%  
+
+## small_memory_tree vs st_tree get value by path
+Results are taken from  [test/benchmarkTest.cxx](https://github.com/werto87/small_memory_tree/blob/main/test/benchmarkTest.cxx)
+find on 10000 children last value is the value we look for. ValueType is uint_64t
+<!-- TODO make table -->
+                        g++ libstdc++        clang++ libc++
+                  | find      | binary find |   find   | binary find  |
+small_memory_tree | 2.4134 us |  37.0016 ns |2.38974 us|  48.5175 ns  |
+st_tree           | 123.688 us|  166.111 ns |135.301 us|202.703 ns    |
+
+
 
 
 ## Usage Example with [st_tree](https://github.com/erikerlandson/st_tree)
