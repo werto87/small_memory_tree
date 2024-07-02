@@ -140,18 +140,21 @@ calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenCountType, ChildrenOffse
           auto const &valueToLookFor = path.at (i);
           if (nodesToCheckBeginAndEndIndex.has_value ())
             {
+              auto const &childrenBegin = values.begin () + std::get<0> (nodesToCheckBeginAndEndIndex.value ());
+              auto const &childrenEnd = values.begin () + std::get<1> (nodesToCheckBeginAndEndIndex.value ());
+              auto const &children = std::span{ childrenBegin, childrenEnd };
               auto nodeItr = values.begin ();
               if (sortedNodes)
                 {
-                  nodeItr = confu_algorithm::binaryFind (values.begin () + std::get<0> (nodesToCheckBeginAndEndIndex.value ()), values.begin () + std::get<1> (nodesToCheckBeginAndEndIndex.value ()), valueToLookFor);
+                  nodeItr = confu_algorithm::binaryFind (childrenBegin, childrenEnd, valueToLookFor);
                 }
               else
                 {
-                  nodeItr = std::ranges::find (values.begin () + std::get<0> (nodesToCheckBeginAndEndIndex.value ()), values.begin () + std::get<1> (nodesToCheckBeginAndEndIndex.value ()), valueToLookFor);
+                  nodeItr = std::ranges::find (children, valueToLookFor);
                 }
-              if (nodeItr != values.begin () + std::get<1> (nodesToCheckBeginAndEndIndex.value ()))
+              if (nodeItr != childrenEnd)
                 {
-                  if (auto const &childrenBeginAndEndIndexExpected = internals::childrenBeginAndEndIndex (smallMemoryTree, boost::numeric_cast<uint64_t> (std::get<0> (nodesToCheckBeginAndEndIndex.value ()) + std::distance (values.begin () + std::get<0> (nodesToCheckBeginAndEndIndex.value ()), nodeItr))))
+                  if (auto const &childrenBeginAndEndIndexExpected = internals::childrenBeginAndEndIndex (smallMemoryTree, boost::numeric_cast<uint64_t> (std::get<0> (nodesToCheckBeginAndEndIndex.value ()) + std::distance (childrenBegin, nodeItr))))
                     {
                       auto const &childrenCount = boost::numeric_cast<int64_t> (std::get<1> (childrenBeginAndEndIndexExpected.value ()) - std::get<0> (childrenBeginAndEndIndexExpected.value ()));
                       if (childrenCount != 0)
