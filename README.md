@@ -8,8 +8,8 @@ small_memory_tree is not designed to insert or change any data. Please regenerat
 
 ## How small_memory_tree saves a Tree in Memory
 ### small_memory_tree class member variables
-values is the result of saving the data of the tree into a vector iterating breadth-first.  
-childrenOffsetEnds is the result of saving the child count of all nodes iterating breadth-first. And than running partial_sum on that result.
+values is the result of saving the data of the tree into a vector iterating breadth-first.    
+childrenOffsetEnds is the result of saving the child count of all nodes iterating breadth-first.   And than running partial_sum on that result.
 
 ### Example how SmallMemoryTree gets created
 Lets say we want to save a tree with 5 nodes who's values fit in unsigned char for example like this:
