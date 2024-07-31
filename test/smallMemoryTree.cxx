@@ -25,7 +25,7 @@ TEST_CASE ("smallSmallMemoryTree only root")
   SECTION ("getChildrenCount")
   {
     REQUIRE (getChildrenCount (smallMemoryTree, 0) == 0);
-    REQUIRE (getChildrenCount (smallMemoryTree, 1).error () == "Index out of bounds childrenOffsetEnds.size(): '1' index '1'");
+    REQUIRE (getChildrenCount (smallMemoryTree, 1).error () == small_memory_tree::ApiError::OutOfRange);
   }
   SECTION ("childrenBeginAndEndIndex 0")
   {
@@ -33,7 +33,7 @@ TEST_CASE ("smallSmallMemoryTree only root")
     REQUIRE (result);
     REQUIRE (std::get<0> (result.value ()) - std::get<1> (result.value ()) == 0);
   }
-  SECTION ("childrenBeginAndEndIndex 1 out of bounds") { REQUIRE (childrenBeginAndEndIndex (smallMemoryTree, 1).error () == "Index out of bounds childrenOffsetEnds.size(): '1' index '1'"); }
+  SECTION ("childrenBeginAndEndIndex 1 out of bounds") { REQUIRE (childrenBeginAndEndIndex (smallMemoryTree, 1).error () == small_memory_tree::ApiError::OutOfRange); }
 
   SECTION ("calcChildrenForPath {0}")
   {
@@ -41,7 +41,7 @@ TEST_CASE ("smallSmallMemoryTree only root")
     REQUIRE (result);
     REQUIRE (result->empty ());
   }
-  SECTION ("calcChildrenForPath {1} wrong value") { REQUIRE (calcChildrenForPath (smallMemoryTree, { 1 }).error () == "invalid path. could not find a match for value with index '0'."); }
+  SECTION ("calcChildrenForPath {1} wrong value") { REQUIRE (calcChildrenForPath (smallMemoryTree, { 1 }).error () == small_memory_tree::ApiError::PathDoesNotMatch); }
 }
 
 TEST_CASE ("smallSmallMemoryTree multiple elements")
@@ -164,55 +164,55 @@ TEST_CASE ("smallSmallMemoryTree multiple elements")
     {
       auto result = calcChildrenForPath (smallMemoryTree, {});
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "empty path is not allowed");
+      REQUIRE (result.error () == ApiError::EmptyPath);
     }
     SECTION ("calcChildrenForPath 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 42 });
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '0'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath 0 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 42 });
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '1'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath 0 1 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 1, 42 });
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath 0 1 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 1, 42 });
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath 0 2 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 2, 42 });
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath 0 2 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 2, 42 }, true);
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '2'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath 0 2 6 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 2, 6, 42 }, true);
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "invalid path. could not find a match for value with index '3'.");
+      REQUIRE (result.error () == ApiError::PathDoesNotMatch);
     }
     SECTION ("calcChildrenForPath path to long 0 2 6 7 42")
     {
       auto result = calcChildrenForPath (smallMemoryTree, { 0, 2, 6, 7, 42 }, true);
       REQUIRE_FALSE (result);
-      REQUIRE (result.error () == "Path too long. Last matching index '3'.");
+      REQUIRE (result.error () == ApiError::PathTooLong);
     }
   }
 }

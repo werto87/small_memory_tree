@@ -5,6 +5,7 @@ Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE.md or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include "small_memory_tree/apiError.hxx"
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 #include <confu_algorithm/binaryFind.hxx>
@@ -89,16 +90,16 @@ private:
 namespace internals
 {
 template <typename ValueType, typename ChildrenOffsetEndType = uint64_t>
-[[nodiscard]] std::expected<ChildrenOffsetEndType, std::string>
+[[nodiscard]] std::expected<ChildrenOffsetEndType, std::error_condition>
 getChildrenCount (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &smallMemoryTree, uint64_t index)
 {
   auto const &childrenOffsetEnds = smallMemoryTree.getChildrenOffsetEnds ();
-  if (index >= childrenOffsetEnds.size ()) return std::unexpected (std::format ("Index out of bounds childrenOffsetEnds.size(): '{}' index '{}'", childrenOffsetEnds.size (), index));
+  if (index >= childrenOffsetEnds.size ()) return std::unexpected (make_error_condition (ApiError::OutOfRange));
   return (index == 0) ? childrenOffsetEnds.at (index) : childrenOffsetEnds.at (index) - childrenOffsetEnds.at (index - 1);
 }
 
 template <typename ValueType, typename ChildrenOffsetEndType = uint64_t>
-[[nodiscard]] std::expected<std::tuple<uint64_t, uint64_t>, std::string>
+[[nodiscard]] std::expected<std::tuple<uint64_t, uint64_t>, std::error_condition>
 childrenBeginAndEndIndex (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &smallMemoryTree, uint64_t index)
 {
   if (auto const &childrenCountExpected = getChildrenCount (smallMemoryTree, index))
@@ -116,7 +117,7 @@ childrenBeginAndEndIndex (SmallMemoryTree<ValueType, ChildrenOffsetEndType> cons
 }
 }
 template <typename ValueType, typename ChildrenOffsetEndType = uint64_t>
-[[nodiscard]] std::expected<std::vector<ValueType>, std::string>
+[[nodiscard]] std::expected<std::vector<ValueType>, std::error_condition>
 calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &smallMemoryTree, std::vector<ValueType> const &path, bool sortedNodes = false)
 {
   if (not path.empty ())
@@ -161,12 +162,12 @@ calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &sm
                 }
               else
                 {
-                  return std::unexpected (std::format ("invalid path. could not find a match for value with index '{}'.", i));
+                  return std::unexpected (make_error_condition (ApiError::PathDoesNotMatch));
                 }
             }
           else
             {
-              return std::unexpected (std::format ("Path too long. Last matching index '{}'.", i - 1));
+              return std::unexpected (make_error_condition (ApiError::PathTooLong));
             }
         }
       if (nodesToCheckBeginAndEndIndex.has_value ())
@@ -180,7 +181,7 @@ calcChildrenForPath (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &sm
     }
   else
     {
-      return std::unexpected ("empty path is not allowed");
+      return std::unexpected (make_error_condition (ApiError::EmptyPath));
     }
 }
 }

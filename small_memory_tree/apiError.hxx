@@ -6,8 +6,9 @@ namespace small_memory_tree
 enum class ApiError
 {
   OutOfRange = 1,
+  EmptyPath,
   PathTooLong,
-  WrongPath
+  PathDoesNotMatch
 };
 class ApiErrorCategoryImpl : public std::error_category
 {
@@ -23,11 +24,13 @@ public:
     switch (static_cast<ApiError> (ev))
       {
       case ApiError::OutOfRange:
-        return "Out of Range Error";
+        return "Out of Range";
       case ApiError::PathTooLong:
-        return "Path is too long Error";
-      case ApiError::WrongPath:
-        return "Path is Wrong Error";
+        return "Path is too long";
+      case ApiError::PathDoesNotMatch:
+        return "Path does not match";
+      case ApiError::EmptyPath:
+        return "Empty Path is not allowed";
       default:
         return "Unknown Api Error";
       }

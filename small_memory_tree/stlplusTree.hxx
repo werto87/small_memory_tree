@@ -45,7 +45,7 @@ template <typename ValueType, typename NodeType = stlplus::ntree_node<ValueType>
 };
 
 template <typename ValueType, typename ChildrenOffsetEndType = uint64_t>
-inline std::expected<stlplus::ntree<ValueType>, std::string>
+inline std::expected<stlplus::ntree<ValueType>, std::error_condition>
 generateStlplusTree (SmallMemoryTree<ValueType, ChildrenOffsetEndType> const &smallMemoryTree)
 {
   auto const &values = smallMemoryTree.getValues ();
