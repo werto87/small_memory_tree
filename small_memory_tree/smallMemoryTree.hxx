@@ -108,7 +108,7 @@ childrenBeginAndEndIndex (SmallMemoryTree<ValueType, ChildrenOffsetEndType> cons
       auto const &childrenCount = boost::numeric_cast<uint64_t> (childrenCountExpected.value ());
       auto const &childrenOffsetEnd = boost::numeric_cast<uint64_t> (childrenOffsetEnds.at (index)) + 1 /*end has to be one element after the last element*/;
       auto const &childrenBegin = childrenOffsetEnd - childrenCount;
-      return std::tuple<uint64_t, uint64_t>{ childrenBegin, childrenOffsetEnd };
+      return std::tuple<ChildrenOffsetEndType, ChildrenOffsetEndType>{ childrenBegin, childrenOffsetEnd };
     }
   else
     {
