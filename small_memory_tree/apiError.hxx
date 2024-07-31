@@ -12,7 +12,7 @@ enum class ApiError
 class ApiErrorCategoryImpl : public std::error_category
 {
 public:
-  const char *
+  char const *
   name () const noexcept override
   {
     return "Small Memory Tree Api Error";
@@ -33,19 +33,18 @@ public:
       }
   }
 };
-
-const std::error_category &
+inline std::error_category const &
 ApiErrorCategory ()
 {
   static ApiErrorCategoryImpl instance;
   return instance;
 }
-std::error_code
+inline std::error_code
 make_error_code (ApiError e)
 {
   return std::error_code (static_cast<int> (e), ApiErrorCategory ());
 }
-std::error_condition
+inline std::error_condition
 make_error_condition (ApiError e)
 {
   return std::error_condition (static_cast<int> (e), ApiErrorCategory ());
